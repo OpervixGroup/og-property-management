@@ -6,7 +6,7 @@ import {stripTypeScriptTypes} from 'node:module';
 import {PDFDocument} from 'pdf-lib';
 const tmp=new URL('./.runtime/',import.meta.url);await mkdir(tmp,{recursive:true});
 await writeFile(new URL('operations-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/operations-model.ts',import.meta.url),'utf8'),{mode:'transform'}));
-await writeFile(new URL('procurement-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/procurement-model.ts',import.meta.url),'utf8'),{mode:'transform'}));
+await writeFile(new URL('procurement-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/procurement-model.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./workflow-controls'","'./workflow-controls.mjs'"));
 await writeFile(new URL('accounting-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/accounting-model.ts',import.meta.url),'utf8'),{mode:'transform'}));
 let allocation=stripTypeScriptTypes(await readFile(new URL('../lib/allocation.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./pool'","'./pool.mjs'").replace("'./accounting-model'","'./accounting-model.mjs'");await writeFile(new URL('allocation.mjs',tmp),allocation);
 await writeFile(new URL('staff-users.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/staff-users.ts',import.meta.url),'utf8'),{mode:'transform'}));

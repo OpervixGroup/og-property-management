@@ -179,3 +179,5 @@ button.brand-home{background:transparent;border:0;padding:0;min-height:48px;colo
 
 /* Keep wide records inside their own table scroll area rather than moving the page. */
 .workspace,.scoped-shell,.panel{min-width:0}.workspace{width:100%}.approval-center [data-slot=table-cell]{white-space:normal;overflow-wrap:anywhere;max-width:240px}.approval-center .row-actions{display:flex;flex-wrap:wrap;gap:6px}.approval-center .panel-heading{flex-wrap:wrap}
+
+.date-entry{display:flex;gap:6px;align-items:center}.date-entry>input:first-child{min-width:0;flex:1}
