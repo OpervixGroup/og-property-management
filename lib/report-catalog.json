@@ -1,0 +1,195 @@
+[
+  {
+    "category": "Accounting Reports",
+    "reports": [
+      "Account Totals",
+      "Balance Sheet",
+      "Balance Sheet - Comparative",
+      "Balance Sheet - Property Comparison",
+      "Bank Account Activity",
+      "Bank Account Association",
+      "Bank Account Directory",
+      "Cash Flow",
+      "Cash Flow - 12 Month",
+      "Cash Flow - Property Comparison",
+      "Cash Flow Detail",
+      "Chart of Accounts",
+      "Expense Distribution",
+      "General Ledger",
+      "Income Statement",
+      "Income Statement - 12 Month",
+      "Income Statement - Comparative",
+      "Income Statement - Property Comparison",
+      "Income Statement (Date Range)",
+      "Loans",
+      "Trial Balance",
+      "Trial Balance by Property",
+      "Trust Account Balance",
+      "Trust Account Detail"
+    ]
+  },
+  {
+    "category": "Association Reports",
+    "reports": [
+      "Architectural Review Detail",
+      "Association Work Order",
+      "Board of Directors",
+      "Dues Roll",
+      "Dues Roll (Itemized)",
+      "Fund Balance Sheet",
+      "Fund Balance Sheet - Active Funds",
+      "Fund Income Statement",
+      "Homeowner Delinquency",
+      "Homeowner Delinquency (As Of)",
+      "Homeowner Directory",
+      "Homeowner Ledger",
+      "Homeowner Prepayment Balance",
+      "Homeowner Resale",
+      "Homeowner Vehicle Info",
+      "Renter Directory",
+      "Violation Detail"
+    ]
+  },
+  {
+    "category": "Diagnostic Reports",
+    "reports": [
+      "AppFolio Stack™ Usage",
+      "CheckSend Payment Usage Summary Report",
+      "E Check Usage Summary Report",
+      "Email Delivery Errors",
+      "Import Variances",
+      "Late Fee Policy Comparison",
+      "Merge Variances",
+      "Online Payables Payment Detail Report",
+      "Resident eCheck Fee Coverage",
+      "User Roles and Permissions",
+      "Users"
+    ]
+  },
+  {
+    "category": "Leasing Reports",
+    "reports": [
+      "Guest Card Inquiries",
+      "Guest Card Interests",
+      "Historical Advertised Rent",
+      "Inactive Guest Card Interests",
+      "Lease Expiration Detail By Month",
+      "Lease Expiration Summary By Month",
+      "Lease History",
+      "Leasing Agent Performance",
+      "Leasing Funnel Performance",
+      "Leasing Summary",
+      "Occupancy Summary",
+      "Owner Leasing",
+      "Premium Listing Billing Detail",
+      "Prospect Source Tracking",
+      "Renewal Summary",
+      "Rental Applications",
+      "Showings",
+      "Unit Vacancy Detail"
+    ]
+  },
+  {
+    "category": "Maintenance Reports",
+    "reports": [
+      "Inspection Detail",
+      "Project Budget Detail",
+      "Project Directory",
+      "Purchase Order",
+      "Recurring Work Order",
+      "Unit Turn Detail",
+      "Vendor Directory",
+      "Vendor Ledger",
+      "Vendor Ledger (Enhanced)",
+      "Work Order",
+      "Work Order Billable Detail",
+      "Work Order Labor Summary"
+    ]
+  },
+  {
+    "category": "Owner Reports",
+    "reports": [
+      "Owner Directory",
+      "Owner Insurance",
+      "Owner Insurance Audit",
+      "Owner Statement",
+      "Owner Statement (Enhanced)",
+      "Owner Withholdings"
+    ]
+  },
+  {
+    "category": "Property And Unit Reports",
+    "reports": [
+      "Activities Summary",
+      "Additional Fees",
+      "Amenities By Property",
+      "Annual Budget - Comparative",
+      "Annual Budget - Forecast",
+      "Budget - Comparative",
+      "Budget - Property Comparison",
+      "Budget Detail",
+      "Fixed Assets",
+      "Gross Potential Rent",
+      "Inventory Status",
+      "Inventory Usage",
+      "Keys Detail",
+      "Property Directory",
+      "Property Group Directory",
+      "Property Performance",
+      "Rent Roll",
+      "Rent Roll (Commercial)",
+      "Rent Roll (Itemized)",
+      "Rentable Items",
+      "Unit Directory",
+      "Unit Inspection"
+    ]
+  },
+  {
+    "category": "Tax Reports",
+    "reports": [
+      "Owner 1099 Detail",
+      "Owner 1099 Summary",
+      "Vendor 1099 Detail",
+      "Vendor 1099 Summary"
+    ]
+  },
+  {
+    "category": "Tenant Reports",
+    "reports": [
+      "Debt Collections Status",
+      "Delinquency",
+      "Delinquency (As Of)",
+      "Eligible Debt Summary",
+      "Security Deposit Funds Detail",
+      "Survey Responses",
+      "Tenant Directory",
+      "Tenant Ledger",
+      "Tenant Tickler",
+      "Tenant Transactions Summary",
+      "Tenant Unpaid Charges",
+      "Tenant Unpaid Charges Summary",
+      "Tenant Vehicle Info"
+    ]
+  },
+  {
+    "category": "Transaction Reports",
+    "reports": [
+      "Aged Payables Summary",
+      "Aged Receivable Detail",
+      "Bill Detail",
+      "Charge Detail",
+      "Check Register",
+      "Check Register Detail",
+      "Check Register Detail (Enhanced)",
+      "Credit Card Expense Detail",
+      "Deposit Register",
+      "Expense Register",
+      "Income Register",
+      "Journal Entry Register",
+      "Payment Plans",
+      "Receivables Activity",
+      "Resident Financial Activity",
+      "Unpaid Balances by Month"
+    ]
+  }
+]

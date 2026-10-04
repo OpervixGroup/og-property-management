@@ -12,6 +12,7 @@ import {PDFDocument} from 'pdf-lib';
 
 const tmp=new URL('./.runtime/',import.meta.url);await mkdir(tmp,{recursive:true});
 
+await writeFile(new URL('office-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/office-model.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./people-calendar'","'./people-calendar.mjs'"));
 await writeFile(new URL('people-calendar.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/people-calendar.ts',import.meta.url),'utf8'),{mode:'transform'}));
 await writeFile(new URL('leasing-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/leasing-model.ts',import.meta.url),'utf8'),{mode:'transform'}));
 await writeFile(new URL('maintenance-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/maintenance-model.ts',import.meta.url),'utf8'),{mode:'transform'}));
@@ -29,7 +30,7 @@ for(const file of ['fee-summary','monthly-clearing'])await writeFile(new URL(fil
 
 await writeFile(new URL('qbo-import.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/qbo-import.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./pool'","'./pool.mjs'").replace("'./operations-model'","'./operations-model.mjs'").replace("'./accounting-model'","'./accounting-model.mjs'"));
 
-let model=stripTypeScriptTypes(await readFile(new URL('../lib/pool.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./operations-model'","'./operations-model.mjs'").replace("'./procurement-model'","'./procurement-model.mjs'");model=model.replace("'./people-calendar'","'./people-calendar.mjs'").replace("'./qbo-import'","'./qbo-import.mjs'").replace("'./accounting-model'","'./accounting-model.mjs'").replace("'./staff-users'","'./staff-users.mjs'").replace("'./monthly-clearing'","'./monthly-clearing.mjs'");await writeFile(new URL('pool.mjs',tmp),model);
+let model=stripTypeScriptTypes(await readFile(new URL('../lib/pool.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./operations-model'","'./operations-model.mjs'").replace("'./procurement-model'","'./procurement-model.mjs'");model=model.replace("'./office-model'","'./office-model.mjs'").replace("'./people-calendar'","'./people-calendar.mjs'").replace("'./qbo-import'","'./qbo-import.mjs'").replace("'./accounting-model'","'./accounting-model.mjs'").replace("'./staff-users'","'./staff-users.mjs'").replace("'./monthly-clearing'","'./monthly-clearing.mjs'");await writeFile(new URL('pool.mjs',tmp),model);
 
 let seedCode=stripTypeScriptTypes(await readFile(new URL('../lib/seed.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("import roster from './roster.json';",'const roster='+await readFile(new URL('../lib/roster.json',import.meta.url),'utf8')+';').replace("'./pool'","'./pool.mjs'");await writeFile(new URL('seed.mjs',tmp),seedCode);
 
@@ -250,5 +251,4 @@ if(process.argv[2]){const sample=parseQboPayments(await readFile(process.argv[2]
 pass('PostgreSQL JSON field ordering preserves audit history through canonical cutover',()=>{const reorder=v=>Array.isArray(v)?v.map(reorder):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,reorder(v[k])])):v;const incoming=reorder(d);const canonical=v=>Array.isArray(v)?'['+v.map(canonical).join(',')+']':v&&typeof v==='object'?'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}':JSON.stringify(v);assert.equal(canonical(incoming),canonical(d));validate(incoming,structuredClone(incoming));const removed=structuredClone(incoming);removed.audit.pop();assert.notEqual(canonical(removed),canonical(d));assert.throws(()=>validate(incoming,removed),/Audit/);const changed=structuredClone(incoming);changed.audit[0].action='changed';assert.notEqual(canonical(changed),canonical(d));assert.throws(()=>validate(incoming,changed),/Audit/);});
 
 await rm(tmp,{recursive:true,force:true});console.log(tests+' checks passed');
-
 

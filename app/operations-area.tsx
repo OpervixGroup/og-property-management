@@ -1,4 +1,5 @@
 'use client';
+import OfficeWorkspace from './office-workspace';
 
 import {monthlyFeeSummary,monthlyRentReview} from '@/lib/fee-summary';
 
@@ -43,7 +44,7 @@ import MonthlyClearing from './monthly-clearing';
 
 import {officeRent,postWorkLabor} from '@/lib/accounting-model';
 
-type Props={peopleSection:PeopleSection;onPeopleSection:(s:PeopleSection)=>void;calendarSection:CalendarSection;onCalendarSection:(s:CalendarSection)=>void;leasingSection:LeasingSection;onLeasingSection:(s:LeasingSection)=>void;maintenanceSection:MaintenanceSection;onMaintenanceSection:(s:MaintenanceSection)=>void;management?:boolean;data:Data;period:string;view:string;busy:boolean;dirty:boolean;persist:(d:Data,message?:string)=>Promise<boolean>;navigate:(view:string,filter?:string)=>void;workFilter:string;openUnit:(id:string)=>void};
+type Props={officeSection:string;onOfficeSection:(s:string)=>void;peopleSection:PeopleSection;onPeopleSection:(s:PeopleSection)=>void;calendarSection:CalendarSection;onCalendarSection:(s:CalendarSection)=>void;leasingSection:LeasingSection;onLeasingSection:(s:LeasingSection)=>void;maintenanceSection:MaintenanceSection;onMaintenanceSection:(s:MaintenanceSection)=>void;management?:boolean;data:Data;period:string;view:string;busy:boolean;dirty:boolean;persist:(d:Data,message?:string)=>Promise<boolean>;navigate:(view:string,filter?:string)=>void;workFilter:string;openUnit:(id:string)=>void};
 
 const colors=['#24a595','#3979d9','#9074c6','#ab8ab8','#44a7d4','#e4a348','#728bae','#185a8b','#5baf89'];
 
@@ -51,7 +52,7 @@ const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year
 
 const dateText=(date:string)=>date?new Date(date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Not scheduled';
 
-export default function OperationsArea({data,period,view,busy,dirty,persist,navigate,openUnit,workFilter,management=false,maintenanceSection,onMaintenanceSection,leasingSection,onLeasingSection,peopleSection,onPeopleSection,calendarSection,onCalendarSection}:Props){
+export default function OperationsArea({data,period,view,busy,dirty,persist,navigate,openUnit,workFilter,management=false,maintenanceSection,onMaintenanceSection,leasingSection,onLeasingSection,peopleSection,onPeopleSection,calendarSection,onCalendarSection,officeSection,onOfficeSection}:Props){
 
  const [maintenanceAction,setMaintenanceAction]=useState<{section:MaintenanceSection;name:string;token:number}|null>(null);
  const maintenanceTab=maintenanceSection;
@@ -118,33 +119,15 @@ export default function OperationsArea({data,period,view,busy,dirty,persist,navi
 
  {view==='leasing'&&<LeasingPanel data={data} period={period} section={leasingSection} onSection={onLeasingSection} busy={busy||dirty} persist={persist} navigate={navigate}/>}
 
- {view==='properties'&&<><div className="property-cards">{data.properties.map(p=><section className="panel" key={p.id}><Building2 size={25}/><h3>{p.name}</h3>{p.companyName&&<p><strong>{p.companyName}</strong></p>}{(p.address||p.city)&&<p>{p.address}<br/>{[p.city,p.state,p.zip].filter(Boolean).join(', ')}</p>}{(p.contactName||p.phone||p.email)&&<p>{p.contactName}{p.phone&&<><br/><a href={'tel:'+p.phone}>{p.phone}</a></>}{p.email&&<><br/><a href={'mailto:'+p.email}>{p.email}</a></>}</p>}<p>{data.units.filter(u=>u.propertyId===p.id).length} unit records · {active.filter(u=>u.propertyId===p.id).length} active in {period}</p><p className="hint">{data.pools.filter(pool=>pool.propertyId===p.id).map(pool=>pool.name).join(' · ')}</p><div className="toolbar"><button className="secondary" disabled={dirty||busy} onClick={()=>create('property',{...p,poolName:data.pools.find(pool=>pool.propertyId===p.id)?.name??''})}>Edit property</button><button className="secondary" onClick={()=>navigate('units')}>Units & owners</button></div></section>)}</div><section className="panel check-summary"><div className="panel-heading"><div><h3>Leasing-pool membership</h3><p>Changes take effect at the start of the selected month. Mid-month proration is not configured.</p></div><button disabled={dirty||busy} onClick={()=>create('membership')}>Activate / retire unit</button></div>{searchControl}<Grid headers={['Unit','Owner','Property / pool','Membership in '+period,'']} rows={data.units.filter(u=>matches({...u,owner:owner(ownerAt(data,u.id,period+'-01'))})).map(u=>[u.number,owner(ownerAt(data,u.id,period+'-01')),data.properties.find(p=>p.id===u.propertyId)?.name+' / '+data.pools.find(p=>p.id===u.poolId)?.name,isParticipating(data,u,period)?<span className="badge approved">Active leasing</span>:<span className="badge pending">Outside leasing pool</span>,<button className="text-button" onClick={()=>openUnit(u.id)}>Statement</button>])}/><p className="hint">Retirement preserves the unit, owners, HOA tracking, documents, and historical statements. Active counts and editable pool calculations update by month. Approved and paid statement values remain locked.</p></section><section className="panel check-summary"><h3>Membership history</h3><Grid headers={['Effective month','Unit','Change','Reason']} rows={(data.memberships??[]).map(m=>[m.month,number(m.unitId),m.active?'Activated':'Retired from leasing pool',m.reason])}/></section></>}
+ {view==='properties'&&<OfficeWorkspace section={officeSection} onSection={onOfficeSection} newProperty={()=>create('property')} data={data} period={period} busy={busy||dirty} persist={persist} navigate={navigate} management={management} view={view}><div className="property-cards">{data.properties.map(p=><section className="panel" key={p.id}><Building2 size={25}/><h3>{p.name}</h3>{p.companyName&&<p><strong>{p.companyName}</strong></p>}{(p.address||p.city)&&<p>{p.address}<br/>{[p.city,p.state,p.zip].filter(Boolean).join(', ')}</p>}{(p.contactName||p.phone||p.email)&&<p>{p.contactName}{p.phone&&<><br/><a href={'tel:'+p.phone}>{p.phone}</a></>}{p.email&&<><br/><a href={'mailto:'+p.email}>{p.email}</a></>}</p>}<p>{data.units.filter(u=>u.propertyId===p.id).length} unit records · {active.filter(u=>u.propertyId===p.id).length} active in {period}</p><p className="hint">{data.pools.filter(pool=>pool.propertyId===p.id).map(pool=>pool.name).join(' · ')}</p><div className="toolbar"><button className="secondary" disabled={dirty||busy} onClick={()=>create('property',{...p,poolName:data.pools.find(pool=>pool.propertyId===p.id)?.name??''})}>Edit property</button><button className="secondary" onClick={()=>navigate('units')}>Units & owners</button></div></section>)}</div><section className="panel check-summary"><div className="panel-heading"><div><h3>Leasing-pool membership</h3><p>Changes take effect at the start of the selected month. Mid-month proration is not configured.</p></div><button disabled={dirty||busy} onClick={()=>create('membership')}>Activate / retire unit</button></div>{searchControl}<Grid headers={['Unit','Owner','Property / pool','Membership in '+period,'']} rows={data.units.filter(u=>matches({...u,owner:owner(ownerAt(data,u.id,period+'-01'))})).map(u=>[u.number,owner(ownerAt(data,u.id,period+'-01')),data.properties.find(p=>p.id===u.propertyId)?.name+' / '+data.pools.find(p=>p.id===u.poolId)?.name,isParticipating(data,u,period)?<span className="badge approved">Active leasing</span>:<span className="badge pending">Outside leasing pool</span>,<button className="text-button" onClick={()=>openUnit(u.id)}>Statement</button>])}/><p className="hint">Retirement preserves the unit, owners, HOA tracking, documents, and historical statements. Active counts and editable pool calculations update by month. Approved and paid statement values remain locked.</p></section><section className="panel check-summary"><h3>Membership history</h3><Grid headers={['Effective month','Unit','Change','Reason']} rows={(data.memberships??[]).map(m=>[m.month,number(m.unitId),m.active?'Activated':'Retired from leasing pool',m.reason])}/></section></OfficeWorkspace>}
 
  {view==='communication'&&<section className="panel"><div className="notice"><AlertCircle size={18}/><span>Draft preparation only. Email, SMS, and an owner inbox are not connected. Nothing is sent.</span></div>{searchControl}<Grid headers={['Created','Recipient','Unit','Subject','Status','']} rows={ops.communications.filter(matches).map(m=>[dateText(m.created.slice(0,10)),m.recipient,number(m.unitId),m.subject,'Draft',<button className="text-button" disabled={dirty||busy} onClick={()=>create('communications',m)}>Preview / edit</button>])}/></section>}
 
- {view==='accounting'&&<AccountingPanel management={management} data={data} period={period} busy={busy||dirty} persist={persist} navigate={navigate}/>}
+ {view==='accounting'&&<OfficeWorkspace section={officeSection} onSection={onOfficeSection} management={management} data={data} period={period} view={view} busy={busy||dirty} persist={persist} navigate={navigate}/>}
 
  {view==='metrics'&&<><div className="ops-metrics"><div className="ops-metric"><span>Active units</span><strong>{active.length}</strong></div><div className="ops-metric"><span>Work orders open</span><strong>{open.length}</strong></div><div className="ops-metric"><span>Follow-up overdue</span><strong>{due.length}</strong></div><div className="ops-metric"><span>Rent data complete</span><strong>{current.filter(s=>s.rent!==null).length}/{current.length}</strong></div></div><section className="panel"><h3>Monthly pool performance</h3><Grid headers={['Month','Active units','Actual rent entered','Allocated income','Deductions','Paid distributions']} rows={data.periods.map(p=>{const records=latest(data,p.month);return [p.month,data.units.filter(u=>isParticipating(data,u,p.month)).length,money(records.reduce((n,s)=>n+(s.rent??0),0)),money(records.reduce((n,s)=>n+s.allocated,0)),money(records.reduce((n,s)=>n+totals(s).deductions,0)),money(records.reduce((n,s)=>n+(s.cashPaid??s.paidAmount),0))];})}/><p className="hint">Missing rent is not zero rent. Occupancy, conversion rates, and operating profit require verified leasing and QBO records.</p></section></>}
 
- {view==='reporting'&&<section className="panel"><h3>Report center</h3><Grid headers={['Report','Contents','']} rows={[
-
- ['Maintenance register','Status, assignments, dates, labor, and materials',<button className="text-button" onClick={workReport}>Export CSV</button>],
-
- ['Unit & pool membership','Permanent IDs and effective monthly participation',<button className="text-button" onClick={()=>exportRows('Membership',[['unit_id','unit','owner','property','pool','month','active'],...data.units.map(u=>[u.id,u.number,owner(ownerAt(data,u.id,period+'-01')),data.properties.find(p=>p.id===u.propertyId)?.name,data.pools.find(p=>p.id===u.poolId)?.name,period,isParticipating(data,u,period)])])}>Export CSV</button>],
-
- ['Rent roll from lease records','Contract rent, tenant, dates, and lease status',<button className="text-button" onClick={()=>exportRows('Lease_Roll',[['unit','tenant','start','end','contract_rent','status'],...ops.leases.map(l=>[number(l.unitId),l.tenant,l.start,l.end,(l.rent/100).toFixed(2),l.status])])}>Export CSV</button>],
-
- ['Leasing pipeline','Prospect stage and scheduled tours',<button className="text-button" onClick={()=>exportRows('Leasing_Pipeline',[['name','email','unit','stage','tour'],...ops.prospects.map(p=>[p.name,p.email,number(p.unitId),p.stage,p.tour])])}>Export CSV</button>],
-
- ['Owner distribution register','Actual rent, pool allocation, charges, balances and status',<button className="text-button" onClick={()=>navigate('overview')}>Open register</button>],
-
- ['Owner statement package','Versioned PDF and supporting invoices / receipts',<button className="text-button" onClick={()=>navigate('statements')}>Open statements</button>],
-
- ['Agency income, payables & QBO exports','Reviewed fee income, vendor/HOA charges, GL mapping and receipt packages',<button className="text-button" onClick={()=>navigate('accounting')}>Open accounting</button>],
-
- ['Audit history','Financial and operational changes',<button className="text-button" onClick={()=>navigate('activity')}>Open history</button>]
-
- ]}/><p className="hint">Reports include all saved records, independently of the on-screen page size. Operating financial statements remain in QuickBooks.</p></section>}
+ {view==='reporting'&&<OfficeWorkspace section={officeSection} onSection={onOfficeSection} management={management} data={data} period={period} view={view} busy={busy||dirty} persist={persist} navigate={navigate}/>}
 
  {profileUnit&&<TenantProfile initialTab={profileTab} initialTenant={profileTenant} onTask={(task,recipient)=>{const id=profileUnit;setProfileUnit(null);if(task==='work'){create('workOrders');setForm((f:any)=>({...f,unitId:id}));}else{create('communications');setForm((f:any)=>({...f,unitId:id,recipient:recipient??''}));}}} data={data} period={period} unitId={profileUnit} close={()=>setProfileUnit(null)} persist={persist} busy={busy||dirty} openOwner={()=>openUnit(profileUnit)}/>}
 
@@ -174,7 +157,6 @@ export default function OperationsArea({data,period,view,busy,dirty,persist,navi
  </div>;
 
 }
-
 
 
 

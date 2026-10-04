@@ -1,3 +1,4 @@
+import {validateOffice,type OfficeRecords} from './office-model';
 import {validatePeopleRelationships} from './people-calendar';
 import {validateQboImports,type QboImportBatch} from './qbo-import';
 import {validateClearing,type ClearingEvent} from './monthly-clearing';
@@ -11,7 +12,7 @@ export type Membership={id:string;unitId:string;month:string;active:boolean;reas
 export type Unit={id:string;number:string;propertyId:string;poolId:string;ownerId:string;type:1|2;participating:boolean;hoaChargedThrough?:string;addedMonth?:string};
 export type Owner={id:string;name:string;email:string;address?:string;contactName?:string;phone?:string;taxIdType?:'Tax ID'|'EIN';taxIdLast4?:string;taxReference?:string;paymentMethod?:'Bank deposit'|'ACH'|'Mail'|'Office pickup';specialInstructions?:string};
 export type Settings={id:string;period:string;poolId:string;version:number;rent1:number;rent2:number;management1:number;management2:number;maintenance1:number;maintenance2:number;hoa1:number;hoa2:number;electricTotal:number|null;electricConfirmed:boolean;notes:string};
-export type Data={qboImports?:QboImportBatch[];clearingEvents?:ClearingEvent[];staffUsers?:StaffUser[];accounting?:Accounting;procurement?:Procurement;operations?:Operations;memberships?:Membership[];settings:Settings[];properties:{id:string;name:string;detailsVersion?:number;companyName?:string;address?:string;city?:string;state?:string;zip?:string;contactName?:string;phone?:string;email?:string}[];pools:{id:string;propertyId:string;name:string}[];units:Unit[];owners:Owner[];ownerships:{id:string;unitId:string;ownerId:string;from:string;to:string|null}[];periods:{id:string;month:string}[];rules:{id:string;version:number;method:string;verified:boolean}[];statements:Statement[];sharedExpenses:{id:string;period:string;poolId:string;label:string;total:number;allocations:{unitId:string;cents:number}[]}[];audit:{id:string;at:string;action:string;detail:string}[]};
+export type Data={office?:OfficeRecords;qboImports?:QboImportBatch[];clearingEvents?:ClearingEvent[];staffUsers?:StaffUser[];accounting?:Accounting;procurement?:Procurement;operations?:Operations;memberships?:Membership[];settings:Settings[];properties:{id:string;name:string;detailsVersion?:number;companyName?:string;address?:string;city?:string;state?:string;zip?:string;contactName?:string;phone?:string;email?:string}[];pools:{id:string;propertyId:string;name:string}[];units:Unit[];owners:Owner[];ownerships:{id:string;unitId:string;ownerId:string;from:string;to:string|null}[];periods:{id:string;month:string}[];rules:{id:string;version:number;method:string;verified:boolean}[];statements:Statement[];sharedExpenses:{id:string;period:string;poolId:string;label:string;total:number;allocations:{unitId:string;cents:number}[]}[];audit:{id:string;at:string;action:string;detail:string}[]};
 export const money=(n:number)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(n/100);
 export function cents(s:string):number{if(!/^-?\d+(\.\d{1,2})?$/.test(s.trim()))throw Error('Use dollars with no more than two decimal places.');const neg=s.startsWith('-');const [a,b='']=s.replace('-','').split('.');const n=Number(a)*100+Number(b.padEnd(2,'0'));if(!Number.isSafeInteger(n)||Math.abs(n)>100000000000)throw Error('Amount is too large.');return neg?-n:n;}
 export function totals(s:Statement){const deductions=s.expenses.reduce((a,e)=>a+e.cents,0);const available=s.opening+s.allocated+s.adjustments+(s.credits??[]).reduce((n,e)=>n+e.cents,0)-deductions;return {deductions,available,closing:available-s.paidAmount+(s.offsetReceived??0)};}
@@ -19,6 +20,7 @@ export function latest(data:Data,period:string){const map=new Map<string,Stateme
 export function audit(d:Data,action:string,detail:string){d.audit.unshift({id:crypto.randomUUID(),at:new Date().toISOString(),action,detail});}
 export function validate(old:Data,next:Data){
  validatePeopleRelationships(next);
+ validateOffice(old,next);
  validateQboImports(old,next);
  validateClearing(old,next);
  validateStaffUsers(old.staffUsers,next.staffUsers,next.properties.map(p=>p.id));
@@ -82,4 +84,3 @@ export function allocationNeedsReview(d:Data,poolId:string,period:string){const 
 export function applyContracts(d:Data,s:Statement){const c=effectiveContract(d,s.unitId,s.period);if(!c)return;for(const e of s.expenses){if(e.gl==='80400')e.cents=c.managementKind==='Percent'?Math.floor((s.allocated*c.management+5000)/10000):c.management;if(e.gl==='80300')e.cents=c.maintenance;if(e.gl==='80000'&&(!e.linkedUnitId||e.linkedUnitId===s.unitId))e.cents=c.hoa;}if(!s.notes.includes('Contract source: '+c.source))s.notes+=' Contract source: '+c.source;}
 
 export function applyDevonshirePropertyDetails(d:Data){const p=d.properties.find(p=>p.id==='property-devonshire');if(p&&!p.detailsVersion){Object.assign(p,{companyName:p.companyName||'Devonshire Leasing Agency, Inc.',address:p.address||'11843 Braesview, Main Office',city:p.city||'San Antonio',state:p.state||'TX',zip:p.zip||'78213',phone:p.phone||'210-493-3161',detailsVersion:1});}return d;}
-
