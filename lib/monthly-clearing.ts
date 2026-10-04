@@ -1,3 +1,4 @@
+import {expectedUnitRent} from './tenancy';
 import {type Data,latest,isParticipating,allocationNeedsReview,audit} from './pool';
 import {officeRent} from './accounting-model';
 import {monthlyRentReview} from './fee-summary';
@@ -5,7 +6,7 @@ export type ClearingEvent={id:string;period:string;kind:'Closed'|'Reopened';open
 export function clearingState(d:Data,period:string){return [...(d.clearingEvents??[])].reverse().find(e=>e.period===period);}
 export function clearingReview(d:Data,period:string){
  const statements=latest(d,period),units=d.units.filter(u=>!u.addedMonth||u.addedMonth<=period),active=units.filter(u=>isParticipating(d,u,period));
- const review=monthlyRentReview(statements,units.map(u=>({...officeRent(d,u.id,period),required:active.some(a=>a.id===u.id)})));
+ const review=monthlyRentReview(statements,units.map(u=>{const cash=officeRent(d,u.id,period),vacant=d.operations?.occupancy?.some(o=>o.unitId===u.id&&o.month===period&&o.status==='Vacant')&&expectedUnitRent(d,u,period).cents===0;return {...(cash.source==='Manual office rent'&&vacant?{cents:0,source:'Verified vacant zero'}:cash),required:active.some(a=>a.id===u.id)};}));
  const entries=d.operations?.tenantEntries??[],apps=d.accounting?.applications??[];
  const monthReceipts=entries.filter(e=>e.kind==='Receipt'&&e.date.startsWith(period));
  const unmatched=monthReceipts.reduce((n,r)=>n+Math.max(0,r.cents-apps.filter(a=>a.receiptId===r.id).reduce((sum,a)=>sum+a.cents,0)),0);

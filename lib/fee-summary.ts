@@ -1,3 +1,4 @@
+import {poolElectricLine} from './pool';
 import type {Statement} from './pool';
 // Caller supplies latest statement versions for the selected month.
 // These are charges, not cash receipts or confirmed agency revenue.
@@ -7,7 +8,7 @@ export function monthlyFeeSummary(statements:Statement[]){
   if(line.sharedId)continue;
   if(line.gl==='80400')management+=line.cents;
   if(line.gl==='80300')maintenance+=line.cents;
-  if(line.gl==='81000')electricity+=line.cents;
+  if(poolElectricLine(line))electricity+=line.cents;
   if(line.gl==='80000')hoa+=line.cents;
  }
  return {management,maintenance,electricity,hoa,fees:management+maintenance,combined:management+maintenance+electricity,drafts:statements.filter(s=>s.status==='Pending').length};
@@ -19,6 +20,6 @@ export function monthlyRentReview(statements:Statement[],sources:{cents:number|n
  const ownerShare=allocated-deductions+credits,otherCharges=deductions-fees.fees-fees.electricity-fees.hoa-credits;
  const assigned=ownerShare+fees.fees+fees.electricity+fees.hoa+otherCharges;
  const matched=sources.filter(s=>s.source==='Matched rent receipts').reduce((n,s)=>n+(s.cents??0),0);
- const manual=sources.filter(s=>s.source!=='Matched rent receipts'&&s.cents!==null),manualRent=manual.reduce((n,s)=>n+s.cents!,0);
+ const manual=sources.filter(s=>!['Matched rent receipts','Verified vacant zero'].includes(s.source)&&s.cents!==null),manualRent=manual.reduce((n,s)=>n+s.cents!,0);
  return {ownerShare,otherCharges,assigned,matched,manualRent,manualCount:manual.length,missing:sources.filter(s=>s.required&&s.cents===null).length,recordedRent:matched+manualRent,difference:matched+manualRent-assigned};
 }
