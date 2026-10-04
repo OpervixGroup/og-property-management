@@ -40,4 +40,7 @@ check('Blank contacts preserve known email and supplemental fields import',()=>{
 
 
 check('Incomplete co-tenant contacts fail during preview',()=>{const f=parseTenantImport(base,header.replace('signed_date','signed_date,second_first_name')+row('')+',Incomplete');assert.match(f.rows[0].error,/second tenant first and last name/);});
+const {validate}=await import('./.mock-runtime/pool.mjs');
+check('Owner address and two vehicles preserve financial records',()=>{const d=structuredClone(base);Object.assign(d.owners[0],{city:'San Antonio',state:'TX',zip:'78209',paymentMethod:'Mail'});Object.assign(d.operations.tenants[0],{vehicleMake:'Toyota',vehicleYear:'2020',vehiclePlate:'TEST-1',secondVehicleMake:'Ford',secondVehicleYear:'2022',secondVehiclePlate:'TEST-2'});validate(base,d);assert.deepEqual(d.statements,base.statements);const bad=structuredClone(d);bad.operations.tenants[0].secondVehicleYear='22';assert.throws(()=>validate(d,bad),/Vehicle year/);});
+check('Communication audience is explicit without relabeling legacy drafts',()=>{const d=structuredClone(base);const m={id:'message',recipient:'test@example.test',unitId:unit.id,subject:'Inspection',body:'Draft',status:'Draft',created:'2026-10-04T00:00:00Z'};d.operations.communications=[m];validate(base,d);for(const audience of ['Tenants','Owners','Other']){m.audience=audience;validate(base,d);}m.audience='Everyone';assert.throws(()=>validate(base,d),/audience/);assert.equal(base.operations.communications.length,0);});
 console.log(count+' Phase 2 scenarios passed');
