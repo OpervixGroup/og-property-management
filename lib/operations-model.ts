@@ -1,10 +1,11 @@
+import {validateLeasing,type RentalApplication,type LeaseTemplate,type LeaseRenewal,type ShowingSlot,type VacancyListing,type LeasingSettings} from './leasing-model';
 import {validateMaintenanceRecords,type RecurringWork,type PurchaseOrder,type FixedAsset} from './maintenance-model';
 export const workStatuses=['New','Assigned','Estimate requested','Estimated','Scheduled','Waiting','Work done, unbilled','Ready to bill','Completed'] as const;
 export type WorkStatus=typeof workStatuses[number];
 export type WorkOrder={recurringKey?:string;permissionToEnter?:'Yes'|'No';entryInstructions?:string;id:string;number:string;unitId:string;title:string;description:string;status:WorkStatus;priority:'Normal'|'Urgent'|'Emergency';kind:'Repair'|'Inspection'|'Unit turn'|'Project';assignee:string;vendor:string;scheduled:string;followUp:string;estimate:number;hours100:number;rate:number;materials:number;ownerApproved:boolean;notes:string;created:string;updated:string};
 export type CalendarEvent={id:string;title:string;date:string;end:string;unitId:string;kind:'Administrative'|'Maintenance'|'Meeting'|'Showing';notes:string};
 export type Communication={id:string;recipient:string;unitId:string;subject:string;body:string;status:'Draft';created:string};
-export type Prospect={id:string;name:string;email:string;unitId:string;stage:'Inquiry'|'Tour scheduled'|'Application received'|'Lease prepared'|'Closed';tour:string;notes:string};
+export type Prospect={phone?:string;source?:string;agent?:string;created?:string;desiredMoveIn?:string;id:string;name:string;email:string;unitId:string;stage:'Inquiry'|'Tour scheduled'|'Application received'|'Lease prepared'|'Closed';tour:string;notes:string};
 export type Lease={id:string;unitId:string;tenant:string;tenantId?:string;signedDate?:string;start:string;end:string;rent:number;status:'Draft'|'Active'|'Ended';notes:string};
 export type BankRecord={id:string;date:string;reference:string;description:string;cents:number;classification:'Pool'|'Agency'|'Unclassified';reviewed:boolean};
 export type Occupancy={id:string;unitId:string;month:string;status:'Unknown'|'Vacant'|'Occupied'|'Make ready';notes:string};
@@ -12,11 +13,12 @@ export type Tenant={secondFirstName?:string;secondLastName?:string;secondCell?:s
 export type TenantEntry={paymentMethod?:'Not provided'|'Check'|'Money Order'|"Cashier's Check";qboImportId?:string;qboSourceKey?:string;id:string;tenantId:string;category?:'Rent'|'Other';date:string;kind:"Charge"|"Receipt"|"Credit";description:string;cents:number;reference:string;recurringId?:string};
 export type UnitVendor={id:string;unitId:string;name:string;email:string;cell:string;service:string;amount:number;start:string;end:string;notes:string};
 export type TenantRecurring={category?:'Rent'|'Other';id:string;tenantId:string;description:string;cents:number;start:string;end:string};
-export type Operations={recurringWork?:RecurringWork[];purchaseOrders?:PurchaseOrder[];fixedAssets?:FixedAsset[];tenants?:Tenant[];tenantEntries?:TenantEntry[];tenantRecurring?:TenantRecurring[];unitVendors?:UnitVendor[];occupancy?:Occupancy[];workOrders:WorkOrder[];events:CalendarEvent[];communications:Communication[];prospects:Prospect[];leases:Lease[];bankRecords:BankRecord[]};
+export type Operations={rentalApplications?:RentalApplication[];leaseTemplates?:LeaseTemplate[];leaseRenewals?:LeaseRenewal[];showingSlots?:ShowingSlot[];vacancyListings?:VacancyListing[];leasingSettings?:LeasingSettings[];recurringWork?:RecurringWork[];purchaseOrders?:PurchaseOrder[];fixedAssets?:FixedAsset[];tenants?:Tenant[];tenantEntries?:TenantEntry[];tenantRecurring?:TenantRecurring[];unitVendors?:UnitVendor[];occupancy?:Occupancy[];workOrders:WorkOrder[];events:CalendarEvent[];communications:Communication[];prospects:Prospect[];leases:Lease[];bankRecords:BankRecord[]};
 export const emptyOperations=():Operations=>({workOrders:[],events:[],communications:[],prospects:[],leases:[],bankRecords:[]});
 const validDate=(v:string)=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&!Number.isNaN(Date.parse(v+'T12:00:00'))&&new Date(v+'T12:00:00').toISOString().slice(0,10)===v;
 export function validateOperations(ops:Operations,unitIds:Set<string>,old?:Operations){
  validateTenantRecords(ops,unitIds,old);
+ validateLeasing(ops,unitIds,old);
  validateMaintenanceRecords(ops,unitIds,old);
  const amount=(n:number)=>{if(!Number.isSafeInteger(n)||Math.abs(n)>100000000000)throw Error('Invalid operational amount');};
  const unit=(id:string)=>{if(id&&!unitIds.has(id))throw Error('Unknown operational unit');};

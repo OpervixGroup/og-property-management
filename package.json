@@ -20,7 +20,7 @@
 
     "start": "node scripts/start-node.mjs",
 
-    "test": "node tests/run.mjs && node tests/access-policy.mjs && node tests/profitability.mjs && node tests/maintenance.mjs",
+    "test": "node tests/run.mjs && node tests/access-policy.mjs && node tests/profitability.mjs && node tests/maintenance.mjs && node tests/leasing.mjs",
 
     "typecheck": "tsc --noEmit"
 

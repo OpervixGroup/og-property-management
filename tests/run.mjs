@@ -12,8 +12,9 @@ import {PDFDocument} from 'pdf-lib';
 
 const tmp=new URL('./.runtime/',import.meta.url);await mkdir(tmp,{recursive:true});
 
+await writeFile(new URL('leasing-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/leasing-model.ts',import.meta.url),'utf8'),{mode:'transform'}));
 await writeFile(new URL('maintenance-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/maintenance-model.ts',import.meta.url),'utf8'),{mode:'transform'}));
-await writeFile(new URL('operations-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/operations-model.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./maintenance-model'","'./maintenance-model.mjs'"));
+await writeFile(new URL('operations-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/operations-model.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./maintenance-model'","'./maintenance-model.mjs'").replace("'./leasing-model'","'./leasing-model.mjs'"));
 
 await writeFile(new URL('procurement-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/procurement-model.ts',import.meta.url),'utf8'),{mode:'transform'}));
 

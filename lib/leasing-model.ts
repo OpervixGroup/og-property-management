@@ -1,0 +1,35 @@
+import type {Operations,Lease,Prospect} from './operations-model';
+import type {Data} from './pool';
+export const leasingSections=['Vacancies','Guest Cards','Rental Applications','Leases','Renewals','Metrics'] as const;
+export type LeasingSection=typeof leasingSections[number];
+export type RentalApplication={id:string;prospectId:string;unitId:string;name:string;email:string;phone:string;date:string;moveIn:string;status:'Draft'|'Received'|'In review'|'Withdrawn'|'Decision recorded externally';fee:number;decisionReference:string;notes:string};
+export type LeaseTemplate={id:string;name:string;kind:'Lease'|'Renewal'|'Application'|'Screening criteria'|'PDF form';source:string;content:string;active:boolean};
+export type LeaseRenewal={id:string;leaseId:string;start:string;end:string;rent:number;status:'Draft'|'Prepared'|'Sent externally'|'Signed externally'|'Declined externally';templateId:string;externalReference:string;notes:string};
+export type ShowingSlot={id:string;unitId:string;date:string;time:string;agent:string;status:'Available'|'Booked'|'Cancelled';notes:string};
+export type VacancyListing={id:string;unitId:string;available:string;advertisedRent:number;description:string;photoReference:string;status:'Draft'|'Prepared'|'Archived';notes:string};
+export type LeasingSettings={id:string;name:string;fee:number;questions:string;instructions:string;screeningCriteria:string};
+export const leasingDate=(s:string)=>/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s+'T12:00:00Z'))&&new Date(s+'T12:00:00Z').toISOString().slice(0,10)===s;
+export function validateLeasing(ops:Operations,units:Set<string>,old?:Operations){
+ for(const key of ['rentalApplications','leaseTemplates','leaseRenewals','showingSlots','vacancyListings','leasingSettings'] as const){const rows=ops[key]??[];if(!Array.isArray(rows)||rows.length>10000||new Set(rows.map(r=>r.id)).size!==rows.length||rows.some(r=>!r.id))throw Error('Invalid leasing register');for(const r of old?.[key]??[])if(!rows.some(n=>n.id===r.id))throw Error('Leasing history must be preserved');}
+ const unit=(id:string)=>{if(id&&!units.has(id))throw Error('Unknown leasing unit');},amount=(n:number)=>{if(!Number.isSafeInteger(n)||n<0||n>100000000000)throw Error('Invalid leasing amount');},date=(s:string,optional=false)=>{if(!(optional&&!s)&&!leasingDate(s))throw Error('Invalid leasing date');};
+ for(const p of ops.prospects){for(const k of ['phone','source','agent','created','desiredMoveIn'] as const)if(p[k]!==undefined&&(typeof p[k]!=='string'||p[k]!.length>2000))throw Error('Invalid guest card');if(p.desiredMoveIn)date(p.desiredMoveIn);if(p.created)date(p.created);}
+ for(const a of ops.rentalApplications??[]){unit(a.unitId);if(!a.name.trim()||!['Draft','Received','In review','Withdrawn','Decision recorded externally'].includes(a.status))throw Error('Invalid rental application');if(a.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.email))throw Error('Invalid applicant email');amount(a.fee);date(a.date);date(a.moveIn,true);if(a.prospectId){const p=ops.prospects.find(p=>p.id===a.prospectId);if(!p||p.unitId!==a.unitId)throw Error('Application guest card must match the unit');}if(a.status==='Decision recorded externally'&&!a.decisionReference.trim())throw Error('Record the external decision reference');}
+ for(const t of ops.leaseTemplates??[])if(!t.name.trim()||!['Lease','Renewal','Application','Screening criteria','PDF form'].includes(t.kind)||typeof t.active!=='boolean'||!t.source.trim()&&!t.content.trim())throw Error('Template needs a name and source or content');
+ for(const r of ops.leaseRenewals??[]){const lease=ops.leases.find(l=>l.id===r.leaseId);if(!lease)throw Error('Renewal requires an existing lease');date(r.start);date(r.end);amount(r.rent);if(r.end<r.start||r.start<=lease.end||!['Draft','Prepared','Sent externally','Signed externally','Declined externally'].includes(r.status))throw Error('Invalid renewal term or status');if(r.templateId&&!ops.leaseTemplates?.some(t=>t.id===r.templateId))throw Error('Unknown renewal template');if(r.status.endsWith('externally')&&!r.externalReference.trim())throw Error('Record external renewal evidence');if((ops.leaseRenewals??[]).some(x=>x.id!==r.id&&x.leaseId===r.leaseId&&x.status!=='Declined externally'&&r.status!=='Declined externally'&&x.start<=r.end&&x.end>=r.start))throw Error('Renewal terms overlap');}
+ for(const s of ops.showingSlots??[]){unit(s.unitId);date(s.date);if(!s.unitId||!/^([01]\d|2[0-3]):[0-5]\d$/.test(s.time)||!s.agent.trim()||!['Available','Booked','Cancelled'].includes(s.status))throw Error('Invalid showing availability');if(s.status!=='Cancelled'&&(ops.showingSlots??[]).some(x=>x.id!==s.id&&x.unitId===s.unitId&&x.date===s.date&&x.time===s.time&&x.status!=='Cancelled'))throw Error('Duplicate showing slot');}
+ const listed=new Set<string>();for(const l of ops.vacancyListings??[]){unit(l.unitId);amount(l.advertisedRent);date(l.available,true);if(!l.unitId||listed.has(l.unitId)||!['Draft','Prepared','Archived'].includes(l.status))throw Error('Duplicate or invalid vacancy listing');listed.add(l.unitId);}
+ for(const s of ops.leasingSettings??[]){amount(s.fee);if(!s.name.trim())throw Error('Application settings require a name');}
+}
+export function renewalCandidates(leases:Lease[],from:string,to:string){return leases.filter(l=>l.status==='Active'&&l.end>=from&&l.end<=to);}
+export function leasingActivity(ops:Operations,from:string,to:string){
+ const valid=leasingDate(from)&&leasingDate(to)&&from<=to;
+ const guests=valid?ops.prospects.filter(p=>p.created&&p.created>=from&&p.created<=to):[],applications=valid?(ops.rentalApplications??[]).filter(a=>a.date>=from&&a.date<=to):[];
+ const groups=(field:'agent'|'source')=>[...new Set(guests.map(p=>p[field]||'Unrecorded'))].map(name=>({name,guests:guests.filter(p=>(p[field]||'Unrecorded')===name).length,tours:guests.filter(p=>(p[field]||'Unrecorded')===name&&p.tour).length}));
+ return {valid,guests,applications,undated:ops.prospects.filter(p=>!p.created).length,agents:groups('agent'),sources:groups('source')};
+}
+export function guestCardsFromCSV(rows:string[][],ops:Operations,units:Data['units'],today:string):Prospect[]{
+ const header=rows[0]?.map(s=>s.trim().toLowerCase());if(!header||!['name','email','unit'].every(k=>header.includes(k)))throw Error('CSV needs name, email and unit columns');
+ const get=(r:string[],k:string)=>r[header.indexOf(k)]?.trim()??'',seen=new Set((ops.prospects??[]).map(p=>(p.email.trim().toLowerCase()||p.name.trim().toLowerCase())+':'+p.unitId));
+ return rows.slice(1).filter(r=>r.some(s=>s.trim())).map(r=>{const name=get(r,'name'),email=get(r,'email'),number=get(r,'unit'),u=units.find(u=>u.number===number),key=(email.toLowerCase()||name.toLowerCase())+':'+(u?.id??'');if(!name||number&&!u||email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw Error('Invalid guest card row: '+name);if(seen.has(key))throw Error('Duplicate guest card: '+name);seen.add(key);return {id:crypto.randomUUID(),name,email,unitId:u?.id??'',stage:'Inquiry',tour:'',notes:get(r,'notes'),phone:get(r,'phone'),source:get(r,'source'),agent:get(r,'agent'),created:today};});
+}
+
