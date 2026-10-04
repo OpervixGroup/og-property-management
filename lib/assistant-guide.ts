@@ -3,7 +3,7 @@ export type GuideAnswer={text:string;guideIds:string[];questions:string[]};
 export const quickQuestions:Record<string,string[]>={
  maintenance:['How do I issue inventory to a unit?','How do I post repair labor?','How do I return materials?'],
  people:['How do I match a tenant receipt?','How does rent become Partially Paid?'],
- accounting:['How do I allocate pool income?','How do I record escrow?','How do I export to QBO?'],
+ accounting:['Can I upload tenant payments every five days?','How do duplicate payment imports work?','What is Amount to apply?','How do I allocate pool income?','How do I record escrow?','How do I export to QBO?'],
  statements:['How do I attach a receipt?','How do I approve a statement?','What does the owner see?'],
  distributions:['How do I combine owner units?','How do I record a payment?','How does Unit 108 HOA work?'],
  'general-settings':['How do I add a user?','What can an Accounting Clerk do?','Can the CPA edit records?'],
@@ -13,6 +13,7 @@ function guide(id:string,intro=''):GuideAnswer{const g=workflowGuides.find(g=>g.
 export function answerGuide(question:string,context='home'):GuideAnswer{
  const q=question.trim().toLowerCase();
  if(!q)return {text:'What would you like to do in OG?',guideIds:[],questions:quickQuestions[context]??['How do I prepare owner distributions?','How do I add a user?']};
+ if(/tenant payment|amount to apply|qbo.*(import|upload|csv|payment)|(import|upload|csv|payment).*qbo|five days|5 days|rerun|re-run|re run|duplicate.*(payment|receipt|import)|(payment|receipt|import).*duplicate/.test(q))return guide('accounting');
  if(/\b(1099|w-?9|taxpayer|onboarding)\b/.test(q))return guide('properties','Basic unit/owner onboarding is available from Units & owners or Properties → Activate / retire Unit → Onboard a new unit. Full protected tax records and 1099 preparation are not implemented. Dustin must review the reporting basis before year-end tax exports are added.');
  if(/\b(sharepoint|integrations?|connected|connect|sms|send.*email|email.*send|live ai)\b/.test(q))return {text:'OG currently uses private demo record and document storage. SharePoint, Microsoft email/calendar, QBO and AppFolio synchronization are not connected. Email preparation saves a draft; it does not send. This assistant uses the built-in OG knowledge base, with no live AI service or access to your account data.',guideIds:['communication','documents','general-settings'],questions:['How do I prepare an owner email?','How do I attach a receipt?']};
  if(/(electric|electricity).*(market|sale|outside)|(market|sale|outside).*(electric|electricity)/.test(q))return guide('settings','Market units outside the active leasing pool pay their own electricity, without a shared electricity charge. Use Properties to record effective participation correctly. Active leasing-pool units, including vacant/make-ready units, share the reviewed pool electricity bill.');
