@@ -1,0 +1,35 @@
+# OG provider setup — Devonshire
+
+Phase 5 is published. Phase 6 adds Microsoft login, a server-managed work-order outbox, tenant reply matching and connection status. These are disabled until an administrator completes the steps below. QBO CSV review is available from prior phases. QBO API OAuth and direct transaction exchange are not implemented in this checkpoint; creating its registration prepares the next activation step.
+
+## 1. Microsoft 365 sign-in
+
+Create a separate single-tenant Entra registration named **OG staff sign-in**. Web redirect: `https://conganplywqzmuktmyxd.supabase.co/auth/v1/callback`. Add the optional `email` and `xms_edov` ID-token claims. Put its client ID and secret **value** in Supabase Authentication → Azure. Set the tenant URL to `https://login.microsoftonline.com/<your-tenant-id>`. See [Supabase Azure instructions](https://supabase.com/docs/guides/auth/social-login/auth-azure).
+
+Set the Supabase redirect allowlist to your exact published OG origin followed by `/auth/microsoft/callback`. GoDaddy `OG_APP_URL` must be that origin with no path, share token or trailing query. Set `OG_MICROSOFT_TENANT_ID` to the tenant UUID and `OG_MICROSOFT_LOGIN_ENABLED=true`. Require assigned users on the Entra enterprise application; assign approved staff. Keep an existing Global Admin password login available.
+
+Create/approve staff in OG first. Microsoft login does not grant an OG role or create workspace access. Verified identity must resolve to the existing active Supabase user ID. Verify approved user, unassigned user, disabled OG staff, cancellation and logout before calling login activated. Detailed controls: `docs/microsoft-sign-in.md`.
+
+## 2. Shared Outlook mailbox
+
+Create a second single-tenant app **OG work-order mailbox**. Its server credentials go privately into GoDaddy `MS_TENANT_ID`, `MS_CLIENT_ID`, `MS_CLIENT_SECRET`; never into public variables, chat, source or CSV files. Record expiration reminders. Use Exchange Online Application RBAC to scope **Application Mail.Read** and **Application Mail.Send** exclusively to `dla@devonshirecondos.com`. An Exchange administrator must register its service principal, define a recipient scope, assign both roles and test that mailbox permitted / unrelated mailbox denied. Do not leave overlapping tenant-wide Entra mail grants: [Microsoft RBAC instructions](https://learn.microsoft.com/en-us/exchange/permissions-exo/application-rbac).
+
+After scope verification, enable `OG_WORK_EMAIL_ENABLED=true`. Set `OG_WORK_EMAIL_CRON_SECRET` to a private random value of at least 32 characters. An approved scheduler calls `GET <OG_APP_URL>/api/work-email` with `Authorization: Bearer <secret>` every minute. GoDaddy alone does not configure this scheduler. Server saves queue new/changed work orders without waiting for Outlook. Each worker run sends at most two notices and reads at most two inbox pages; queued backlog continues on subsequent runs. Manual synchronization is in General settings. Configure scheduler timeout for these bounded network requests and monitor failed runs.
+
+All notices go to the shared mailbox. Existing held notices are eligible after activation; review the queue before the first run and authorize its release. Outlook HTTP 202 means accepted, not delivered: [Graph sendMail](https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0). Unknown delivery is held without automatic resend to avoid duplicates. Review Sent Items before deciding any corrective action. This build has no manual retry command for rejected/uncertain messages. Use a corrected work-order update to queue a new notice only after reviewing the original.
+
+Replies need the `[OG-WO:...]` subject marker and a matching effective tenant email on that unit. They attach as correspondence, without changing work-order status or charges. Sender address matching is not independent proof of email authenticity; staff review replies before acting. Validate a controlled authorized send and reply after setup. No real email was sent during development QA.
+
+## 3. QuickBooks registration and current CSV exchange
+
+In [Intuit Developer](https://developer.intuit.com/app/developer/myapps), create **OG Devonshire accounting**, select QuickBooks Online accounting scope, and use sandbox credentials first. Register a future exact HTTPS callback `<OG_APP_URL>/api/qbo/callback` when that route is implemented; this checkpoint has no callback. Keep production keys private. Separate the owner-pool company's realm ID from any future DLA operating company. Never import another client's reports. OAuth, encrypted persistent token storage, rotation, sandbox verification and an explicit production connection review remain required before direct API exchange. See [Intuit OAuth documentation](https://developer.intuit.com/app/developer/qbo/docs/develop/authentication-and-authorization/oauth-2.0).
+
+Currently: Accounting rent-import review accepts QBO report CSV with exact headers `Customer,Date,Transaction type,Transaction number,Amount`. Include company/report title and one month's dates. Customer names must begin with the unit number. Only Payment rows are considered; invoice rows do not count as cash. Review unit/tenant matches, original signs and amounts, duplicates and period before importing. QBO report payments may export as negative; OG records their absolute receipt amount after explicit review. Do not feed refunds or credits as payments.
+
+GL mapping accepts the normalized reviewed OG chart format `Account number,Account name,Account type,Detail type,Active,QBO account ID` with Active `true`/`false`. The last field is optional. This is an OG staging format, not a promise that QBO exports these exact columns. Retain the original export and document conversion. Use QBO IDs and exact account names; do not invent GL codes. QBO upload screens have transaction-specific templates; do not upload OG owner reports as QBO invoices. Download the QBO screen's current template, map customer/vendor, item, class, bank and GL under CPA review, then perform a sandbox test before any production batch.
+
+Feed OG from QBO: customer/tenant contact list, transaction detail for reviewed tenant payments, chart of accounts, receivables aging/open invoices, bank reconciliation evidence, and monthly Profit and Loss by Class for private DLA validation. P&L is supporting financial review, not rent-cash import. Exclude escrow liabilities and owner pool balances from DLA income. DLA management/maintenance income is separate from owner funds; the $10,000 minimum remains a review flag, never an extra automatic fee.
+
+## Acceptance and restart
+
+Do not mark Phase 6 fully complete until staff login, restricted shared-mailbox access, scheduler, controlled notification/reply, and QBO exchange activation pass live checks. Publishing disabled integration controls is safe as an intermediate checkpoint. Keep unit 106 Occupied and all existing records. Do not restore old financial data. Preserve source + status + handoff in the architecture folder; restart from the Phase 6 checkpoint with the listed activation tasks.

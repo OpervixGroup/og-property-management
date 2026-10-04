@@ -2,7 +2,7 @@
 
 Internal property management and rental-pool administration for Devonshire Leasing Agency, Inc. App owner: Global Home Cyber Tech LLC DBA Opervix Group. Version 26.9.3.
 
-**This branch is a standalone migration candidate. It has not been deployed to GoDaddy or connected to live Supabase Auth. The current ChatGPT-hosted OG app remains available.**
+**Phases 1–5 have been published by Miguel. Phase 6 is an intermediate integration checkpoint. Microsoft sign-in and work-order email are disabled until administrator setup and live verification; direct QBO API exchange is still pending. Read `docs/phase6-connections.md` before enabling providers.**
 
 ## What this build changes
 
