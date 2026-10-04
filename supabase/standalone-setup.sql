@@ -5,7 +5,7 @@ begin;
 create table public.og_app_users (
  auth_id uuid primary key, workspace_id text not null references og_private.workspaces(user_id),
  name text not null check(length(name) between 1 and 200), email text not null,
- phone text not null default '', role text not null check(role in ('Global Admin','Management','Maintenance','Accounting Clerk','Accountant','External CPA')),
+ phone text not null default '', role text not null check(role in ('Global Admin','Management','Analyst / Agent','Maintenance','Accounting Clerk','Accountant','External CPA')),
  property_ids text[] not null, status text not null check(status in ('Active','Disabled')),
  must_change_password boolean not null default true, created timestamptz not null default now(),updated timestamptz not null default now(),
  unique(workspace_id,email)

@@ -1,9 +1,10 @@
-export const STAFF_ROLES=['Global Admin','Management','Maintenance','Accounting Clerk','Accountant','External CPA'] as const;
+export const STAFF_ROLES=['Global Admin','Management','Analyst / Agent','Maintenance','Accounting Clerk','Accountant','External CPA'] as const;
 export type StaffRole=typeof STAFF_ROLES[number];
 export type StaffUser={id:string;name:string;email:string;role:StaffRole;propertyIds:string[];status:'Pending access'|'Disabled';created:string;updated:string;phone?:string;mfaPreference?:'SMS';mfaStatus?:'Pending configuration'};
 export const roleScope:Record<StaffRole,string>={
  'Global Admin':'All properties, users and roles. Only this role grants Global Admin access.',
  Management:'All properties and property-management functions, including accounting approvals and financial corrections. Manages staff except granting Global Admin access.',
+ 'Analyst / Agent':'Assigned properties: edit operational records and enter tenant charges, receipts and draft expenses. Deletion requires Management or Global Admin approval. No final distributions, allocation-policy changes or user administration.',
  Maintenance:'Assigned-property work orders and inventory. No owner distributions or accounting approvals.',
  'External CPA':'All properties: view records and print or download reports only. No editing, approvals, payments or user administration.',
  Accountant:'All properties: view records and print or download reports only, same as External CPA. No editing, approvals, payments or user administration.',

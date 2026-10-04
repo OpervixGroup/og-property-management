@@ -51,3 +51,4 @@ Devonshire_Source.zip
 /tests/.mock-runtime/
 
 *.tsbuildinfo
+/tests/.foundation-runtime/
