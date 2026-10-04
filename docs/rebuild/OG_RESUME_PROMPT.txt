@@ -1,0 +1,11 @@
+Reconstruct the OG property management app from Miguel’s confirmed working backup, following OG_REBUILD_ARCHITECTURE.md and OG_REBUILD_STATUS.json supplied with this prompt.
+
+Read both files first. Verify actual files, GitHub branches and external state; recorded history is context, not proof of current state. The latest recent-change commit is reference material, not an approved baseline. If the backup is still unspecified, ask for its file/folder/commit and continue with read-only planning. Preserve backup and production records. Do not restore a database merely to roll back code.
+
+Build domain logic and persistent workflows first, then screens. Complete one documented phase at a time. Every visible action must work, save, survive refresh/new login, enforce server-side role/property scope and produce useful errors. Keep disconnected features truthful. Do not copy all recent code or AppFolio menus wholesale.
+
+Record financial assumptions and reconcile exact cents; preserve approvals and audit history. Use synthetic test data. Never commit credentials, tenant/company datasets or temporary preview APIs. Verify actual Microsoft/QBO connections separately from mocks.
+
+Work on an isolated reconstruction branch from the confirmed backup. Update the status and decisions after each task and commit sanitized handoff files with phase commits. Verify remote commit SHAs. Do not force-push main. Miguel publishes to GoDaddy; prepare a tested release and hosting-specific instructions, then verify the live version after he publishes.
+
+Start with the next action recorded in status. Report what is complete, what remains unverified and what information is required, without claiming unfinished integrations work.

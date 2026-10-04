@@ -1,0 +1,53 @@
+{
+  "project": "OG property management reconstruction",
+  "updated_date": "2026-10-04",
+  "timezone": "America/Chicago",
+  "status": "Verified backup source established as reconstruction baseline",
+  "repository": "https://github.com/OpervixGroup/og-property-management",
+  "reference_commit": "60f51d61dad06642215c8f52ce60108f87613e08",
+  "reference_is_approved_baseline": false,
+  "backup_location": "Private local backup; see owner's OneDrive architecture folder",
+  "backup_hash_or_commit": "11841d034320acda25283dd5c6db2ff479bcfb988d209973c0c855c780191ee7",
+  "reconstruction_branch": "rebuild-backup-2026-10-04",
+  "reconstruction_head": "4d6d4a46444fa4039dae60fbf6b66265b04548f3",
+  "current_phase": "1 Logic and workflow inventory",
+  "completed": [
+    "Saved proposed architecture, phase gates, publication handoff and restart prompt",
+    "Preserved local copy of workspace revision 5; records checksum matches manifest",
+    "Source and data ZIPs safely extracted; actual snapshot domain validation, 79 core checks, 22 access assertions, staff and local SQL tests passed",
+    "Baseline production build with TypeScript passed; mock HTTP tests passed; actual historical snapshot rendered read-only in browser; temporary preview routes restored",
+    "All 179 source archive files exactly match GitHub commit 4d6d4a4; isolated rebuild-backup-2026-10-04 branch established"
+  ],
+  "pending": [
+    "Inventory baseline actions and define end-to-end workflows",
+    "Agree access matrix and accounting assumptions",
+    "Validate source against current production data before release",
+    "Run fresh installation and Node 22 hosting checks"
+  ],
+  "integration_status": {
+    "microsoft_sign_in": "Recent reference code exists; administrator activation and live tests not completed",
+    "outlook_work_orders": "Recent reference code exists; mailbox activation and live tests not completed",
+    "qbo_gl": "Recent reference import code exists; production import not verified"
+  },
+  "production_changed_by_this_planning_task": false,
+  "release_ready": false,
+  "publisher": "Miguel",
+  "next_action": "Review baseline navigation and actions, record each workflow and its completion criteria, then implement one agreed phase at a time",
+  "phase_evidence": [
+    "Workspace backup format v1, revision 5; two files only; no source code, authentication accounts or hosting credentials",
+    "GoDaddy project z64hid4a52 uses Node 22 and main; preview commit 60f51d6; historical and current financial settings differ"
+  ],
+  "unresolved_defects": [
+    "User reports many recent options are not working; individual defects require baseline inventory"
+  ],
+  "uncommitted_source_changes_for_reconstruction": [],
+  "restart_files": [
+    "OG_REBUILD_ARCHITECTURE.md",
+    "OG_RESUME_PROMPT.txt",
+    "OG_REBUILD_STATUS.json"
+  ],
+  "source_backup": "OG-26.9.3-GoDaddy-Source.zip",
+  "source_backup_sha256": "77a8a7a803b9326f70ddc925199eb6d66be9c9b01f904dd93cd935d5cc15054a",
+  "approved_source_baseline_commit": "4d6d4a46444fa4039dae60fbf6b66265b04548f3",
+  "archive_matches_git_files": 179
+}

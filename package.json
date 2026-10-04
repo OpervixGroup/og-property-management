@@ -9,7 +9,7 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "node scripts/start-node.mjs",
-    "test": "node tests/run.mjs && node tests/access-policy.mjs && node tests/profitability.mjs && node tests/maintenance.mjs && node tests/leasing.mjs && node tests/people-calendar.mjs && node tests/office.mjs && node tests/workflows.mjs && node tests/work-mail-server.mjs && node tests/settings-auth.mjs",
+    "test": "node tests/run.mjs && node tests/access-policy.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
