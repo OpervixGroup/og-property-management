@@ -9,7 +9,7 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "node scripts/start-node.mjs",
-    "test": "node tests/run.mjs && node tests/access-policy.mjs && node tests/workflow-foundation.mjs && node tests/tenancy-phase2.mjs && node tests/pool-finance-phase3.mjs && node tests/maintenance-phase4.mjs",
+    "test": "node tests/run.mjs && node tests/access-policy.mjs && node tests/workflow-foundation.mjs && node tests/tenancy-phase2.mjs && node tests/pool-finance-phase3.mjs && node tests/maintenance-phase4.mjs && node tests/month-close-phase5.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
