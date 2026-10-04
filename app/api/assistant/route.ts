@@ -1,0 +1,5 @@
+import {getChatGPTUser} from '@/app/chatgpt-auth';
+import {access,sameOrigin,body} from '@/lib/server/request';
+import {load} from '@/lib/storage';
+import {answerRecords} from '@/lib/assistant-records';
+export async function POST(request:Request){try{sameOrigin(request);const u=access(await getChatGPTUser()),p=await body(request,5000);if(typeof p.question!=='string'||!p.question.trim()||p.question.length>1000||typeof p.period!=='string'||typeof p.context!=='string'||p.context.length>100||p.unitNumber!==undefined&&(typeof p.unitNumber!=='string'||!/^\d{1,6}$/.test(p.unitNumber)))throw Error('Invalid assistant question');const current=await load(u.userId);if(!current.data.periods.some(m=>m.month===p.period))throw Error('Choose a saved accounting month');return Response.json({...answerRecords(current.data,u.member,p.question,p.period,p.context,p.unitNumber??''),revision:current.revision,checkedAt:new Date().toISOString()},{headers:{'Cache-Control':'private, no-store'}});}catch(e){return Response.json({error:e instanceof Error?e.message:'Assistant unavailable'},{status:400,headers:{'Cache-Control':'no-store'}});}}

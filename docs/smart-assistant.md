@@ -1,0 +1,9 @@
+# Smart OG Assistant checkpoint
+
+The assistant now reads current saved OG records through an authenticated same-origin server endpoint. It answers unit occupancy/membership, open work orders, expected rent and unpaid recorded tenant charges, private DLA income review and monthly-close blockers. Financial answers are denied to Maintenance. Assigned-property roles cannot inspect other properties. DLA income remains full-access Management/Global Admin/Accountant/CPA only.
+
+Unit follow-ups retain focus; global questions clear focus; multiple units trigger clarification. Each answer shows saved-record or workflow-guide mode, source labels and a Chicago time checked. Conversation remains in component memory while the app is open; closing/reopening the panel retains it. Start new conversation clears it. Reload/sign-out clears it. No browser local storage, external generative AI provider or outbound customer-data transmission is used. This is a deterministic assistant with live saved-record lookups and guided interaction; it is not an unrestricted language model.
+
+Responses do not perform actions. Screen-opening links respect unsaved-edit navigation protection and scoped staff return to their own workspace. Money is exact cents from existing approved calculation helpers. A lack of recorded arrears is not proof of payment or complete invoice/opening data. Unsaved changes, live QBO bank feeds and missing provider registrations are not represented as verified facts. Outlook/QBO activation work remains Phase 6 pending.
+
+No new key, provider, database migration or dependency is required. Existing data and unit 106 Occupied must be preserved on publication. Do not upload synthetic QA data. An external generative service can be added only with server-side credentials, explicit data-use approval, grounded tool access, privacy review and live acceptance; this checkpoint does not certify that service.

@@ -10,6 +10,16 @@ const env={...process.env,OG_WORK_EMAIL_ENABLED:'false',OG_MICROSOFT_LOGIN_ENABL
 const cookies=[];for(const member of members){const r=await post('/api/auth','',{action:'login',email:member.email,password:'temporary-test-password'});assert.equal(r.status,200,await r.text());const set=r.headers.getSetCookie();assert(set.some(c=>c.includes('HttpOnly')));cookies.push(set.map(c=>c.split(';')[0]).join('; '));}for(let i=0;i<roles.length;i++){const cookie=cookies[i],role=roles[i],full=['Global Admin','Management','Accountant','External CPA'].includes(role);assert.equal((await get('/api/pool',cookie)).status,full?200:403,role);assert.equal((await get('/api/users',cookie)).status,['Global Admin','Management'].includes(role)?200:403,role);assert.equal((await get('/api/admin-logs',cookie)).status,role==='Global Admin'?200:403,role);if(!['Global Admin','Management'].includes(role))assert.equal((await post('/api/pool',cookie,{revision,operation:'test',data})).status,400);if(!full){const r=await get('/api/scoped',cookie),j=await r.json();assert.equal(r.status,200);assert(j.units.every(u=>u.propertyId==='property-devonshire'));assert(!JSON.stringify(j).includes('other@example.test'));if(role==='Maintenance'){assert(!('statements' in j));assert(!JSON.stringify(j).includes('test@example.test'));}}}
 // Actual routes, fake provider only: verified persistence and server-controlled actors.
 const admin=cookies[0],manager=cookies[1],agent=cookies[6];
+const assistantPayload={question:'Show my open work orders',period:'2026-10',context:'maintenance'};
+assert.equal((await post('/api/assistant','',assistantPayload)).status,400);
+assert.equal((await post('/api/assistant',manager,assistantPayload,'https://evil.example')).status,400);
+let ar=await post('/api/assistant',cookies[2],assistantPayload);assert.equal(ar.status,200);let aj=await ar.json();assert.match(aj.text,/scope: 1/);assert(!aj.text.includes('w2'));
+ar=await post('/api/assistant',agent,{...assistantPayload,question:'Show unit 999'});assert.match((await ar.json()).text,/unavailable/);
+ar=await post('/api/assistant',cookies[2],{...assistantPayload,question:'What is DLA income?'});assert.match((await ar.json()).text,/restricted/);
+const beforeAssistant=JSON.stringify(data),revisionBeforeAssistant=revision;ar=await post('/api/assistant',manager,{...assistantPayload,question:'What needs review this month?'});aj=await ar.json();assert.equal(ar.status,200);assert.match(aj.text,/Monthly review/);assert.equal(JSON.stringify(data),beforeAssistant);assert.equal(revision,revisionBeforeAssistant);
+assert.equal((await post('/api/assistant',manager,{...assistantPayload,period:'2099-12'})).status,400);
+console.log('PASS Smart assistant HTTP: saved-record answers, CSRF/authentication, scoped privacy, private DLA denial, invalid month and no writes.');
+
 assert.equal((await get('/api/integrations')).status,403);
 assert.equal((await get('/api/integrations',agent)).status,403);
 assert.equal((await get('/api/integrations',manager)).status,200);

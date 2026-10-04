@@ -1,20 +1,21 @@
 import {workflowGuides} from './workflow-guide';
 export type GuideAnswer={text:string;guideIds:string[];questions:string[]};
 export const quickQuestions:Record<string,string[]>={
- maintenance:['How do I issue inventory to a unit?','How do I post repair labor?','How do I return materials?'],
- people:['How do I match a tenant receipt?','How does rent become Partially Paid?'],
- accounting:['How do I allocate pool income?','How do I record escrow?','How do I export to QBO?'],
+ home:['What needs review this month?','Show vacant units','Show my open work orders'],
+ maintenance:['Show my open work orders','How do I issue inventory to a unit?','How do I post repair labor?','How do I return materials?'],
+ people:['Show unpaid tenant charges','How do I match a tenant receipt?','How does rent become Partially Paid?'],
+ accounting:['What needs review this month?','What is DLA income?','How do I allocate pool income?','How do I record escrow?','How do I export to QBO?'],
  statements:['How do I attach a receipt?','How do I approve a statement?','What does the owner see?'],
  distributions:['How do I combine owner units?','How do I record a payment?','How does Unit 108 HOA work?'],
  'general-settings':['How do I add a user?','What can an Accounting Clerk do?','Can the CPA edit records?'],
- properties:['How do I edit the company profile?','How do I retire a unit?'],
+ properties:['Show vacant units','How do I edit the company profile?','How do I retire a unit?'],
 };
 function guide(id:string,intro=''):GuideAnswer{const g=workflowGuides.find(g=>g.id===id)!;return {text:(intro?intro+'\n\n':'')+g.location+'\n\n'+g.purpose+'\n\n'+g.steps.map((s,i)=>(i+1)+'. '+s).join('\n')+'\n\n'+g.note,guideIds:[id],questions:quickQuestions[id]??['How do I attach a receipt?','How do I prepare owner distributions?']};}
 export function answerGuide(question:string,context='home'):GuideAnswer{
  const q=question.trim().toLowerCase();
  if(!q)return {text:'What would you like to do in OG?',guideIds:[],questions:quickQuestions[context]??['How do I prepare owner distributions?','How do I add a user?']};
  if(/\b(1099|w-?9|taxpayer|onboarding)\b/.test(q))return guide('properties','Basic unit/owner onboarding is available from Units & owners or Properties → Activate / retire Unit → Onboard a new unit. Full protected tax records and 1099 preparation are not implemented. Dustin must review the reporting basis before year-end tax exports are added.');
- if(/\b(sharepoint|integrations?|connected|connect|sms|send.*email|email.*send|live ai)\b/.test(q))return {text:'OG currently uses private demo record and document storage. SharePoint, Microsoft email/calendar, QBO and AppFolio synchronization are not connected. Email preparation saves a draft; it does not send. This assistant uses the built-in OG knowledge base, with no live AI service or access to your account data.',guideIds:['communication','documents','general-settings'],questions:['How do I prepare an owner email?','How do I attach a receipt?']};
+ if(/\b(sharepoint|integrations?|connected|connect|sms|send.*email|email.*send|live ai)\b/.test(q))return {text:'OG uses Supabase records and private document storage. General settings shows Microsoft sign-in and Outlook setup status. Work-order changes queue shared-mailbox notices; sending and reply checks require activated Microsoft settings and a scheduler. Reviewed QBO CSV exchange is available; direct QBO API exchange remains pending. The assistant reads authorized saved OG records, without an external AI service.',guideIds:['communication','documents','general-settings'],questions:['How do I prepare an owner email?','How do I attach a receipt?']};
  if(/(electric|electricity).*(market|sale|outside)|(market|sale|outside).*(electric|electricity)/.test(q))return guide('settings','Market units outside the active leasing pool pay their own electricity, without a shared electricity charge. Use Properties to record effective participation correctly. Active leasing-pool units, including vacant/make-ready units, share the reviewed pool electricity bill.');
  if(/\b(108|hmr)\b/.test(q))return guide('distributions','Unit 108 has no tenant and is HOA-only. Its outstanding $319 HOA charge offsets HMR’s selected positive owner distributions once. Any uncovered balance remains an owner bill; OG records no bank transfer.');
  if(/\b(1315|aguirre)\b/.test(q))return guide('statements','Unit 1315’s HOA is deducted through Unit 1607, shown as a separate deduction. Unit 1315 has no electricity pool share.');
@@ -45,5 +46,5 @@ export function answerGuide(question:string,context='home'):GuideAnswer{
  if(/\b(report|reports|export|print)\b/.test(q))return guide('reporting');
  if(/\b(metric|metrics|chart|performance)\b/.test(q))return guide('metrics');
  if(/^(hello|hi|help|next|how do i use this|what do i do|what do i do next|tell me more)[?.!\s]*$/.test(q))return guide(workflowGuides.some(g=>g.id===context)?context:'home');
- return {text:'I do not have a verified procedure for that question. Choose a suggested question or open the knowledge base below. I can explain OG workflows, but cannot inspect balances, change records or give a verified answer outside these guides.',guideIds:[],questions:quickQuestions[context]??['How do I prepare owner distributions?','How do I add a user?','How do I match a tenant receipt?']};
+ return {text:'I do not have a verified procedure for that question. Choose a suggested question or open the knowledge base below. Ask about a unit, vacant units, open work orders, unpaid tenant charges or monthly review. I can check saved records and explain workflows; I cannot make changes or verify outside records.',guideIds:[],questions:quickQuestions[context]??['How do I prepare owner distributions?','How do I add a user?','How do I match a tenant receipt?']};
 }
