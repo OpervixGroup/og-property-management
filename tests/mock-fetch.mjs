@@ -1,0 +1,2 @@
+// Test-only preload: routes fake Supabase HTTPS to the local mock provider. No real keys or data.
+const original=globalThis.fetch;globalThis.fetch=(input,init)=>{const value=input instanceof Request?input.url:String(input);if(value.startsWith('https://og-mock.supabase.co/')){const url=new URL(value);const next='http://127.0.0.1:41791'+url.pathname+url.search;return original(input instanceof Request?new Request(next,input):next,init);}return original(input,init);};

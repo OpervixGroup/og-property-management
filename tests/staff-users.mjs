@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {stripTypeScriptTypes} from 'node:module';
+const code=stripTypeScriptTypes(await readFile(new URL('../lib/staff-users.ts',import.meta.url),'utf8'),{mode:'transform'});
+const {validateStaffUsers,STAFF_ROLES,normalizeStaffScopes,roleScope}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const u={id:'staff-1',name:'CPA Reviewer',email:'cpa@example.test',role:'External CPA',propertyIds:['p1','p2'],status:'Pending access',created:'2026-10-03T20:00:00Z',updated:'2026-10-03T20:00:00Z'};
+assert(STAFF_ROLES.includes('External CPA'));validateStaffUsers(undefined,[u],['p1','p2']);
+assert.throws(()=>validateStaffUsers(undefined,[{...u,propertyIds:['p1']}],['p1','p2']),/all-property/);
+assert.throws(()=>validateStaffUsers(undefined,[u,{...u,id:'staff-2',email:'CPA@EXAMPLE.TEST'}],['p1','p2']),/unique/);
+assert.throws(()=>validateStaffUsers([u],[],['p1','p2']),/Disable/);
+assert.throws(()=>validateStaffUsers(undefined,[{...u,status:'Active'}],['p1','p2']),/access status/);
+assert.throws(()=>validateStaffUsers(undefined,[{...u,propertyIds:['unknown']}],['p1','p2']),/property access/);
+validateStaffUsers([u],[{...u,status:'Disabled'}],['p1','p2']);
+assert.throws(()=>validateStaffUsers([u],[{...u,created:'2025-01-01T00:00:00Z'}],['p1','p2']),/history/);
+for(const role of ['Management','Accountant']){validateStaffUsers(undefined,[{...u,role}],['p1','p2']);assert.throws(()=>validateStaffUsers(undefined,[{...u,role,propertyIds:['p1']}],['p1','p2']),/all-property/);}
+validateStaffUsers(undefined,[{...u,role:'Accounting Clerk',propertyIds:['p1']}],['p1','p2']);
+const normalized=normalizeStaffScopes({properties:[{id:'p1'},{id:'p2'}],staffUsers:[{...u,role:'Accountant',propertyIds:['p1']}]});assert.deepEqual(normalized.staffUsers[0].propertyIds,['p1','p2']);assert.match(roleScope.Accountant,/view records/);assert.match(roleScope['Accounting Clerk'],/No statement\/distribution approvals/);
+console.log('PASS staff-directory checks: CPA scope, duplicate email, no deletion, no active-login claim, property validation, disabling, creation history');
+validateStaffUsers(undefined,[{...u,phone:'+12105761708',mfaPreference:'SMS',mfaStatus:'Pending configuration'}],['p1','p2']);
+assert.throws(()=>validateStaffUsers(undefined,[{...u,phone:'210-576-1708'}],['p1','p2']),/country code/);
+assert.throws(()=>validateStaffUsers(undefined,[{...u,phone:'+12105761708',mfaPreference:'SMS',mfaStatus:'Verified'}],['p1','p2']),/pending configuration/);
+assert.throws(()=>validateStaffUsers(undefined,[{...u,mfaPreference:'SMS',mfaStatus:'Pending configuration'}],['p1','p2']),/pending configuration/);

@@ -1,0 +1,9 @@
+import 'server-only';
+import {admin,serverConfig} from './server/supabase';
+import {supabaseFiles,fileHash} from './supabase-files';
+export type StoredDocument={id:string;workspace_id:string;statement_id:string;expense_id:string;name:string;mime:string;size:number;key:string;sha256:string;created:string};
+export async function listDocuments(workspace:string){if(workspace!==serverConfig().workspace)throw Error('Unknown workspace');const rows:StoredDocument[]=[];for(let offset=0;offset<10000;offset+=1000){const {data,error}=await admin().from('og_app_documents').select('*').eq('workspace_id',workspace).order('id').range(offset,offset+999);if(error)throw Error('Document metadata unavailable');rows.push(...data);if(data.length<1000)return rows;}throw Error('Document list exceeds download limit');}
+export async function privateFiles(workspace:string){const c=serverConfig();if(workspace!==c.workspace)throw Error('Unknown workspace');const {data,error}=await admin().storage.getBucket('og-private-documents');if(error||!data||data.public)throw Error('Private document bucket is unavailable or public. Verify storage before use.');return supabaseFiles({url:c.url,secret:c.secret});}
+export async function documentBytes(workspace:string,doc:StoredDocument){if(doc.workspace_id!==workspace)throw Error('Unknown document');const bytes=await (await (await privateFiles(workspace)).get(doc.key)).arrayBuffer();if(bytes.byteLength!==doc.size||await fileHash(bytes)!==doc.sha256)throw Error('Document integrity check failed');return bytes;}
+export async function writeDocument(workspace:string,key:string,bytes:ArrayBuffer,mime:string){const files=await privateFiles(workspace);await files.put(key,bytes,mime);return {sha256:await fileHash(bytes)};}
+export async function removeUnlinkedDocument(workspace:string,key:string){await (await privateFiles(workspace)).remove(key);}
