@@ -12,7 +12,8 @@ import {PDFDocument} from 'pdf-lib';
 
 const tmp=new URL('./.runtime/',import.meta.url);await mkdir(tmp,{recursive:true});
 
-await writeFile(new URL('operations-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/operations-model.ts',import.meta.url),'utf8'),{mode:'transform'}));
+await writeFile(new URL('maintenance-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/maintenance-model.ts',import.meta.url),'utf8'),{mode:'transform'}));
+await writeFile(new URL('operations-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/operations-model.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./maintenance-model'","'./maintenance-model.mjs'"));
 
 await writeFile(new URL('procurement-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/procurement-model.ts',import.meta.url),'utf8'),{mode:'transform'}));
 
@@ -247,4 +248,5 @@ if(process.argv[2]){const sample=parseQboPayments(await readFile(process.argv[2]
 pass('PostgreSQL JSON field ordering preserves audit history through canonical cutover',()=>{const reorder=v=>Array.isArray(v)?v.map(reorder):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,reorder(v[k])])):v;const incoming=reorder(d);const canonical=v=>Array.isArray(v)?'['+v.map(canonical).join(',')+']':v&&typeof v==='object'?'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}':JSON.stringify(v);assert.equal(canonical(incoming),canonical(d));validate(incoming,structuredClone(incoming));const removed=structuredClone(incoming);removed.audit.pop();assert.notEqual(canonical(removed),canonical(d));assert.throws(()=>validate(incoming,removed),/Audit/);const changed=structuredClone(incoming);changed.audit[0].action='changed';assert.notEqual(canonical(changed),canonical(d));assert.throws(()=>validate(incoming,changed),/Audit/);});
 
 await rm(tmp,{recursive:true,force:true});console.log(tests+' checks passed');
+
 

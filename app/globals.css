@@ -176,3 +176,8 @@ button.brand-home{background:transparent;border:0;padding:0;min-height:48px;colo
 
 .work-entry-details{background:#edf4fb;padding:18px;border-radius:8px;margin:18px 0}.work-entry-details p{font-size:14px;line-height:1.6;overflow-wrap:anywhere}.work-entry-details textarea{min-height:100px}
 .login-shell{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#eef3f8;padding:24px}.login-card{width:min(100%,470px);padding:32px}.login-card h1{font-size:26px;margin:16px 0 8px}.login-card img{object-fit:contain}.login-card button{width:100%;margin-top:16px}.scoped-shell{max-width:1400px;margin:auto;padding:24px}.scoped-shell header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.scoped-shell .brand{display:flex;align-items:center;gap:14px}.scoped-shell h1{font-size:26px}.scoped-shell .panel{margin-bottom:20px}.scoped-shell a{color:#125aa3}
+
+/* Phase 1 maintenance navigation */
+.maintenance-chevron{margin-left:auto}.og-sidebar [data-slot=sidebar-menu-sub] [data-slot=sidebar-menu-button]{font-size:13px;height:auto;min-height:36px;white-space:normal}.maintenance-actions{display:flex;align-items:end;justify-content:space-between;gap:16px;margin:0 0 22px;flex-wrap:wrap}.maintenance-actions .field{min-width:230px}.maintenance-actions .toolbar{flex-wrap:wrap}.people-tabs{flex-wrap:wrap}.workspace,.operations-area,.app,[data-slot=sidebar-inset]{min-width:0}.operations-area .panel{min-width:0}.ops-metric strong{overflow-wrap:anywhere}
+@media(max-width:650px){.maintenance-actions{align-items:stretch}.maintenance-actions .field{width:100%}.maintenance-actions .toolbar{width:100%}}
+
