@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import {fixture} from './model-loader.mjs';
+import {readFile,writeFile} from 'node:fs/promises';
+import {stripTypeScriptTypes} from 'node:module';
 await fixture();
 const {generateRecurringWork,nextRecurringDate,validateMaintenanceRecords}=await import('./.mock-runtime/maintenance-model.mjs');
 const {emptyOperations,validateOperations}=await import('./.mock-runtime/operations-model.mjs');
@@ -25,5 +27,20 @@ ops.fixedAssets[0].unitId='other';assert.throws(()=>validateMaintenanceRecords(o
 ops.fixedAssets=[];assert.throws(()=>validateMaintenanceRecords(ops,units,old),/history/);ops.fixedAssets=structuredClone(old.fixedAssets);
 delete ops.workOrders[0].recurringKey;assert.throws(()=>validateMaintenanceRecords(ops,units,old),/source/);ops.workOrders[0].recurringKey=old.workOrders[0].recurringKey;
 validateOperations(ops,units,old);
+const reportCode=stripTypeScriptTypes(await readFile(new URL('../lib/maintenance-reports.ts',import.meta.url),'utf8'),{mode:'transform'}).replace(/from '(\.\/[^']+)'/g,(_,p)=>"from '"+p+".mjs'");
+await writeFile(new URL('./.mock-runtime/maintenance-reports.mjs',import.meta.url),reportCode);
+const {maintenanceReportRows}=await import('./.mock-runtime/maintenance-reports.mjs');
+const d={units:[{id:'u1',number:'101'}],operations:ops};
+ops.workOrders[0].hours100=125;ops.workOrders[0].rate=1234;ops.workOrders[0].materials=300;
+const before=JSON.stringify(d);
+assert.equal(maintenanceReportRows(d,'Work Orders','Labor Summary')[1].at(-1),'15.43');
+assert.equal(maintenanceReportRows(d,'Work Orders','Billable Detail')[1].at(-1),'18.43');
+assert.equal(maintenanceReportRows(d,'Inspections','Inspection Detail').length,2);
+assert.equal(maintenanceReportRows(d,'Projects','Project Detail').length,1);
+assert.equal(maintenanceReportRows(d,'Purchase Orders','Purchase Order')[1][0],'PO-1');
+assert.equal(maintenanceReportRows(d,'Fixed Assets','Fixed Asset')[1][0],'AC-1');
+assert.equal(maintenanceReportRows(d,'Inventory','Inventory').length,1);
+assert.equal(JSON.stringify(d),before);
 console.log('PASS Maintenance recurrence, approval, validation, legacy data and history preservation');
+console.log('PASS Maintenance reports: exact labor cents, section filtering, register exports, no data mutation');
 

@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
 import {toast} from 'sonner';
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/ui/dialog';
 import {type Data,audit,money,cents} from '@/lib/pool';
@@ -7,11 +7,12 @@ import {emptyOperations} from '@/lib/operations-model';
 import {generateRecurringWork,validateMaintenanceRecords} from '@/lib/maintenance-model';
 import {Grid,Pick} from './report-controls';
 type Register='Recurring Work Orders'|'Purchase Orders'|'Fixed Assets';
-export default function MaintenanceRegisters({data,section,busy,persist,openWork}:{data:Data;section:Register;busy:boolean;persist:(d:Data,message?:string)=>Promise<boolean>;openWork:(id:string)=>void}){
+export default function MaintenanceRegisters({data,section,busy,persist,openWork,action,onActionHandled}:{action?:{name:string;token:number}|null;onActionHandled?:()=>void;data:Data;section:Register;busy:boolean;persist:(d:Data,message?:string)=>Promise<boolean>;openWork:(id:string)=>void}){
  const [form,setForm]=useState<any>(null),[query,setQuery]=useState('');const ops=data.operations??emptyOperations(),key=section==='Recurring Work Orders'?'recurringWork':section==='Purchase Orders'?'purchaseOrders':'fixedAssets';
  const rows=ops[key]??[],today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  const unit=(id:string)=>data.units.find(u=>u.id===id)?.number??'Property-wide';
  function create(record?:any){setForm(record?structuredClone(record):{id:crypto.randomUUID(),unitId:'',notes:'',...(key==='recurringWork'?{kind:'Repair',title:'',description:'',assignee:'',vendor:'',nextDate:today,intervalMonths:1,active:true}:key==='purchaseOrders'?{number:'PO-'+crypto.randomUUID().slice(0,8).toUpperCase(),workOrderId:'',supplier:'',description:'',date:today,expectedDate:'',amount:0,status:'Draft',approvedBy:''}:{tag:'',name:'',serial:'',acquired:'',cost:0,status:'In service',nextService:''})});}
+ useEffect(()=>{if(action?.name==='new'){create();onActionHandled?.();}},[action?.token]);
  async function save(){try{const n=structuredClone(data);n.operations??=emptyOperations();const list:any[]=n.operations[key]??=[];const index=list.findIndex(r=>r.id===form.id);if(index<0)list.push(form);else list[index]=form;validateMaintenanceRecords(n.operations,new Set(n.units.map(u=>u.id)),ops);audit(n,section+' saved',form.title??form.number??form.tag);if(await persist(n,'Maintenance record saved'))setForm(null);}catch(e){toast.error((e as Error).message);}}
  async function generate(id:string){try{const n=structuredClone(data);const w=generateRecurringWork(n.operations!,id,today);audit(n,'Recurring work order generated',w.number+' / '+w.title+' / '+w.scheduled);if(await persist(n,'Work order created'))openWork(w.id);}catch(e){toast.error((e as Error).message);}}
  const text=(k:string,label:string,type='text')=><label className="field">{label}<input type={type} value={form[k]??''} onChange={e=>setForm({...form,[k]:e.target.value})}/></label>;
