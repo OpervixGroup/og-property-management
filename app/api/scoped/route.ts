@@ -1,3 +1,5 @@
+import {queueWorkChanges} from '@/lib/work-mail-model';
+import {mailConfigured,processWorkMail} from '@/lib/server/work-mail';
 import {getChatGPTUser} from '@/app/chatgpt-auth';
 import {access,sameOrigin,body} from '@/lib/server/request';
 import {load,save} from '@/lib/storage';
@@ -13,5 +15,6 @@ export async function POST(request:Request){try{sameOrigin(request);const u=acce
  else if(p.action==='match'){const entries=next.operations.tenantEntries??[],r=entries.find(e=>e.id===p.receiptId&&e.kind==='Receipt'),c=entries.find(e=>e.id===p.chargeId&&e.kind==='Charge');if(!r||!c||r.tenantId!==c.tenantId||!next.operations.tenants?.some(t=>t.id===r.tenantId&&units.has(t.unitId)))throw Error('Receipt matching access denied');applyTenantReceipt(next,r.id,c.id,p.cents,c.category);}
  else if(p.action==='expense'){const s=next.statements.find(s=>s.id===p.statementId&&units.has(s.unitId)&&s.status==='Pending');if(!s||latest(next,s.period).find(x=>x.unitId===s.unitId)?.id!==s.id)throw Error('Use the latest draft statement for an assigned unit');if(typeof p.label!=='string'||typeof p.recipient!=='string'||!p.label.trim()||!p.recipient.trim())throw Error('Enter the expense and recipient');s.expenses.push({id:crypto.randomUUID(),label:p.label.slice(0,200),cents:p.cents,recipient:p.recipient.slice(0,200),classification:String(p.classification??'Confirm classification').slice(0,200),gl:String(p.gl??'').slice(0,20)});audit(next,'Draft unit expense entered',s.unitId+' · '+u.displayName);}
  else throw Error('Accounting Clerk cannot approve, pay, change allocation rules or administer users');
- for(const event of next.audit)if(!old.data.audit.some(x=>x.id===event.id))Object.assign(event,{actor:u.displayName,actorId:u.authId});const result=await save(u.userId,p.revision,p.operation,next);await systemLog(u.userId,u.displayName,'Records','Info','Scoped records saved',u.role+' · revision '+result.revision);return Response.json({ok:true,revision:result.revision});
+ queueWorkChanges(old.data,next,mailConfigured());
+ for(const event of next.audit)if(!old.data.audit.some(x=>x.id===event.id))Object.assign(event,{actor:u.displayName,actorId:u.authId});let result=await save(u.userId,p.revision,p.operation,next);if(u.role==='Maintenance'&&mailConfigured()){try{await processWorkMail(u.userId);}catch{await systemLog(u.userId,u.displayName,'Connection','Error','Work email needs review','Check email queue');}result=await load(u.userId);}await systemLog(u.userId,u.displayName,'Records','Info','Scoped records saved',u.role+' · revision '+result.revision);return Response.json({ok:true,revision:result.revision});
  }catch(e){const error=e instanceof Error?e.message:'Save failed';return Response.json({error},{status:error.startsWith('CONFLICT')?409:400});}}

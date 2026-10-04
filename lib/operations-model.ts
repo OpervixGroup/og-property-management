@@ -4,7 +4,7 @@ import {validateMaintenanceRecords,type RecurringWork,type PurchaseOrder,type Fi
 export const workStatuses=['New','Assigned','Estimate requested','Estimated','Scheduled','Waiting','Work done, unbilled','Ready to bill','Completed'] as const;
 export type WorkStatus=typeof workStatuses[number];
 export type WorkOrder={recurringKey?:string;permissionToEnter?:'Yes'|'No';entryInstructions?:string;id:string;number:string;unitId:string;title:string;description:string;status:WorkStatus;priority:'Normal'|'Urgent'|'Emergency';kind:'Repair'|'Inspection'|'Unit turn'|'Project';assignee:string;vendor:string;scheduled:string;followUp:string;estimate:number;hours100:number;rate:number;materials:number;ownerApproved:boolean;notes:string;created:string;updated:string};
-export type CalendarEvent={calendar?:CalendarSection;propertyId?:string;audience?:'Staff'|'Homeowners'|'Tenants'|'Everyone';status?:'Scheduled'|'Completed'|'Cancelled';allDay?:boolean;startTime?:string;endTime?:string;location?:string;assignee?:string;recurrence?:'None'|'Weekly'|'Monthly';repeatUntil?:string;attachmentReference?:string;id:string;title:string;date:string;end:string;unitId:string;kind:'Administrative'|'Maintenance'|'Meeting'|'Showing'|'Announcements'|'Social Events';notes:string};
+export type CalendarEvent={deletedAt?:string;calendar?:CalendarSection;propertyId?:string;audience?:'Staff'|'Homeowners'|'Tenants'|'Everyone';status?:'Scheduled'|'Completed'|'Cancelled';allDay?:boolean;startTime?:string;endTime?:string;location?:string;assignee?:string;recurrence?:'None'|'Weekly'|'Monthly';repeatUntil?:string;attachmentReference?:string;id:string;title:string;date:string;end:string;unitId:string;kind:'Administrative'|'Maintenance'|'Meeting'|'Showing'|'Announcements'|'Social Events';notes:string};
 export type Communication={id:string;recipient:string;unitId:string;subject:string;body:string;status:'Draft';created:string};
 export type Prospect={phone?:string;source?:string;agent?:string;created?:string;desiredMoveIn?:string;id:string;name:string;email:string;unitId:string;stage:'Inquiry'|'Tour scheduled'|'Application received'|'Lease prepared'|'Closed';tour:string;notes:string};
 export type Lease={id:string;unitId:string;tenant:string;tenantId?:string;signedDate?:string;start:string;end:string;rent:number;status:'Draft'|'Active'|'Ended';notes:string};
@@ -49,4 +49,3 @@ function validateTenantRecords(ops:Operations,units:Set<string>,old?:Operations)
 }
 
 export function workOrderPets(ops:Operations,unitId:string,date:string){return (ops.tenants??[]).filter(t=>t.unitId===unitId&&t.start<=date&&(!t.end||t.end>=date)).map(t=>({tenantId:t.id,name:t.firstName+' '+t.lastName,pets:t.pets?.trim()||'Not recorded'}));}
-

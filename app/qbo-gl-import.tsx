@@ -1,0 +1,8 @@
+'use client';
+import {useState} from 'react';
+import {toast} from 'sonner';
+import {type Data,audit} from '@/lib/pool';
+import {qboGLRows,importQboGL} from '@/lib/qbo-gl';
+import {validateOffice} from '@/lib/office-model';
+import {Grid} from './report-controls';
+export default function QboGLImport({data,busy,persist}:{data:Data;busy:boolean;persist:(d:Data,message?:string)=>Promise<boolean>}){const [rows,setRows]=useState<ReturnType<typeof qboGLRows>>([]),[source,setSource]=useState('');async function file(f:File){try{setRows(qboGLRows(await f.text()));setSource(f.name);}catch(e){setRows([]);toast.error((e as Error).message);}}async function save(){try{const n=importQboGL(data,rows,source);validateOffice(data,n);audit(n,'QBO GL imported',rows.length+' account records / '+source);if(await persist(n,'QBO account directory imported'))setRows([]);}catch(e){toast.error((e as Error).message);}}return <section className="panel"><h3>Import QBO chart of accounts</h3><p>Use the DEVONSHIRE LEASING AGENCY INC. account-list CSV. Review all rows before importing. Existing charge classifications and journal references stay attached to their original records.</p><input aria-label="QBO chart of accounts CSV" type="file" accept=".csv,text/csv" disabled={busy} onChange={e=>{const f=e.target.files?.[0];if(f)void file(f);e.target.value='';}}/>{!!rows.length&&<><p>{rows.length} accounts · {source}</p><Grid headers={['Account number','QBO name','Type','Active']} rows={rows.map(r=>[r.code||'No QBO number; internal reference will be used',r.name,r.type,r.active?'Yes':'No'])}/><button disabled={busy} onClick={save}>Import reviewed GL accounts</button></>}</section>;}

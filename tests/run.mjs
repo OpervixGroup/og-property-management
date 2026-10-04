@@ -34,7 +34,8 @@ let model=stripTypeScriptTypes(await readFile(new URL('../lib/pool.ts',import.me
 
 let seedCode=stripTypeScriptTypes(await readFile(new URL('../lib/seed.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("import roster from './roster.json';",'const roster='+await readFile(new URL('../lib/roster.json',import.meta.url),'utf8')+';').replace("'./pool'","'./pool.mjs'");await writeFile(new URL('seed.mjs',tmp),seedCode);
 
-let exportCode=stripTypeScriptTypes(await readFile(new URL('../lib/exports.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./pool'","'./pool.mjs'").replace("'./procurement-model'","'./procurement-model.mjs'");await writeFile(new URL('exports.mjs',tmp),exportCode);
+await writeFile(new URL('letter-report.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/letter-report.ts',import.meta.url),'utf8'),{mode:'transform'}));
+let exportCode=stripTypeScriptTypes(await readFile(new URL('../lib/exports.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./pool'","'./pool.mjs'").replace("'./procurement-model'","'./procurement-model.mjs'");exportCode=exportCode.replace("import('./letter-report')","import('./letter-report.mjs')");await writeFile(new URL('exports.mjs',tmp),exportCode);
 
 const {cents,totals,electricShares,validate,draftFor,isParticipating,verifiedVacantUnits,refreshPoolDrafts}=await import(new URL('pool.mjs',tmp));const {seed}=await import(new URL('seed.mjs',tmp));const {parseCSV,statementPDF,ownerStatementRecord,supportPackage,partsReceiptPDF}=await import(new URL('exports.mjs',tmp));const d=seed();let tests=0;function pass(name,fn){fn();tests++;console.log('PASS '+name);}
 
