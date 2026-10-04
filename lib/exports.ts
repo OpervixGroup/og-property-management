@@ -2,7 +2,8 @@ import {PDFDocument,StandardFonts,rgb} from 'pdf-lib';
 import {ownerPartsReceiptRecord,type PartIssue} from './procurement-model';
 import {zipSync} from 'fflate';
 import {type Data,type Statement,money,totals} from './pool';
-export function download(blob:Blob,name:string){const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);}
+export function download(blob:Blob,name:string){const form=document.createElement('form');form.method='POST';form.action='/api/exports';form.enctype='multipart/form-data';form.hidden=true;const input=document.createElement('input');input.type='file';input.name='file';const transfer=new DataTransfer();transfer.items.add(new File([blob],name,{type:blob.type||'application/octet-stream'}));input.files=transfer.files;form.appendChild(input);document.body.appendChild(form);form.submit();setTimeout(()=>form.remove(),1000);}
+
 export function csv(rows:unknown[][]){return rows.map(row=>row.map(x=>'"'+String(x??'').replace(/^[=+@-]/,"'").replace(/"/g,'""')+'"').join(',')).join('\r\n');}
 export function parseCSV(text:string):string[][]{const rows:string[][]=[];let row:string[]=[],v='',quoted=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(quoted&&text[i+1]==='"'){v+='"';i++;}else quoted=!quoted;}else if(c===','&&!quoted){row.push(v);v='';}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(v);if(row.some(x=>x.trim()))rows.push(row);row=[];v='';}else v+=c;}if(quoted)throw Error('Unclosed CSV quote');row.push(v);if(row.some(x=>x.trim()))rows.push(row);return rows;}
 export type Doc={id:string;statementId:string;expenseId:string;name:string;mime:string;size:number};

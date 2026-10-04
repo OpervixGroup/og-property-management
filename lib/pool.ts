@@ -1,3 +1,5 @@
+import {validateTenantImports,type TenantImportBatch} from './tenant-import';
+import {validateTenancyChanges} from './tenancy';
 import {validateQboImports,type QboImportBatch} from './qbo-import';
 import {validateClearing,type ClearingEvent} from './monthly-clearing';
 import {validateStaffUsers,type StaffUser} from './staff-users';
@@ -10,19 +12,21 @@ export type Membership={id:string;unitId:string;month:string;active:boolean;reas
 export type Unit={id:string;number:string;propertyId:string;poolId:string;ownerId:string;type:1|2;participating:boolean;hoaChargedThrough?:string;addedMonth?:string};
 export type Owner={id:string;name:string;email:string;address?:string;contactName?:string;phone?:string;taxIdType?:'Tax ID'|'EIN';taxIdLast4?:string;taxReference?:string;paymentMethod?:'Bank deposit'|'ACH'|'Mail'|'Office pickup';specialInstructions?:string};
 export type Settings={id:string;period:string;poolId:string;version:number;rent1:number;rent2:number;management1:number;management2:number;maintenance1:number;maintenance2:number;hoa1:number;hoa2:number;electricTotal:number|null;electricConfirmed:boolean;notes:string};
-export type Data={workflow?:import('./workflow-controls').WorkflowControls;qboImports?:QboImportBatch[];clearingEvents?:ClearingEvent[];staffUsers?:StaffUser[];accounting?:Accounting;procurement?:Procurement;operations?:Operations;memberships?:Membership[];settings:Settings[];properties:{id:string;name:string;detailsVersion?:number;companyName?:string;address?:string;city?:string;state?:string;zip?:string;contactName?:string;phone?:string;email?:string}[];pools:{id:string;propertyId:string;name:string}[];units:Unit[];owners:Owner[];ownerships:{id:string;unitId:string;ownerId:string;from:string;to:string|null}[];periods:{id:string;month:string}[];rules:{id:string;version:number;method:string;verified:boolean}[];statements:Statement[];sharedExpenses:{id:string;period:string;poolId:string;label:string;total:number;allocations:{unitId:string;cents:number}[]}[];audit:{id:string;at:string;action:string;detail:string}[]};
+export type Data={tenantImports?:TenantImportBatch[];workflow?:import('./workflow-controls').WorkflowControls;qboImports?:QboImportBatch[];clearingEvents?:ClearingEvent[];staffUsers?:StaffUser[];accounting?:Accounting;procurement?:Procurement;operations?:Operations;memberships?:Membership[];settings:Settings[];properties:{id:string;name:string;detailsVersion?:number;companyName?:string;address?:string;city?:string;state?:string;zip?:string;contactName?:string;phone?:string;email?:string}[];pools:{id:string;propertyId:string;name:string}[];units:Unit[];owners:Owner[];ownerships:{id:string;unitId:string;ownerId:string;from:string;to:string|null}[];periods:{id:string;month:string}[];rules:{id:string;version:number;method:string;verified:boolean}[];statements:Statement[];sharedExpenses:{id:string;period:string;poolId:string;label:string;total:number;allocations:{unitId:string;cents:number}[]}[];audit:{id:string;at:string;action:string;detail:string}[]};
 export const money=(n:number)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(n/100);
 export function cents(s:string):number{if(!/^-?\d+(\.\d{1,2})?$/.test(s.trim()))throw Error('Use dollars with no more than two decimal places.');const neg=s.startsWith('-');const [a,b='']=s.replace('-','').split('.');const n=Number(a)*100+Number(b.padEnd(2,'0'));if(!Number.isSafeInteger(n)||Math.abs(n)>100000000000)throw Error('Amount is too large.');return neg?-n:n;}
 export function totals(s:Statement){const deductions=s.expenses.reduce((a,e)=>a+e.cents,0);const available=s.opening+s.allocated+s.adjustments+(s.credits??[]).reduce((n,e)=>n+e.cents,0)-deductions;return {deductions,available,closing:available-s.paidAmount+(s.offsetReceived??0)};}
 export function latest(data:Data,period:string){const map=new Map<string,Statement>();for(const s of data.statements.filter(s=>s.period===period)){if(!map.has(s.unitId)||map.get(s.unitId)!.version<s.version)map.set(s.unitId,s);}return [...map.values()];}
 export function audit(d:Data,action:string,detail:string){d.audit.unshift({id:crypto.randomUUID(),at:new Date().toISOString(),action,detail});}
 export function validate(old:Data,next:Data){
+ validateTenantImports(old,next);
  validateQboImports(old,next);
  validateClearing(old,next);
  validateStaffUsers(old.staffUsers,next.staffUsers,next.properties.map(p=>p.id));
  validateProcurement(next,old);
  validateAccounting(next,old);
  if(next.operations)validateOperations(next.operations,new Set(next.units.map(u=>u.id)),old.operations);else if(old.operations)throw Error('Operations must be preserved');
+ validateTenancyChanges(old,next);
  const num=(n:unknown)=>{if(!Number.isSafeInteger(n)||Math.abs(Number(n))>100000000000)throw Error('Invalid financial amount');};
  if(!next||!Array.isArray(next.units)||next.units.length>5000||!Array.isArray(next.statements)||next.statements.length>20000)throw Error('Invalid dataset');
  for(const key of ['properties','pools','units','owners','ownerships','periods','rules','statements','sharedExpenses','audit','settings'] as const){if(!Array.isArray(next[key]))throw Error('Missing records: '+key);const ids=next[key].map((x:any)=>x.id);if(new Set(ids).size!==ids.length)throw Error('Duplicate record ID');}

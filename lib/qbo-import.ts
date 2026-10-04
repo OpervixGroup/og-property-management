@@ -1,3 +1,4 @@
+import {canonicalRecord} from './workflow-controls';
 import {type Data,cents,audit} from './pool';
 import {emptyOperations,type TenantEntry} from './operations-model';
 import {applyTenantReceipt,chargeProgress} from './accounting-model';
@@ -37,7 +38,7 @@ export function importQboPayments(d:Data,file:QboFile,fileName:string,fileHash:s
 }
 export function validateQboImports(old:Data,next:Data){
  const batches=next.qboImports??[],ids=new Set<string>(),keys=new Set<string>();if(!Array.isArray(batches))throw Error('Invalid QBO import history');
- for(const oldBatch of old.qboImports??[])if(!batches.some(b=>b.id===oldBatch.id&&JSON.stringify(b)===JSON.stringify(oldBatch)))throw Error('Preserve QBO import batches and original source rows');
+ for(const oldBatch of old.qboImports??[])if(!batches.some(b=>b.id===oldBatch.id&&canonicalRecord(b)===canonicalRecord(oldBatch)))throw Error('Preserve QBO import batches and original source rows');
  for(const b of batches){if(!b.id||ids.has(b.id)||!b.fileName||!b.fileHash||!Array.isArray(b.headers)||!b.rows?.length||!next.periods.some(p=>p.month===b.period))throw Error('Invalid QBO batch');ids.add(b.id);
   for(const r of b.rows){const p=r.source,get=(h:string)=>(p.raw?.[b.headers.indexOf(h)]??'').trim();if(get('Transaction type')!=='Payment'||get('Customer')!==p.customer||get('Transaction number')!==p.number||get('Amount')!==p.originalAmount||(/^#\s*([\w-]+)(?=\s|$)/.exec(p.customer)?.[1]??'')!==p.unitNumber||date(get('Date'))!==p.date||amount(get('Amount'))!==p.cents)throw Error('QBO original source does not match receipt');const t=next.operations?.tenants?.find(t=>t.id===r.tenantId),e=next.operations?.tenantEntries?.find(e=>e.id===r.receiptId);if(!p.sourceKey||p.sourceKey!==key(p)||keys.has(p.sourceKey)||p.error||p.date.slice(0,7)!==b.period||!t||t.unitId!==r.unitId||!e||e.kind!=='Receipt'||e.qboImportId!==b.id||e.qboSourceKey!==p.sourceKey||e.cents!==p.cents||e.date!==p.date||e.tenantId!==t.id||e.reference!=='QBO:'+p.sourceKey||e.paymentMethod!==r.method||!PAYMENT_METHODS.includes(r.method))throw Error('Invalid or duplicate QBO receipt/source link');keys.add(p.sourceKey);
    if(!r.chargeId&&r.applyCents!==0)throw Error('Invalid unapplied QBO receipt');
