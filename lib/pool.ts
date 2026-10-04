@@ -1,3 +1,4 @@
+import {validatePeopleRelationships} from './people-calendar';
 import {validateQboImports,type QboImportBatch} from './qbo-import';
 import {validateClearing,type ClearingEvent} from './monthly-clearing';
 import {validateStaffUsers,type StaffUser} from './staff-users';
@@ -17,6 +18,7 @@ export function totals(s:Statement){const deductions=s.expenses.reduce((a,e)=>a+
 export function latest(data:Data,period:string){const map=new Map<string,Statement>();for(const s of data.statements.filter(s=>s.period===period)){if(!map.has(s.unitId)||map.get(s.unitId)!.version<s.version)map.set(s.unitId,s);}return [...map.values()];}
 export function audit(d:Data,action:string,detail:string){d.audit.unshift({id:crypto.randomUUID(),at:new Date().toISOString(),action,detail});}
 export function validate(old:Data,next:Data){
+ validatePeopleRelationships(next);
  validateQboImports(old,next);
  validateClearing(old,next);
  validateStaffUsers(old.staffUsers,next.staffUsers,next.properties.map(p=>p.id));
@@ -80,3 +82,4 @@ export function allocationNeedsReview(d:Data,poolId:string,period:string){const 
 export function applyContracts(d:Data,s:Statement){const c=effectiveContract(d,s.unitId,s.period);if(!c)return;for(const e of s.expenses){if(e.gl==='80400')e.cents=c.managementKind==='Percent'?Math.floor((s.allocated*c.management+5000)/10000):c.management;if(e.gl==='80300')e.cents=c.maintenance;if(e.gl==='80000'&&(!e.linkedUnitId||e.linkedUnitId===s.unitId))e.cents=c.hoa;}if(!s.notes.includes('Contract source: '+c.source))s.notes+=' Contract source: '+c.source;}
 
 export function applyDevonshirePropertyDetails(d:Data){const p=d.properties.find(p=>p.id==='property-devonshire');if(p&&!p.detailsVersion){Object.assign(p,{companyName:p.companyName||'Devonshire Leasing Agency, Inc.',address:p.address||'11843 Braesview, Main Office',city:p.city||'San Antonio',state:p.state||'TX',zip:p.zip||'78213',phone:p.phone||'210-493-3161',detailsVersion:1});}return d;}
+

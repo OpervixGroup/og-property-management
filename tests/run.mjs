@@ -12,9 +12,10 @@ import {PDFDocument} from 'pdf-lib';
 
 const tmp=new URL('./.runtime/',import.meta.url);await mkdir(tmp,{recursive:true});
 
+await writeFile(new URL('people-calendar.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/people-calendar.ts',import.meta.url),'utf8'),{mode:'transform'}));
 await writeFile(new URL('leasing-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/leasing-model.ts',import.meta.url),'utf8'),{mode:'transform'}));
 await writeFile(new URL('maintenance-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/maintenance-model.ts',import.meta.url),'utf8'),{mode:'transform'}));
-await writeFile(new URL('operations-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/operations-model.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./maintenance-model'","'./maintenance-model.mjs'").replace("'./leasing-model'","'./leasing-model.mjs'"));
+await writeFile(new URL('operations-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/operations-model.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./people-calendar'","'./people-calendar.mjs'").replace("'./maintenance-model'","'./maintenance-model.mjs'").replace("'./leasing-model'","'./leasing-model.mjs'"));
 
 await writeFile(new URL('procurement-model.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/procurement-model.ts',import.meta.url),'utf8'),{mode:'transform'}));
 
@@ -28,7 +29,7 @@ for(const file of ['fee-summary','monthly-clearing'])await writeFile(new URL(fil
 
 await writeFile(new URL('qbo-import.mjs',tmp),stripTypeScriptTypes(await readFile(new URL('../lib/qbo-import.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./pool'","'./pool.mjs'").replace("'./operations-model'","'./operations-model.mjs'").replace("'./accounting-model'","'./accounting-model.mjs'"));
 
-let model=stripTypeScriptTypes(await readFile(new URL('../lib/pool.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./operations-model'","'./operations-model.mjs'").replace("'./procurement-model'","'./procurement-model.mjs'");model=model.replace("'./qbo-import'","'./qbo-import.mjs'").replace("'./accounting-model'","'./accounting-model.mjs'").replace("'./staff-users'","'./staff-users.mjs'").replace("'./monthly-clearing'","'./monthly-clearing.mjs'");await writeFile(new URL('pool.mjs',tmp),model);
+let model=stripTypeScriptTypes(await readFile(new URL('../lib/pool.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'./operations-model'","'./operations-model.mjs'").replace("'./procurement-model'","'./procurement-model.mjs'");model=model.replace("'./people-calendar'","'./people-calendar.mjs'").replace("'./qbo-import'","'./qbo-import.mjs'").replace("'./accounting-model'","'./accounting-model.mjs'").replace("'./staff-users'","'./staff-users.mjs'").replace("'./monthly-clearing'","'./monthly-clearing.mjs'");await writeFile(new URL('pool.mjs',tmp),model);
 
 let seedCode=stripTypeScriptTypes(await readFile(new URL('../lib/seed.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("import roster from './roster.json';",'const roster='+await readFile(new URL('../lib/roster.json',import.meta.url),'utf8')+';').replace("'./pool'","'./pool.mjs'");await writeFile(new URL('seed.mjs',tmp),seedCode);
 
