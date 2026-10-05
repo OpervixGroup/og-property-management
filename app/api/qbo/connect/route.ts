@@ -1,0 +1,7 @@
+import {cookies} from 'next/headers';
+import {randomBytes} from 'node:crypto';
+import {getChatGPTUser} from '@/app/chatgpt-auth';
+import {access,sameOrigin,body} from '@/lib/server/request';
+import {beginConnection,disconnect,qboAudit} from '@/lib/server/qbo';
+import {qboConfig,authorizationUrl,signState} from '@/lib/qbo-security';
+export async function POST(request:Request){try{sameOrigin(request);const u=access(await getChatGPTUser(),['Global Admin']),p=await body(request);if(p.action==='disconnect'){await qboAudit(u.userId,u.authId,'QBO disconnect requested','Stored provider access only; no financial writes');await disconnect(u.userId);return Response.json({disconnected:true},{headers:{'Cache-Control':'no-store'}});}if(p.action!=='connect')throw Error('Invalid action');const c=qboConfig(process.env);if(!c)throw Error('Administrator registration required');await qboAudit(u.userId,u.authId,'QBO connection requested','Intuit consent requested; no financial writes');const generation=await beginConnection(u.userId),nonce=randomBytes(32).toString('base64url');(await cookies()).set('og-qbo-state',signState(c,{nonce,auth:u.authId,workspace:u.userId,generation,expires:Date.now()+600000}),{httpOnly:true,secure:true,sameSite:'lax',path:'/api/qbo/callback',maxAge:600});return Response.json({url:authorizationUrl(c,nonce)},{headers:{'Cache-Control':'no-store'}});}catch(e){return Response.json({error:(e as Error).message},{status:400,headers:{'Cache-Control':'no-store'}});}}
