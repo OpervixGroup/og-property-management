@@ -11,6 +11,14 @@ assert.equal(recordedCash(receiptsData,'Owners pool operating','2026-10').receip
 assert.equal(recordedCash(receiptsData,'Escrow','2026-10').held,20000);
 assert.equal(recordedCash(receiptsData,'Escrow','2026-10').receipts,30000);
 assert.equal(cashCapacity(undefined,'Escrow','2026-10').available,null);
+const openingData=structuredClone(receiptsData);openingData.operations.tenantEntries.find(e=>e.id==='prepaid').reference='205-20260930-164';
+const originalEntries=JSON.stringify(openingData.operations.tenantEntries);
+assert.equal(recordedCash(openingData,'DLA operating','2026-10').receipts,12000);
+assert.equal(recordedCash(openingData,'DLA operating','2026-10').datedReceipts,10000);
+assert.equal(recordedCash(openingData,'DLA operating','2026-09').receipts,0);
+assert.equal(recordedCash(openingData,'DLA operating','2026-11').receipts,0);
+assert.equal(JSON.stringify(openingData.operations.tenantEntries),originalEntries);
+assert.equal(recordedCash(receiptsData,'DLA operating','2026-09').receipts,2000);
 assert.equal(cashCapacity(undefined,'Owners pool operating','2026-10').available,null);
 const snapshot={id:'s',account:'Owners pool operating',period:'2026-10',date:'2026-10-05',balance:100000,outstanding:10000,reserved:20000,cushion:5000,reference:'Statement',reviewer:'Manager',created:'2026-10-05T00:00:00Z'};
 const check=(id,cents,account='Owners pool operating')=>({id,account,period:'2026-10',payee:'Payee',cents,reference:id,created:'2026-10-05T00:00:00Z'});

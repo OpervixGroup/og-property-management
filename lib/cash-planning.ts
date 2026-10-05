@@ -6,11 +6,15 @@ export type BankSnapshot={id:string;account:CashAccount;period:string;date:strin
 export type PlannedCheck={id:string;account:CashAccount;period:string;payee:string;cents:number;reference:string;created:string};
 export type PlanCancellation={id:string;checkId:string;reason:string;created:string};
 export type CashPlanning={snapshots:BankSnapshot[];checks:PlannedCheck[];cancellations:PlanCancellation[]};
+// Approved October 2026 opening batch. Reporting month changes only;
+// actual deposit dates and tenant charge applications remain unchanged.
+const octoberOpeningReferences=new Set(['205-20260930-164','412-20260930-101','414-20260930-19-868042838','602-20260930-19-847977108/19-847977107','715-20260930-1018','1504-20260930-1415','1701-20260930-19-868364005','2315-20260930-193','2415-20260930-60815794']);
+export function receiptReportingMonth(receipt:{date:string;reference:string}){return receipt.date==='2026-09-30'&&octoberOpeningReferences.has(receipt.reference)?'2026-10':receipt.date.slice(0,7);}
 export function recordedCash(data:Data,account:CashAccount,period:string){
- const entries=data.operations?.tenantEntries??[],receipts=entries.filter(e=>e.kind==='Receipt'&&e.date.startsWith(period)),deposits=(data.accounting?.deposits??[]).filter(e=>e.approved&&e.date<=period+'-31');
+ const entries=data.operations?.tenantEntries??[],receipts=entries.filter(e=>e.kind==='Receipt'&&receiptReportingMonth(e)===period),datedReceipts=entries.filter(e=>e.kind==='Receipt'&&e.date.startsWith(period)),deposits=(data.accounting?.deposits??[]).filter(e=>e.approved&&e.date<=period+'-31');
  const held=deposits.reduce((n,e)=>n+(e.kind==='Received'?e.cents:-e.cents),0);
  const rentApplied=(data.accounting?.applications??[]).reduce((n,a)=>{const receipt=entries.find(e=>e.id===a.receiptId),charge=entries.find(e=>e.id===a.chargeId);return n+(receipt?.kind==='Receipt'&&charge?.date.startsWith(period)&&(charge.category??a.chargeCategory)==='Rent'?a.cents:0);},0);
- return {receipts:account==='DLA operating'?receipts.reduce((n,e)=>n+e.cents,0):account==='Escrow'?deposits.filter(e=>e.kind==='Received'&&e.date.startsWith(period)).reduce((n,e)=>n+e.cents,0):0,held:account==='Escrow'?held:null,rentApplied:account==='DLA operating'?rentApplied:0,rows:account==='DLA operating'?receipts:[],escrowRows:account==='Escrow'?deposits:[]};
+ return {datedReceipts:account==='DLA operating'?datedReceipts.reduce((n,e)=>n+e.cents,0):0,receipts:account==='DLA operating'?receipts.reduce((n,e)=>n+e.cents,0):account==='Escrow'?deposits.filter(e=>e.kind==='Received'&&e.date.startsWith(period)).reduce((n,e)=>n+e.cents,0):0,held:account==='Escrow'?held:null,rentApplied:account==='DLA operating'?rentApplied:0,rows:account==='DLA operating'?receipts:[],escrowRows:account==='Escrow'?deposits:[]};
 }
 export function cashCapacity(planning:CashPlanning|undefined,account:CashAccount,period:string){
  const snapshot=planning?.snapshots.filter(s=>s.account===account&&s.period===period).at(-1),cancelled=new Set(planning?.cancellations.map(c=>c.checkId)),checks=(planning?.checks??[]).filter(c=>c.account===account&&c.period===period&&!cancelled.has(c.id));
