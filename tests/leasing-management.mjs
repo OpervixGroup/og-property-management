@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {fixture} from './model-loader.mjs';
+const d=await fixture(),{leasingManagement}=await import('./.mock-runtime/leasing-management.mjs');
+const u=d.units[0],t=d.operations.tenants[0];d.units=[u];d.operations.tenants=[t];d.operations.occupancy=[{id:'o',unitId:u.id,month:'2026-10',status:'Occupied',marketingStatus:'On market',listedDate:'2026-10-01',notes:''}];
+d.operations.tenantEntries=[{id:'c',tenantId:t.id,date:'2026-10-01',kind:'Charge',category:'Rent',cents:100000},{id:'r',tenantId:t.id,date:'2026-09-30',kind:'Receipt',cents:50000},{id:'credit',tenantId:t.id,date:'2026-10-01',kind:'Credit',cents:20000},{id:'old',tenantId:t.id,date:'2026-09-01',kind:'Charge',category:'Rent',cents:100000}];
+d.accounting={applications:[{receiptId:'r',chargeId:'c',cents:50000},{receiptId:'credit',chargeId:'c',cents:20000},{receiptId:'r',chargeId:'old',cents:10000}]};
+let m=leasingManagement(d,'2026-10');assert.equal(m.rows[0].collected,50000);assert.equal(m.rows[0].credits,20000);assert.equal(m.pending,30000);assert.equal(m.rows[0].payment,'Partial');assert.equal(m.counts.market,1);assert.equal(m.counts.occupied,1);
+d.accounting.applications[1].cents=50000;m=leasingManagement(d,'2026-10');assert.equal(m.rows[0].payment,'Settled with credits');assert.equal(m.counts.paid,0);assert.equal(m.pending,0);
+d.operations.tenantEntries=[];d.operations.tenants=[];d.operations.occupancy=[];d.accounting={applications:[]};m=leasingManagement(d,'2026-10');assert.equal(m.rows[0].payment,'Needs review');assert.equal(m.rows[0].pending,null);assert.equal(m.counts.vacant,0);assert.equal(m.counts.unknown,1);
+console.log('Leasing management: prepayments, credits, partial payments, market and unverified occupancy passed');
