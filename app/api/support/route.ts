@@ -1,0 +1,6 @@
+import {getChatGPTUser} from '@/app/chatgpt-auth';
+import {access,body,sameOrigin} from '@/lib/server/request';
+import {queueSupport,recordIncident,supportStatus} from '@/lib/server/support';
+export const runtime='nodejs';
+export async function GET(){try{const u=access(await getChatGPTUser());return Response.json(await supportStatus(u.authId,['Global Admin','Management'].includes(u.role)),{headers:{'Cache-Control':'private, no-store'}});}catch{return Response.json({error:'Support status unavailable or access denied'},{status:403});}}
+export async function POST(request:Request){try{sameOrigin(request);const u=access(await getChatGPTUser()),p=await body(request,5000);if(p.kind==='Incident'){await recordIncident('Browser',typeof p.route==='string'?p.route:'/',p.digest);return Response.json({recorded:true});}if(typeof p.description!=='string'||p.description.trim().length<10||p.description.length>3000||typeof p.context!=='string'||p.context.length>100)throw Error('Describe the issue in 10–3000 characters');return Response.json(await queueSupport(u.authId,p.description.trim(),p.context),{status:201,headers:{'Cache-Control':'no-store'}});}catch(e){return Response.json({error:e instanceof Error?e.message:'Support unavailable'},{status:400,headers:{'Cache-Control':'no-store'}});}}
