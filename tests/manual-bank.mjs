@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {fixture} from './model-loader.mjs';
+const d=await fixture();
+const {manualBankBalance,validateCashPlanning}=await import('./.mock-runtime/cash-planning.mjs');
+const {emptyAccounting}=await import('./.mock-runtime/accounting-model.mjs');
+const entry=(id,kind,cents,account='Escrow')=>({id,kind,cents,account,date:'2026-10-05',payee:'Vendor',reference:id,created:'2026-10-05T00:00:00Z'});
+d.accounting=emptyAccounting();d.accounting.cashPlanning={snapshots:[],checks:[],cancellations:[],manualEntries:[entry('opening','Opening posted balance',2219680),entry('bank','Bank balance',2481037)]};
+validateCashPlanning(d);assert.equal(manualBankBalance(d.accounting.cashPlanning,'Escrow').difference,261357);
+assert.equal(manualBankBalance(d.accounting.cashPlanning,'DLA operating').posted,null);
+const before=structuredClone(d);d.accounting.cashPlanning.manualEntries.push(entry('deposit','Deposit',30000),entry('payment','Payment',12000));validateCashPlanning(d,before);assert.equal(manualBankBalance(d.accounting.cashPlanning,'Escrow').posted,2237680);
+const bad=structuredClone(d);bad.accounting.cashPlanning.manualEntries.push(entry('second','Opening posted balance',300));assert.throws(()=>validateCashPlanning(bad),/already recorded/);
+const altered=structuredClone(d);altered.accounting.cashPlanning.manualEntries[0].cents=1;assert.throws(()=>validateCashPlanning(altered,before),/immutable/);
+const duplicate=structuredClone(d);duplicate.accounting.cashPlanning.manualEntries.push({...entry('duplicate','Payment',100),reference:'payment'});assert.throws(()=>validateCashPlanning(duplicate),/Duplicate/);
+const premature=structuredClone(d);premature.accounting.cashPlanning.manualEntries.push({...entry('early','Deposit',100),date:'2026-10-04'});assert.throws(()=>validateCashPlanning(premature),/precedes/);
+const missing=structuredClone(d);missing.accounting.cashPlanning.manualEntries=[entry('without-opening','Payment',100)];assert.throws(()=>validateCashPlanning(missing),/starting balance/);
+d.accounting.cashPlanning.manualEntries.push(entry('matching','Bank balance',2237680));assert.equal(manualBankBalance(d.accounting.cashPlanning,'Escrow').difference,0);
+console.log('Manual bank arithmetic, immutability, duplicate references, cutoff and account separation passed');

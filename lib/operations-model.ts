@@ -11,7 +11,8 @@ export type Tenant={rentConfirmed?:boolean;secondFirstName?:string;secondLastNam
 export type TenantEntry={paymentMethod?:'Not provided'|'Check'|'Money Order'|"Cashier's Check";qboImportId?:string;qboSourceKey?:string;id:string;tenantId:string;category?:'Rent'|'Other';date:string;kind:"Charge"|"Receipt"|"Credit";description:string;cents:number;reference:string;recurringId?:string};
 export type UnitVendor={id:string;unitId:string;name:string;email:string;cell:string;service:string;amount:number;start:string;end:string;notes:string};
 export type TenantRecurring={category?:'Rent'|'Other';id:string;tenantId:string;description:string;cents:number;start:string;end:string};
-export type Operations={tenants?:Tenant[];tenantEntries?:TenantEntry[];tenantRecurring?:TenantRecurring[];unitVendors?:UnitVendor[];occupancy?:Occupancy[];workOrders:WorkOrder[];events:CalendarEvent[];communications:Communication[];prospects:Prospect[];leases:Lease[];bankRecords:BankRecord[]};
+export type VendorContact={id:string;name:string;company:string;phone:string;email:string;source:string};
+export type Operations={vendorContacts?:VendorContact[];tenants?:Tenant[];tenantEntries?:TenantEntry[];tenantRecurring?:TenantRecurring[];unitVendors?:UnitVendor[];occupancy?:Occupancy[];workOrders:WorkOrder[];events:CalendarEvent[];communications:Communication[];prospects:Prospect[];leases:Lease[];bankRecords:BankRecord[]};
 export const emptyOperations=():Operations=>({workOrders:[],events:[],communications:[],prospects:[],leases:[],bankRecords:[]});
 const validDate=(v:string)=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&!Number.isNaN(Date.parse(v+'T12:00:00'))&&new Date(v+'T12:00:00').toISOString().slice(0,10)===v;
 export function validateOperations(ops:Operations,unitIds:Set<string>,old?:Operations){
@@ -33,6 +34,7 @@ export function calendarActivities(ops:Operations){return [...ops.events.filter(
 
 export function tenantBalance(ops:Operations,t:Tenant,through:string){return t.opening===null||through<t.openingDate?null:t.opening+(ops.tenantEntries??[]).filter(e=>e.tenantId===t.id&&e.date>=t.openingDate&&e.date<=through).reduce((n,e)=>n+(e.kind==='Charge'?e.cents:-e.cents),0);}
 function validateTenantRecords(ops:Operations,units:Set<string>,old?:Operations){
+ const contacts=ops.vendorContacts??[];if(!Array.isArray(contacts)||contacts.length>10000||new Set(contacts.map(v=>v.id)).size!==contacts.length||contacts.some(v=>!v.id||!v.name?.trim()||!v.source?.trim()||[v.company,v.phone,v.email].some(x=>typeof x!=='string')))throw Error('Invalid vendor directory');for(const v of old?.vendorContacts??[])if(!contacts.some(x=>x.id===v.id))throw Error('Preserve vendor directory history');
  for(const key of ['tenants','tenantEntries','tenantRecurring','unitVendors'] as const){const rows=ops[key]??[];if(!Array.isArray(rows)||rows.length>10000||new Set(rows.map(r=>r.id)).size!==rows.length||rows.some(r=>!r.id))throw Error('Invalid '+key);for(const r of old?.[key]??[]){const next=rows.find(x=>x.id===r.id);if(!next)throw Error('Tenant history must be preserved');if(key==='tenantEntries'&&JSON.stringify(next)!==JSON.stringify(r))throw Error('Posted tenant entries are immutable; use a correcting charge or credit');}}
  const amount=(v:number)=>{if(!Number.isSafeInteger(v)||Math.abs(v)>100000000000)throw Error('Invalid tenant amount');};
  const date=(v:string)=>{if(!validDate(v))throw Error('Invalid tenant date');};
