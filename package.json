@@ -7,11 +7,10 @@
   },
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "next build",
+    "build": "node scripts/build-node.mjs",
     "start": "next start",
     "test": "node tests/run.mjs && node tests/access-policy.mjs && node tests/workflow-foundation.mjs && node tests/tenancy-phase2.mjs && node tests/pool-finance-phase3.mjs && node tests/maintenance-phase4.mjs && node tests/month-close-phase5.mjs && node tests/integrations-phase6.mjs && node tests/work-mail-server.mjs && node tests/smart-assistant.mjs && node tests/qbo-exchange.mjs && node tests/qbo-server.mjs",
-    "typecheck": "tsc --noEmit",
-    "prebuild": "node scripts/prepare-host-build.mjs"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
