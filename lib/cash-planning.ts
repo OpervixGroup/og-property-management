@@ -15,7 +15,7 @@ export function cashCapacity(planning:CashPlanning|undefined,account:CashAccount
 }
 export function validateCashPlanning(data:Data,old?:Data){
  const p=data.accounting?.cashPlanning,before=old?.accounting?.cashPlanning;if(!p){if(before)throw Error('Preserve bank planning history');return;}
- for(const key of ['snapshots','checks','cancellations'] as const){const rows=p[key];if(!Array.isArray(rows)||rows.length>20000||new Set(rows.map(r=>r.id)).size!==rows.length||rows.some(r=>!r.id))throw Error('Invalid cash planning records');for(const r of before?.[key]??[])if(canonicalRecord(rows.find(n=>n.id===r.id))!==canonicalRecord(r))throw Error('Bank planning history is immutable');}
+ for(const key of ['snapshots','checks','cancellations'] as const){const rows=p[key];if(!Array.isArray(rows)||rows.length>20000||new Set(rows.map(r=>r.id)).size!==rows.length||rows.some(r=>!r.id))throw Error('Invalid cash planning records');for(const [i,r] of (before?.[key]??[]).entries())if(canonicalRecord(rows[i])!==canonicalRecord(r))throw Error('Bank planning history is immutable');}
  const amount=(n:number,signed=false)=>{if(!Number.isSafeInteger(n)||Math.abs(n)>100000000000||!signed&&n<0)throw Error('Invalid bank planning amount');};
  const period=(s:string)=>{if(!data.periods.some(p=>p.month===s))throw Error('Unknown planning month');};
  for(const s of p.snapshots){if(!cashAccounts.includes(s.account)||!s.reference.trim()||!s.reviewer.trim()||!/^\d{4}-\d{2}-\d{2}$/.test(s.date)||Number.isNaN(Date.parse(s.date+'T12:00:00Z'))||new Date(s.date+'T12:00:00Z').toISOString().slice(0,10)!==s.date)throw Error('Complete bank balance date, source and reviewer');period(s.period);amount(s.balance,true);[s.outstanding,s.reserved,s.cushion].forEach(n=>amount(n));}
