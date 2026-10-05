@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import {fixture} from './model-loader.mjs';
 const d=await fixture(),{cashCapacity,validateCashPlanning}=await import('./.mock-runtime/cash-planning.mjs');
+const {emptyAccounting,validateAccounting}=await import('./.mock-runtime/accounting-model.mjs');
 assert.equal(cashCapacity(undefined,'Owners pool operating','2026-10').available,null);
 const snapshot={id:'s',account:'Owners pool operating',period:'2026-10',date:'2026-10-05',balance:100000,outstanding:10000,reserved:20000,cushion:5000,reference:'Statement',reviewer:'Manager',created:'2026-10-05T00:00:00Z'};
 const check=(id,cents,account='Owners pool operating')=>({id,account,period:'2026-10',payee:'Payee',cents,reference:id,created:'2026-10-05T00:00:00Z'});
-d.accounting={cashPlanning:{snapshots:[snapshot],checks:[check('c1',40000),check('c2',30000),check('c3',20000),check('dla',10000,'DLA operating')],cancellations:[]}};
-validateCashPlanning(d);let c=cashCapacity(d.accounting.cashPlanning,'Owners pool operating','2026-10');assert.equal(c.available,65000);assert.equal(c.planned,90000);assert.equal(c.remaining,-25000);assert.equal(c.fundable,2);assert.equal(c.checks[1].covered,false);assert.equal(c.checks[2].covered,true);assert.equal(c.shortfall,25000);
+d.accounting={...emptyAccounting(),cashPlanning:{snapshots:[snapshot],checks:[check('c1',40000),check('c2',30000),check('c3',20000),check('dla',10000,'DLA operating')],cancellations:[]}};
+validateAccounting(d);let c=cashCapacity(d.accounting.cashPlanning,'Owners pool operating','2026-10');assert.equal(c.available,65000);assert.equal(c.planned,90000);assert.equal(c.remaining,-25000);assert.equal(c.fundable,2);assert.equal(c.checks[1].covered,false);assert.equal(c.checks[2].covered,true);assert.equal(c.shortfall,25000);
 assert.equal(cashCapacity(d.accounting.cashPlanning,'DLA operating','2026-10').available,null);assert.equal(cashCapacity(d.accounting.cashPlanning,'DLA operating','2026-10').checks.length,1);
 const before=structuredClone(d);d.accounting.cashPlanning.cancellations.push({id:'cancel',checkId:'c1',reason:'No longer planned',created:'2026-10-05T00:00:00Z'});validateCashPlanning(d,before);c=cashCapacity(d.accounting.cashPlanning,'Owners pool operating','2026-10');assert.equal(c.planned,50000);assert.equal(c.fundable,2);
 let invalid=structuredClone(d);invalid.accounting.cashPlanning.snapshots[0].balance=99999;assert.throws(()=>validateCashPlanning(invalid,d),/immutable/);
