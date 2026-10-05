@@ -1,11 +1,17 @@
 import type {Data} from './pool';
 import {canonicalRecord} from './workflow-controls';
-export const cashAccounts=['Owners pool operating','DLA operating'] as const;
+export const cashAccounts=['Owners pool operating','DLA operating','Escrow'] as const;
 export type CashAccount=typeof cashAccounts[number];
 export type BankSnapshot={id:string;account:CashAccount;period:string;date:string;balance:number;outstanding:number;reserved:number;cushion:number;reference:string;reviewer:string;created:string};
 export type PlannedCheck={id:string;account:CashAccount;period:string;payee:string;cents:number;reference:string;created:string};
 export type PlanCancellation={id:string;checkId:string;reason:string;created:string};
 export type CashPlanning={snapshots:BankSnapshot[];checks:PlannedCheck[];cancellations:PlanCancellation[]};
+export function recordedCash(data:Data,account:CashAccount,period:string){
+ const entries=data.operations?.tenantEntries??[],receipts=entries.filter(e=>e.kind==='Receipt'&&e.date.startsWith(period)),deposits=(data.accounting?.deposits??[]).filter(e=>e.approved&&e.date<=period+'-31');
+ const held=deposits.reduce((n,e)=>n+(e.kind==='Received'?e.cents:-e.cents),0);
+ const rentApplied=(data.accounting?.applications??[]).reduce((n,a)=>{const receipt=entries.find(e=>e.id===a.receiptId),charge=entries.find(e=>e.id===a.chargeId);return n+(receipt?.kind==='Receipt'&&charge?.date.startsWith(period)&&(charge.category??a.chargeCategory)==='Rent'?a.cents:0);},0);
+ return {receipts:account==='DLA operating'?receipts.reduce((n,e)=>n+e.cents,0):account==='Escrow'?deposits.filter(e=>e.kind==='Received'&&e.date.startsWith(period)).reduce((n,e)=>n+e.cents,0):0,held:account==='Escrow'?held:null,rentApplied:account==='DLA operating'?rentApplied:0,rows:account==='DLA operating'?receipts:[],escrowRows:account==='Escrow'?deposits:[]};
+}
 export function cashCapacity(planning:CashPlanning|undefined,account:CashAccount,period:string){
  const snapshot=planning?.snapshots.filter(s=>s.account===account&&s.period===period).at(-1),cancelled=new Set(planning?.cancellations.map(c=>c.checkId)),checks=(planning?.checks??[]).filter(c=>c.account===account&&c.period===period&&!cancelled.has(c.id));
  const available=snapshot?snapshot.balance-snapshot.outstanding-snapshot.reserved-snapshot.cushion:null;
