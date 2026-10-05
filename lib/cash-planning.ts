@@ -1,0 +1,24 @@
+import type {Data} from './pool';
+import {canonicalRecord} from './workflow-controls';
+export const cashAccounts=['Owners pool operating','DLA operating'] as const;
+export type CashAccount=typeof cashAccounts[number];
+export type BankSnapshot={id:string;account:CashAccount;period:string;date:string;balance:number;outstanding:number;reserved:number;cushion:number;reference:string;reviewer:string;created:string};
+export type PlannedCheck={id:string;account:CashAccount;period:string;payee:string;cents:number;reference:string;created:string};
+export type PlanCancellation={id:string;checkId:string;reason:string;created:string};
+export type CashPlanning={snapshots:BankSnapshot[];checks:PlannedCheck[];cancellations:PlanCancellation[]};
+export function cashCapacity(planning:CashPlanning|undefined,account:CashAccount,period:string){
+ const snapshot=planning?.snapshots.filter(s=>s.account===account&&s.period===period).at(-1),cancelled=new Set(planning?.cancellations.map(c=>c.checkId)),checks=(planning?.checks??[]).filter(c=>c.account===account&&c.period===period&&!cancelled.has(c.id));
+ const available=snapshot?snapshot.balance-snapshot.outstanding-snapshot.reserved-snapshot.cushion:null;
+ let left=available??0;const rows=checks.map(check=>{const covered=available!==null&&left>=check.cents;if(covered)left-=check.cents;return {...check,covered};});
+ const planned=checks.reduce((n,c)=>n+c.cents,0);
+ return {snapshot,available,checks:rows,planned,remaining:available===null?null:available-planned,fundable:available===null?null:rows.filter(c=>c.covered).length,shortfall:available===null?null:Math.max(0,planned-available)};
+}
+export function validateCashPlanning(data:Data,old?:Data){
+ const p=data.accounting?.cashPlanning,before=old?.accounting?.cashPlanning;if(!p){if(before)throw Error('Preserve bank planning history');return;}
+ for(const key of ['snapshots','checks','cancellations'] as const){const rows=p[key];if(!Array.isArray(rows)||rows.length>20000||new Set(rows.map(r=>r.id)).size!==rows.length||rows.some(r=>!r.id))throw Error('Invalid cash planning records');for(const r of before?.[key]??[])if(canonicalRecord(rows.find(n=>n.id===r.id))!==canonicalRecord(r))throw Error('Bank planning history is immutable');}
+ const amount=(n:number,signed=false)=>{if(!Number.isSafeInteger(n)||Math.abs(n)>100000000000||!signed&&n<0)throw Error('Invalid bank planning amount');};
+ const period=(s:string)=>{if(!data.periods.some(p=>p.month===s))throw Error('Unknown planning month');};
+ for(const s of p.snapshots){if(!cashAccounts.includes(s.account)||!s.reference.trim()||!s.reviewer.trim()||!/^\d{4}-\d{2}-\d{2}$/.test(s.date)||Number.isNaN(Date.parse(s.date+'T12:00:00Z'))||new Date(s.date+'T12:00:00Z').toISOString().slice(0,10)!==s.date)throw Error('Complete bank balance date, source and reviewer');period(s.period);amount(s.balance,true);[s.outstanding,s.reserved,s.cushion].forEach(n=>amount(n));}
+ const refs=new Set<string>();for(const c of p.checks){period(c.period);amount(c.cents);const ref=c.account+':'+c.reference.trim().toLowerCase();if(!cashAccounts.includes(c.account)||!c.payee.trim()||!c.reference.trim()||c.cents<=0||refs.has(ref))throw Error('Planned check requires payee, positive amount and unique reference');refs.add(ref);}
+ const cancelled=new Set<string>();for(const c of p.cancellations){if(!p.checks.some(x=>x.id===c.checkId)||cancelled.has(c.checkId)||!c.reason.trim())throw Error('Invalid planned check cancellation');cancelled.add(c.checkId);}
+}
