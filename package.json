@@ -10,12 +10,13 @@
     "build": "next build",
     "start": "next start",
     "test": "node tests/run.mjs && node tests/access-policy.mjs && node tests/workflow-foundation.mjs && node tests/tenancy-phase2.mjs && node tests/pool-finance-phase3.mjs && node tests/maintenance-phase4.mjs && node tests/month-close-phase5.mjs && node tests/integrations-phase6.mjs && node tests/work-mail-server.mjs && node tests/smart-assistant.mjs && node tests/qbo-exchange.mjs && node tests/qbo-server.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prebuild": "node scripts/prepare-host-build.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
     "@hookform/resolvers": "^5.7.1",
-    "@next/env": "^16.3.4",
+    "@next/env": "16.3.4",
     "@shadcn/react": "^0.3.0",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.117.2",
@@ -57,5 +58,6 @@
     "json-rpc-2.0": "1.7.1",
     "raw-body": "3.0.2"
   },
-  "type": "module"
+  "type": "module",
+  "packageManager": "npm@11.6.2"
 }
