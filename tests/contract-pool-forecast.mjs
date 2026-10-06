@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {fixture} from './model-loader.mjs';
+const d=await fixture();const {poolAssumptionCalculation,savePoolAssumption,assumptionUnitRent,validate}=await import('./.mock-runtime/pool.mjs');
+const {importRentMaster}=await import('./.mock-runtime/rent-master.mjs');
+const unit=d.units[0];const p={period:'2026-10',fileName:'Reviewed.xlsx',fileHash:'f'.repeat(64),source:[['Unit','Name','Status','Total Amount','Operations Account','Escrow Account'],[unit.number,'Test Tenant','Occupied',815,515,300]],specials:[{unit:unit.number,regular:81500}]};
+const n=importRentMaster(d,p,'Reviewer');const c=poolAssumptionCalculation(n,unit.poolId,'2026-10','Contract forecast');assert.equal(c.expected,81500);assert.equal(c.collected,0);assert.equal(c.calculated,858);
+const draft=savePoolAssumption(n,unit.poolId,'2026-10',c.calculated,'','Reviewer','Draft',undefined,'Contract forecast');assert.throws(()=>savePoolAssumption(n,unit.poolId,'2026-10',draft.proposed,'','Reviewer','Approved',draft.id,'Contract forecast'),/missing/);
+const reviewed=savePoolAssumption(n,unit.poolId,'2026-10',c.calculated,'QA explicitly acknowledges missing rent records','Reviewer','Draft',undefined,'Contract forecast');const approved=savePoolAssumption(n,unit.poolId,'2026-10',reviewed.proposed,reviewed.reason,'Reviewer','Approved',reviewed.id,'Contract forecast');assert.equal(approved.unitIds.reduce((sum,id)=>sum+assumptionUnitRent(approved,id),0),81500);validate(d,n);
+const corrupt=structuredClone(n);corrupt.poolAssumptions.at(-1).expected++;assert.throws(()=>validate(d,corrupt),/source|review/);
+console.log('PASS contract forecast: dated next-month rent, no partial-cash substitution, missing rent review, exact cent allocation and tamper checks');

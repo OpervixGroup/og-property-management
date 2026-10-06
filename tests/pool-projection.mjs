@@ -11,3 +11,5 @@ console.log('PASS pool funding: type counts, fees, HOA, electricity, exact fundi
 
 
 
+
+const before=poolProjection(d,'2026-10',s.poolId);const st=d.statements[0];st.expenses.push({id:'repair-source-test',label:'Repair',cents:12300,gl:'81200',recipient:'Contractor',classification:'Unit repair'});const repair=poolProjection(d,'2026-10',s.poolId);assert.equal(repair.otherCosts-before.otherCosts,12300);assert.equal(repair.ownerNet-before.ownerNet,-12300);assert.equal(repair.projectedOffice,before.projectedOffice);st.expenses.find(e=>e.gl==='80400').cents+=1000;const fee=poolProjection(d,'2026-10',s.poolId);assert.equal(fee.statementFees.fees-repair.statementFees.fees,1000);assert.equal(fee.projectedOffice-repair.projectedOffice,1000);assert.equal(fee.ownerNet+fee.statementFees.hoa+fee.statementFees.electricity+fee.otherCosts+fee.projectedOffice,fee.rent.expected);console.log('PASS saved statement sources: repair reduces owner share, fee changes DLA share, waterfall conserves every cent');
