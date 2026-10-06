@@ -10,7 +10,7 @@ const row={sourceId:'source-1',unit,qboClass:unit,kind:'Labor',vendor:'QA vendor
 const source={period:'2026-10',fileName:'QA-source.json',rows:[row,{...row,sourceId:'source-2',kind:'Materials',reference:'QA-2',cents:2000},{...row,sourceId:'source-3',unit:'9999',qboClass:'9999',reference:'QA-3',cents:3000},{...row,sourceId:'source-4',unit:'',qboClass:'',kind:'Stock',gl:'12000',accountName:'Inventory of Supplies',reference:'QA-4',cents:26570,quantity:5,stockName:'QA contactor',sku:'QA-STOCK',paymentState:'Unpaid',paymentMonth:''},{...row,sourceId:'source-5',unit:'',qboClass:'',kind:'Operating',gl:'61100',accountName:'Prospective Tenant Research',reference:'QA-5',cents:6495,paymentState:'Unpaid',paymentMonth:''}]};
 const next=structuredClone(old),input={...source,hash:'source-test',reviewer:'QA reviewer'};
 const b=postInvoiceBatch(next,input);validate(old,next);
-assert.equal(b.rows.length,5);assert.equal(b.rows.reduce((n,r)=>n+r.cents,0),48065);
+assert.equal(b.rows.length,5);assert.equal(next.statements.find(s=>s.id===b.rows[0].statementId).expenses.find(e=>e.id===b.rows[0].recordId).classification,'Unit repair labor');assert.equal(b.rows.reduce((n,r)=>n+r.cents,0),48065);
 assert.deepEqual(b.rows.filter(r=>r.status==='Held').map(r=>r.unit).sort(),['9999']);
 assert.equal(b.rows.filter(r=>r.status==='Posted'&&r.statementId).length,2);
 assert.equal(b.rows.filter(r=>r.statementId).reduce((n,r)=>n+r.cents,0),12000);
