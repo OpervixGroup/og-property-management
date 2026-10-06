@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {fixture} from './model-loader.mjs';
+const d=await fixture();
+const {validateOperations}=await import('./.mock-runtime/operations-model.mjs');
+const units=new Set(d.units.map(u=>u.id));
+const entry={id:'receipt-validation',tenantId:d.operations.tenants[0].id,date:'2026-10-06',kind:'Receipt',category:'Rent',description:'Tenant rent · 2026-10 · Unit 408',cents:117500,reference:'TEST-408'};
+const check=(change)=>{const n=structuredClone(d.operations);n.tenantEntries=[{...entry,...change}];validateOperations(n,units,d.operations);};
+check({});
+assert.throws(()=>check({description:''}),/description or memo/);
+assert.throws(()=>check({cents:0}),/greater than zero/);
+assert.throws(()=>check({reference:''}),/missing tenant receipt reference/);
+assert.throws(()=>check({kind:'PartialPayment'}),/valid tenant transaction type/);
+console.log('PASS valid receipts, specific missing-memo and amount errors, required reference and transaction type');
