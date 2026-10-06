@@ -1,8 +1,10 @@
+import {masterRent} from './rent-master';
 import type {Data,Unit} from './pool';
 import type {Tenant} from './operations-model';
 export function monthBounds(month:string){if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw Error('Choose a valid accounting month');return {first:month+'-01',last:new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),0)).toISOString().slice(0,10)};}
 export function monthTenants(data:Data,unitId:string,month:string){const {first,last}=monthBounds(month);return (data.operations?.tenants??[]).filter(t=>t.unitId===unitId&&t.start<=last&&(!t.end||t.end>=first));}
 export function expectedUnitRent(data:Data,unit:Unit,month:string):{cents:number|null;source:string;tenantId:string;review:string}{
+ const reviewed=masterRent(data,unit.id,month);if(reviewed)return {cents:reviewed.cents,source:'Reviewed rent master '+reviewed.b.fileName+' / '+(month>=reviewed.row.regularFrom?'regular monthly rent':'first-month special'),tenantId:reviewed.row.tenantId,review:''};
  const {first,last}=monthBounds(month),tenants=monthTenants(data,unit.id,month),occupancy=data.operations?.occupancy?.find(o=>o.unitId===unit.id&&o.month===month),leases=(data.operations?.leases??[]).filter(l=>l.unitId===unit.id&&l.status!=='Draft'&&l.start<=last&&l.end>=first);
  const unknown=(review:string)=>({cents:null,source:'Needs review',tenantId:'',review});
  if(occupancy?.status==='Vacant'){if(tenants.length||leases.length)return unknown('Vacancy conflicts with a tenant or lease for this month');return {cents:0,source:'Verified vacant occupancy',tenantId:'',review:''};}
