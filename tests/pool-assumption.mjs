@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {fixture} from './model-loader.mjs';
+const d=await fixture();const {poolAssumptionCalculation,savePoolAssumption,draftFor,validate}=await import('./.mock-runtime/pool.mjs');
+const {emptyAccounting}=await import('./.mock-runtime/accounting-model.mjs');d.accounting=emptyAccounting();
+const t=d.operations.tenants[0],u=d.units.find(u=>u.id===t.unitId),month='2026-10';
+d.operations.tenantEntries=[{id:'c',tenantId:t.id,kind:'Charge',category:'Rent',date:'2026-10-01',cents:100000},{id:'r',tenantId:t.id,kind:'Receipt',date:'2026-09-30',cents:100000}];d.accounting.applications=[{receiptId:'r',chargeId:'c',cents:100000}];
+const c=poolAssumptionCalculation(d,u.poolId,month);assert.equal(c.collected,100000);assert.equal(c.unitIds.length,95);assert.equal(c.calculated,1053);assert.ok(!c.unitIds.includes('unit-1315'));
+assert.throws(()=>savePoolAssumption(d,u.poolId,month,1100,'','Manager','Draft'),/reason/);
+const draft=savePoolAssumption(d,u.poolId,month,1100,'Reviewed forecast','Manager','Draft');const approved=savePoolAssumption(d,u.poolId,month,1100,'Reviewed forecast','Manager','Approved',draft.id);
+const setting={...d.settings.find(s=>s.poolId===u.poolId),period:'2026-11'};const s=draftFor(d,u,setting);assert.equal(s.allocated,1100);assert.ok(s.allocationSource.includes(approved.id));assert.equal(s.rent,null);const {openFollowingMonth}=await import('./.mock-runtime/month-close.mjs');d.closeControls={contributions:[],events:[{period:month,kind:'Closed'}]};openFollowingMonth(d,month);assert.equal(d.statements.filter(x=>x.unitId===u.id&&x.period==='2026-11').at(-1).allocated,1100);assert.ok(s.expenses.length);
+assert.throws(()=>savePoolAssumption(d,u.poolId,month,1100,'Reviewed forecast','Manager','Approved',draft.id),/already approved/);
+const next=structuredClone(d);next.poolAssumptions[0].proposed++;assert.throws(()=>validate(d,next),/immutable/);
+const stale=savePoolAssumption(d,u.poolId,month,c.calculated,'','Manager','Draft');d.accounting.applications[0].cents=90000;assert.throws(()=>savePoolAssumption(d,u.poolId,month,stale.proposed,'','Manager','Approved',stale.id),/current draft/);
+console.log('PASS assumption source, prepaid rent, vacancy roster, private exclusion, edit reason, approval, next-month drafts, immutable history and stale approval');
