@@ -24,7 +24,7 @@ export function leasingManagement(data:Data,period:string){
 
  const active=rows.filter(r=>r.active),counts={active:active.length,occupied:active.filter(r=>r.occupancy==='Occupied').length,vacant:active.filter(r=>r.occupancy==='Vacant').length,ready:active.filter(r=>r.occupancy==='Make ready').length,unknown:active.filter(r=>r.occupancy==='Unknown').length,market:rows.filter(r=>r.market==='On market').length,paid:rows.filter(r=>r.payment==='Paid').length,partial:rows.filter(r=>r.payment==='Partial').length,pending:rows.filter(r=>r.pending!==null&&r.pending>0).length};
 
- return {rows,counts,credits:rows.reduce((n,r)=>n+r.credits,0),pending:rows.reduce((n,r)=>n+(r.pending??0),0),prospects:(data.operations?.prospects??[]).filter(p=>recordState(data,'prospects',p.id)==='Active'&&p.stage!=='Closed')};
+ return {rows,counts,paidCollected:rows.filter(r=>r.payment==='Paid').reduce((n,r)=>n+r.collected,0),credits:rows.reduce((n,r)=>n+r.credits,0),pending:rows.reduce((n,r)=>n+(r.pending??0),0),prospects:(data.operations?.prospects??[]).filter(p=>recordState(data,'prospects',p.id)==='Active'&&p.stage!=='Closed')};
 
 }
 
