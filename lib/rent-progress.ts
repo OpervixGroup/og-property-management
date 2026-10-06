@@ -12,9 +12,11 @@ export function tenantRentProgress(data:Data,period:string){
 
  const expectedRows=data.units.map(u=>expectedUnitRent(data,u,period));
 
+ const pending=expectedRows.reduce((n,r,i)=>{const a=unitRentApplications(data,data.units[i].id,period);return n+(r.cents===null?0:Math.max(0,r.cents-a.collected-a.credits));},0);
+ const credits=data.units.reduce((n,u)=>n+unitRentApplications(data,u.id,period).credits,0);
  const expected=expectedRows.reduce((n,r)=>n+(r.cents??0),0),needsReview=expectedRows.filter(r=>r.cents===null).length;
 
- return {applied,expected,remaining:Math.max(0,expected-applied),percent:expected>0?Math.min(100,applied/expected*100):null,needsReview};
+ return {applied,expected,remaining:pending,credits,percent:expected>0?Math.min(100,applied/expected*100):null,needsReview};
 
 }
 

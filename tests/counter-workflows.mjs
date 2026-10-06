@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {fixture} from './model-loader.mjs';
+const d=await fixture();
+const {latest,changeDraftState,statementDeleted,validate,totals}=await import('./.mock-runtime/pool.mjs');
+const s=d.statements.find(s=>s.status==='Pending');assert.ok(s);
+const before=structuredClone(d), raw=JSON.stringify(s), count=d.statements.length;
+changeDraftState(d,s.id,'Deleted','Duplicate draft reviewed','QA manager');
+assert.equal(statementDeleted(d,s.id),true);assert.equal(JSON.stringify(d.statements.find(x=>x.id===s.id)),raw);
+assert.equal(d.statements.length,count);assert.ok(!latest(d,s.period).some(x=>x.unitId===s.unitId));
+assert.ok(d.audit.some(x=>x.action==='Owner draft deleted'));validate(before,d);
+const deleted=structuredClone(d);changeDraftState(d,s.id,'Restored','Keep reviewed original','QA manager');validate(deleted,d);
+assert.ok(latest(d,s.period).some(x=>x.id===s.id));assert.equal(statementDeleted(d,s.id),false);
+assert.throws(()=>changeDraftState(d,s.id,'Deleted','','QA manager'));
+const forged=structuredClone(d);forged.statementLifecycle[0].reason='changed';assert.throws(()=>validate(d,forged));
+const approved=structuredClone(d);approved.statements.find(x=>x.id===s.id).status='Approved';assert.throws(()=>changeDraftState(approved,s.id,'Deleted','test','QA manager'));
+const second=structuredClone(d);second.statements.push({...s,id:'older-qa',version:0});changeDraftState(second,s.id,'Deleted','test','QA manager');assert.ok(!latest(second,s.period).some(x=>x.unitId===s.unitId));
+const t=totals(s);assert.equal(t.available,s.opening+s.allocated+s.adjustments+(s.credits??[]).reduce((n,c)=>n+c.cents,0)-s.expenses.reduce((n,e)=>n+e.cents,0));
+console.log('PASS draft lifecycle: retained data, audit, restore, immutable history, approved protection, no old-version resurrection; statement arithmetic');
