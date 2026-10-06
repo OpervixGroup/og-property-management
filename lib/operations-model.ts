@@ -14,7 +14,8 @@ export type UnitVendor={id:string;unitId:string;name:string;email:string;cell:st
 export type TenantRecurring={category?:'Rent'|'Other';id:string;tenantId:string;description:string;cents:number;start:string;end:string};
 export type VendorContact={id:string;name:string;company:string;phone:string;email:string;source:string};
 export type TenantEntryRevision={id:string;entryId:string;before:TenantEntry;after:TenantEntry;reason:string;created:string};
-export type Operations={tenantEntryRevisions?:TenantEntryRevision[];vendorContacts?:VendorContact[];tenants?:Tenant[];tenantEntries?:TenantEntry[];tenantRecurring?:TenantRecurring[];unitVendors?:UnitVendor[];occupancy?:Occupancy[];workOrders:WorkOrder[];events:CalendarEvent[];communications:Communication[];prospects:Prospect[];leases:Lease[];bankRecords:BankRecord[]};
+export type RentAmendment={id:string;tenantId:string;unitId:string;from:string;before:number|null;cents:number;reason:string;created:string};
+export type Operations={rentAmendments?:RentAmendment[];tenantEntryRevisions?:TenantEntryRevision[];vendorContacts?:VendorContact[];tenants?:Tenant[];tenantEntries?:TenantEntry[];tenantRecurring?:TenantRecurring[];unitVendors?:UnitVendor[];occupancy?:Occupancy[];workOrders:WorkOrder[];events:CalendarEvent[];communications:Communication[];prospects:Prospect[];leases:Lease[];bankRecords:BankRecord[]};
 export const emptyOperations=():Operations=>({workOrders:[],events:[],communications:[],prospects:[],leases:[],bankRecords:[]});
 const validDate=(v:string)=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&!Number.isNaN(Date.parse(v+'T12:00:00'))&&new Date(v+'T12:00:00').toISOString().slice(0,10)===v;
 export function validateOperations(ops:Operations,unitIds:Set<string>,old?:Operations){
