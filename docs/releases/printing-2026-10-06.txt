@@ -24,7 +24,7 @@ WORK STEPS
 16. Verified owner selection in a local browser with demonstration records: 19 units selected by default, clear selection disables output, and two selected units show the exact combined balance.
 17. Rendered a demonstration 19-unit combined PDF and inspected the first two summary pages for layout and page breaks.
 18. Added an automated Linux / Node 22 build check to validate the hosting environment.
-19. Package the changed source and this record into the development-folder structure.
+19. Saved the complete source snapshot, patch, user steps, validation record and release instructions into the development-folder structure.
 20. Release and live verification status is recorded separately in RELEASE_STATUS.txt.
 
 USING THE OWNER REPORT
@@ -57,7 +57,7 @@ lib/owner-report.ts                    Owner selection and exact combined totals
 lib/exports.ts                         Shared download UI and combined PDF generation
 lib/print-report.ts                    Isolated printable HTML document
 lib/report-request.ts                  Request feedback and timeout handling
- tests/printing.mjs                    Selection, PDF and download tests
- tests/printing-server.mjs             Endpoint access and response tests
- tests/prepare-models.mjs              Transitive test model loader
+tests/printing.mjs                    Selection, PDF and download tests
+tests/printing-server.mjs             Endpoint access and response tests
+tests/prepare-models.mjs              Transitive test model loader
 .github/workflows/printing-checks.yml   Node 22 regression/type/build checks
