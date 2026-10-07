@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile} from 'node:fs/promises';
+import {stripTypeScriptTypes} from 'node:module';
+import {prepareModels} from './prepare-models.mjs';
+const root=new URL('./.mock-runtime/owner-run-server/',import.meta.url);
+process.env.OG_APP_URL='https://og.example.test';
+await prepareModels(root,['seed','month-close','workflow-controls','owner-run-policy','owner-run','access-policy']);
+let request=stripTypeScriptTypes(await readFile(new URL('../lib/server/request.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'@/lib/access-policy'","'./access-policy.mjs'");
+await writeFile(new URL('request.mjs',root),request);
+await writeFile(new URL('auth.mjs',root),"let user=null;export function setup(v){user=v;}export async function getChatGPTUser(){return user;}");
+await writeFile(new URL('storage.mjs',root),"import {validate} from './pool.mjs';let old;export let saves=0;export function setup(data){old=structuredClone(data);saves=0;}export async function load(){return {data:structuredClone(old),revision:1};}export async function save(user,revision,operation,data){validate(old,data);saves++;return {data,revision:2};}");
+await writeFile(new URL('documents.mjs',root),"let docs=[];export function setup(v){docs=v;}export async function listDocuments(){return docs;}");
+await writeFile(new URL('system-log.mjs',root),'export async function systemLog(){}');
+let code=stripTypeScriptTypes(await readFile(new URL('../app/api/pool/route.ts',import.meta.url),'utf8'),{mode:'transform'});
+for(const [from,to] of Object.entries({'@/lib/month-close':'./month-close.mjs','@/lib/document-storage':'./documents.mjs','@/lib/workflow-controls':'./workflow-controls.mjs','@/lib/system-log':'./system-log.mjs','@/lib/storage':'./storage.mjs','@/app/chatgpt-auth':'./auth.mjs','@/lib/server/request':'./request.mjs','@/lib/pool':'./pool.mjs'}))code=code.replaceAll("'"+from+"'","'"+to+"'");
+await writeFile(new URL('route.mjs',root),code);
+const {POST}=await import(new URL('route.mjs',root)),auth=await import(new URL('auth.mjs',root)),storage=await import(new URL('storage.mjs',root)),documents=await import(new URL('documents.mjs',root)),{seed}=await import(new URL('seed.mjs',root)),{approveOwnerPacket,importOwnerCheck}=await import(new URL('owner-run.mjs',root)),{saveOwnerRunPolicy}=await import(new URL('owner-run-policy.mjs',root)),{latest}=await import(new URL('pool.mjs',root));
+function fixture(){const d=seed();d.ownerRunPolicies=[{id:'qa-policy',propertyId:'property-devonshire',version:1,reviewDay:5,evidenceHours:24,qboCompanyId:'QA',bankAccountId:'QA-bank',bankName:'QA',source:'QA reviewed',reviewer:'QA',created:new Date().toISOString()}];for(const s of latest(d,'2026-10').filter(s=>s.ownerId==='owner-1')){s.allocated=10000;s.opening=0;s.openingConfirmed=true;s.adjustments=0;s.expenses=[];}for(const s of d.settings){s.electricConfirmed=true;s.electricTotal=0;}const s=latest(d,'2026-10').find(s=>s.ownerId==='owner-1');s.expenses=[{id:'qa-labor',label:'Repair labor',cents:500,recipient:'QA vendor',classification:'Expense'}];approveOwnerPacket(d,'2026-10','owner-1','QA.pdf','a'.repeat(64),'QA');return d;}
+const call=data=>POST(new Request('https://og.example.test/api/pool',{method:'POST',headers:{'content-type':'application/json','origin':'https://og.example.test'},body:JSON.stringify({data,revision:1,operation:'QA-save'})}));
+const user={userId:'QA-user',authId:'QA-auth',role:'Management',displayName:'Authenticated reviewer',mustChangePassword:false};auth.setup(user);
+const before=fixture(),incoming=structuredClone(before),ss=latest(incoming,'2026-10').filter(s=>s.ownerId==='owner-1'),cents=ss.length*10000-500;
+importOwnerCheck(incoming,{evidence:{companyId:'QA',accountId:'QA-bank',transactionId:'QA-txn',checkNumber:'90042',ownerId:'owner-1',date:'2026-10-07',cents,status:'Active',source:'QA detail reviewed',verifiedAt:new Date().toISOString()},period:'2026-10',approvalId:incoming.ownerRun.approvals[0].id,replacesTransactionId:'',nettingConfirmed:true,reviewer:'Forged actor'});
+storage.setup(before);documents.setup([]);const blocked=await call(incoming);assert.equal(blocked.status,400);assert.match((await blocked.json()).error,/support/);assert.equal(storage.saves,0);
+documents.setup([{statement_id:ss[0].id,expense_id:'qa-labor'}]);const passed=await call(incoming);assert.equal(passed.status,200);assert.equal((await passed.json()).data.ownerRun.checks[0].reviewer,user.displayName);assert.equal(storage.saves,1);
+storage.setup(before);const settings=structuredClone(before);saveOwnerRunPolicy(settings,{propertyId:'property-devonshire',reviewDay:10,evidenceHours:12,qboCompanyId:'QA',bankAccountId:'QA-bank',bankName:'QA',source:'QA reviewed policy',reviewer:'Forged actor'});const policySaved=await call(settings);assert.equal(policySaved.status,200);assert.equal((await policySaved.json()).data.ownerRunPolicies[1].reviewer,user.displayName);
+auth.setup({...user,role:'Maintenance'});assert.equal((await call(settings)).status,400);auth.setup({...user,mustChangePassword:true});assert.equal((await call(settings)).status,400);
+console.log('PASS owner-run server: missing support blocks cash before save; supported import succeeds; policy/payment reviewer comes from authenticated user; restricted roles cannot save');

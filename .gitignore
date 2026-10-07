@@ -52,3 +52,6 @@ Devonshire_Source.zip
 
 *.tsbuildinfo
 /tests/.foundation-runtime/
+
+# Preserved local build caches are not source.
+/.next-*/

@@ -86,3 +86,13 @@ node tests/http-auth.mjs
 ```
 
 SQL tests use local PGlite, not the live Supabase project. HTTP tests use a local mock identity/data provider and run against the production Next server. These confirm code paths and permission boundaries but do not replace real provider or hosting tests. `npm start` supports an assigned PORT. `supabase/RECOVERY.md` describes cutover and recovery.
+
+## Devonshire owner controls
+
+General settings includes versioned owner-run configuration for the monthly review day, current QBO verification window, and company/bank identity. Safe defaults do not contain verified bank IDs, so new owner-payment imports remain blocked until Management reviews this configuration. Opening balances, monthly electricity and linked supporting documents must also be verified. Printing is separate from cash; repeated transaction imports are idempotent and replacements require recorded original void evidence.
+
+Use `npm run test:owner-controls` for financial-policy and API authorization/support checks. The default test suite includes these checks. `owner-run-preview` is development-only and returns not-found in production; never enable an authentication bypass to expose a preview.
+
+This repository is public. Private financial backups, original invoices, owner packets and acceptance data must remain outside source control. Published acceptance scenarios use synthetic amounts and transaction identifiers.
+
+The long-term direction covers leasing, secure portals, maintenance, vendor workflows, accounting and reconciliation. AppFolio/QuickBooks-level scope is a roadmap, not a claim that unfinished integrations or payment automation are available. See AGENTS.md for the durable product and financial-integrity standard.

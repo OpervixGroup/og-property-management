@@ -1,4 +1,5 @@
 import {type Data,type Statement,latest,totals} from './pool';
+import {ownerLedgerLine} from './owner-run';
 import {contributionTotal,ownerOutstanding} from './month-close';
 
 export function selectedOwnerStatements(d:Data,ownerId:string,period:string,unitIds:string[]):Statement[]{
@@ -10,5 +11,5 @@ export function selectedOwnerStatements(d:Data,ownerId:string,period:string,unit
 }
 export function ownerReportTotals(d:Data,statements:Statement[]){
  const sum=(fn:(s:Statement)=>number)=>statements.reduce((n,s)=>n+fn(s),0);
- return {allocated:sum(s=>s.allocated),deductions:sum(s=>totals(s).deductions),credits:sum(s=>(s.credits??[]).reduce((n,c)=>n+c.cents,0)),opening:sum(s=>s.opening),adjustments:sum(s=>s.adjustments),available:sum(s=>totals(s).available),cash:sum(s=>s.cashPaid??s.paidAmount),offsetApplied:sum(s=>s.offsetPaid??0),offsetReceived:sum(s=>s.offsetReceived??0),contributions:sum(s=>contributionTotal(d,s)),closing:sum(s=>ownerOutstanding(d,s))};
+ return {allocated:sum(s=>s.allocated),deductions:sum(s=>totals(s).deductions),credits:sum(s=>(s.credits??[]).reduce((n,c)=>n+c.cents,0)),opening:sum(s=>s.opening),adjustments:sum(s=>s.adjustments),available:sum(s=>totals(s).available),cash:sum(s=>(s.cashPaid??s.paidAmount)+ownerLedgerLine(d,s).cash),internalOffsets:sum(s=>ownerLedgerLine(d,s).netting),offsetApplied:sum(s=>s.offsetPaid??0),offsetReceived:sum(s=>s.offsetReceived??0),contributions:sum(s=>contributionTotal(d,s)),closing:sum(s=>ownerOutstanding(d,s))};
 }
