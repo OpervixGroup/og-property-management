@@ -1,0 +1,63 @@
+OG PRINTING AND OWNER REPORT RELEASE - 2026-10-06
+
+Application: https://og.opervixgroup.com
+Repository: OpervixGroup/og-property-management
+Starting source revision: d5269f73f6492a912e5fff119abcea54582e4473
+Development destination: C:\Users\MiguelAntonioMartíne\OneDrive - Opervix Group\01- OPERVIX GROUP\98 APP DEVELOPMENT
+
+WORK STEPS
+1. Verified the designated development folder and inspected the live Reporting page.
+2. Opened owner statements and the distribution register without editing records.
+3. Tested Statement + receipts PDF. No download event occurred within 12 seconds and the page showed no error.
+4. Located the connected GitHub source repository and obtained a local copy.
+5. Reviewed PDF, ZIP, CSV, owner packages, tenant statements, accounting reports and the leasing print action.
+6. Replaced invisible-only report downloads with a visible Report ready dialog and save/open controls shared by exports.
+7. Added a protected, noncached owner PDF/ZIP endpoint. It uses existing authenticated workspace and document-integrity checks and has no financial write operations.
+8. Added statement-only PDF and direct print options, receipt-generation feedback and report-request timeouts.
+9. Removed the unintended read-only-role restriction from individual owner PDF and ZIP downloads.
+10. Added owner search, owner selection, Select all / Clear selection, unit checkboxes, combined totals, an itemized preview, one combined PDF, optional PDF receipts and print selected units.
+11. Preserved owner-ID isolation, current statement versions, draft labels, negative balances, recorded offsets and contributions. Tenant rent and internal office notes remain excluded from owner reports.
+12. Isolated the leasing print document from navigation and screen pagination.
+13. Added printing and authenticated-endpoint regression tests. Repaired the old test fixture loader to prepare transitive model dependencies and aligned one stale assertion with the existing correction-history rule.
+14. Updated the dependency lockfile to resolve its existing npm ci mismatch.
+15. Ran the full regression suite successfully using Node 22. Type checking passed.
+16. Verified owner selection in a local browser with demonstration records: 19 units selected by default, clear selection disables output, and two selected units show the exact combined balance.
+17. Rendered a demonstration 19-unit combined PDF and inspected the first two summary pages for layout and page breaks.
+18. Added an automated Linux / Node 22 build check to validate the hosting environment.
+19. Package the changed source and this record into the development-folder structure.
+20. Release and live verification status is recorded separately in RELEASE_STATUS.txt.
+
+USING THE OWNER REPORT
+Accounting -> Owner statements (or Reporting -> Open statements).
+Choose the accounting month using the workspace month selector.
+Find and select an owner. All of that owner's current statement units are initially selected.
+Clear selection or uncheck units to print a subset. Review the selected-unit count and totals.
+Use Print selected units for the itemized report, or Download combined PDF for a single PDF.
+Enable Include supporting receipts in PDF when original receipts are required.
+Use Save file or Open PDF / print in the Report ready dialog if the automatic download does not start.
+For one unit, use Print statement, Statement only PDF, Statement + receipts PDF, or Statement & receipts ZIP.
+Save edited drafts before generating a report.
+
+VALIDATION AND LIMITS
+Full test suite: passed, including the 79 core accounting checks and the new printing and report-access checks.
+TypeScript check: passed before release; CI repeats it.
+The report endpoint rejects anonymous users, password-change-required users, unauthorized roles, invalid months, missing statements and cross-owner selections.
+Report generation does not mutate financial records or send owner emails.
+No actual owner report was shared and no financial record was edited during this work.
+Local production build: Windows filesystem EPERM errors; Linux CI is the release build gate.
+A physical printer output and the live upgraded report must be verified after deployment; do not describe them as verified until completed.
+
+SOURCE STRUCTURE
+app/owner-report.tsx                    Owner search, unit selection and combined preview
+app/api/owner-report/route.ts           Authenticated PDF and ZIP responses
+app/pool-app.tsx                        Owner statement actions and generation feedback
+app/leasing-management.tsx              Print only the leasing report
+app/globals.css                        Report controls and ready dialog styling
+lib/owner-report.ts                    Owner selection and exact combined totals
+lib/exports.ts                         Shared download UI and combined PDF generation
+lib/print-report.ts                    Isolated printable HTML document
+lib/report-request.ts                  Request feedback and timeout handling
+ tests/printing.mjs                    Selection, PDF and download tests
+ tests/printing-server.mjs             Endpoint access and response tests
+ tests/prepare-models.mjs              Transitive test model loader
+.github/workflows/printing-checks.yml   Node 22 regression/type/build checks
