@@ -1,4 +1,5 @@
 import {brandedStatementPDF,expenseLaborInvoicePDF,ownerDocument} from './owner-documents';
+import {packetApproved} from './owner-run';
 import {contributionTotal,ownerOutstanding} from './month-close';
 import {PDFDocument,StandardFonts,rgb} from 'pdf-lib';
 import {ownerPartsReceiptRecord,type PartIssue} from './procurement-model';
@@ -39,12 +40,12 @@ export async function combinedOwnerPDF(d:Data,ownerId:string,period:string,unitI
  const statements=selectedOwnerStatements(d,ownerId,period,unitIds),t=ownerReportTotals(d,statements),owner=d.owners.find(o=>o.id===ownerId);
  const summary=await ownerDocument('OWNER DISTRIBUTION STATEMENT',period+' | '+statements.length+' selected units');
  summary.note('Owner: '+((statements[0] as any).ownerSnapshot?.name??owner?.name??ownerId),11);
- summary.note(statements.some(s=>s.status==='Pending')?'DRAFT - includes unapproved statements':'Current saved statement versions');
+ summary.note(statements.some(s=>s.status==='Pending'&&!packetApproved(d,s))?'DRAFT - includes unapproved statements':'Current saved statement versions');
  summary.note('Selected units only. Negative balances remain visible; this report does not initiate payment.');
  summary.section('UNIT BREAKDOWN');
- for(const s of statements)summary.row('Unit '+d.units.find(u=>u.id===s.unitId)?.number+' | v'+s.version+' | '+s.status,money(ownerOutstanding(d,s)));
- summary.section('COMBINED TOTALS');
- for(const [label,value] of [['Allocated pool income',t.allocated],['Itemized deductions',t.deductions],['Credits',t.credits],['Opening balances',t.opening],['Adjustments',t.adjustments],['Proposed net distribution',t.available],['Cash payments recorded',t.cash],['HOA offsets applied',t.offsetApplied],['HOA offsets received',t.offsetReceived],['Owner contributions received',t.contributions],['Combined closing balance',t.closing]] as [string,number][])summary.row(label,money(value));
+ for(const s of statements)summary.row('Unit '+d.units.find(u=>u.id===s.unitId)?.number+' | '+(packetApproved(d,s)?'Approved reviewed packet':s.status),money(ownerOutstanding(d,s)));
+ summary.section('COMBINED TOTALS',100);
+ for(const [label,value] of [['Allocated pool income',t.allocated],['Itemized deductions',t.deductions],['Credits',t.credits],['Opening balances',t.opening],['Adjustments',t.adjustments],['Proposed net distribution',t.available],['Cash payments recorded',t.cash],['Internal owner offsets (net)',t.internalOffsets],['HOA offsets applied',t.offsetApplied],['HOA offsets received',t.offsetReceived],['Owner contributions received',t.contributions],['Combined closing balance',t.closing]] as [string,number][])if(value!==0||['Allocated pool income','Itemized deductions','Combined closing balance'].includes(label))summary.row(label,money(value));
  const pdf=await PDFDocument.create();
  const append=async(blob:Blob)=>{const source=await PDFDocument.load(await blob.arrayBuffer());for(const p of await pdf.copyPages(source,source.getPageIndices()))pdf.addPage(p);};
  await append(new Blob([new Uint8Array(await summary.finish())],{type:'application/pdf'}));

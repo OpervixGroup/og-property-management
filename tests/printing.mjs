@@ -17,6 +17,10 @@ for(const name of ['seed','exports','owner-report','print-report'])await prepare
 const {seed}=await import(new URL('seed.mjs',runtime));
 const {selectedOwnerStatements,ownerReportTotals}=await import(new URL('owner-report.mjs',runtime));
 const {combinedOwnerPDF,ownerPacketPDF,receiptResponse,download}=await import(new URL('exports.mjs',runtime));
+const {statementNotes,statementNoteBlocks}=await import(new URL('statement-notes.mjs',runtime));
+assert.deepEqual(statementNotes('Custom owner note.\n\nReviewed work dates and price details:\nLabor | Contractor | Work date missing.'),['Custom owner note.','Labor | Contractor | Work date missing.']);
+assert.equal(statementNoteBlocks('Reviewed work dates and price details:\nLabor | Contractor | 4 hours x $22 = $88.')[0].body,'4 hours x $22 = $88.');
+assert.equal(statementNotes('No reviewed block. Keep this exact note.')[0],'No reviewed block. Keep this exact note.');
 const data=seed(),period='2026-10';
 const owner=data.owners.find(o=>data.statements.filter(s=>s.ownerId===o.id).length>2),all=data.statements.filter(s=>s.ownerId===owner.id),ids=all.slice(0,2).map(s=>s.unitId);
 const selected=selectedOwnerStatements(data,owner.id,period,[...ids,ids[0]]);
