@@ -1,0 +1,20 @@
+OG public luxury homepage — October 7, 2026
+
+Implemented the approved navy/ivory/champagne welcome page with generated illustrative architectural imagery, public navigation, property enquiry, existing sign-in link, services and Market & Housing cards.
+The root page displays Welcome only when no verified OG user is returned. Existing member/session verification, private API authorization and role-specific signed-in workspace remain in place. Public data endpoint returns only fixed allowlisted public economic series; no tenant records or credentials. No authentication/database policy changes.
+
+Data: FRED CSV series SP500 (daily closing index), MORTGAGE30US (weekly Freddie Mac national average), ATNHPIUS41700Q (quarterly FHFA San Antonio-New Braunfels house price index). Upstream timeout 10 seconds; hourly feed caching. Missing/malformed/future observations are excluded, stale dates labeled, source outages isolated per card. Retrieved time is distinct from observation date. Refresh rechecks the endpoint but does not bypass upstream hourly cache.
+News links: National Association of Realtors press releases, Freddie Mac research, Texas Real Estate Research Center. News is a publisher directory, not an automatically syndicated headline feed. Property enquiry prepares an email; no unverified listings or automated outbound messages.
+
+Verification passed:
+- Production Next.js Turbopack build and TypeScript.
+- Dedicated market parser/outage tests.
+- Existing 34 access-policy assertions.
+- Real public endpoint HTTP 200 with all three observations.
+- Browser data rendering, Refresh, property enquiry subject and Sign in navigation.
+- Responsive 390px viewport: page width 375px, no horizontal overflow.
+- Desktop and mobile screenshots saved in the current task outputs.
+
+Live authenticated sign-in was not exercised in the local environment; existing login navigation was verified. Signed-in operational dashboard redesign is separate scope. GoDaddy deployment of this new homepage has not been executed or verified. No owner transactions changed.
+
+Deploy existing OG project from reviewed source after publishing to GitHub; retain existing hosting environment/auth configuration. Verify signed-out homepage, all three cards, source links, login, role-specific signed-in workspace, logout and private API denial on production. Roll back the homepage release if these checks fail.

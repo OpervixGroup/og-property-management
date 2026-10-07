@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import ts from 'typescript';
+import {readFile} from 'node:fs/promises';
+const source=await readFile(new URL('../lib/public-market.ts',import.meta.url),'utf8');
+const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+const {parseObservation,loadMarket}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+const now=new Date('2026-10-07T12:00:00Z');
+const o=parseObservation('SP500','observation_date,SP500\n2026-10-05,100\n2026-10-06,110\n2026-10-07,.\n2026-10-08,999',7,now);
+assert.equal(o.value,110);assert.equal(o.change,10);assert.equal(o.date,'2026-10-06');assert.equal(o.status,'available');
+assert.equal(parseObservation('SP500','DATE,SP500\n2025-01-01,10',7,now).status,'stale');
+assert.throws(()=>parseObservation('SP500','<html>error</html>',7,now));
+assert.throws(()=>parseObservation('SP500','DATE,SP500\n2026-10-07,.',7,now));
+const partial=await loadMarket(async url=>{if(String(url).includes('SP500'))return new Response('DATE,SP500\n2026-10-06,100');throw Error('network failure');});
+assert.equal(partial.observations[0].value,100);assert.equal(partial.observations[1].status,'unavailable');assert.equal(partial.observations[2].value,null);
+console.log('PASS market parsing, missing observations, future exclusion, stale dates, malformed feeds, partial outages');
