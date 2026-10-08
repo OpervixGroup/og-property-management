@@ -10,13 +10,14 @@ import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@
 import RecordDocuments from './record-documents';
 import DateInput from './date-input';
 import {csv,download} from '@/lib/exports';
-type Props={data:Data;period:string;busy:boolean;persist:(d:Data,message?:string)=>Promise<boolean>;onRecords:()=>void;initialSection?:LeasingSection};
+type Props={data:Data;period:string;busy:boolean;persist:(d:Data,message?:string)=>Promise<boolean>;onRecords:()=>void;initialSection?:LeasingSection;onSectionChange?:(section:LeasingSection)=>void};
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-export default function LeasingWorkspace({data,period,busy,persist,onRecords,initialSection='Vacancies'}:Props){
- const [section,setSection]=useState<LeasingSection>(initialSection),[property,setProperty]=useState(''),[query,setQuery]=useState(''),[form,setForm]=useState<any>(null),[kind,setKind]=useState(''),[saving,setSaving]=useState(false),[originalForm,setOriginalForm]=useState(''),[discardRequested,setDiscardRequested]=useState(false);
+export default function LeasingWorkspace({data,period,busy,persist,onRecords,initialSection='Vacancies',onSectionChange}:Props){
+ const [section,setCurrentSection]=useState<LeasingSection>(initialSection),[property,setProperty]=useState(''),[query,setQuery]=useState(''),[form,setForm]=useState<any>(null),[kind,setKind]=useState(''),[saving,setSaving]=useState(false),[originalForm,setOriginalForm]=useState(''),[discardRequested,setDiscardRequested]=useState(false);
  const [metricFrom,setMetricFrom]=useState(period+'-01'),[metricTo,setMetricTo]=useState(new Date(Date.UTC(Number(period.slice(0,4)),Number(period.slice(5)),0)).toISOString().slice(0,10)),[metricGroup,setMetricGroup]=useState<'Property'|'Unit type'>('Property');
  useEffect(()=>{setMetricFrom(period+'-01');setMetricTo(new Date(Date.UTC(Number(period.slice(0,4)),Number(period.slice(5)),0)).toISOString().slice(0,10));},[period]);
- useEffect(()=>setSection(initialSection),[initialSection]);
+ useEffect(()=>setCurrentSection(initialSection),[initialSection]);
+ function setSection(next:LeasingSection){setCurrentSection(next);onSectionChange?.(next);}
  const ops=data.operations??emptyOperations(),snapshot=leasingSnapshot(data,period,today(),property),blocked=busy||saving;
  const activity=leasingActivityMetrics(data,metricFrom,metricTo,property,metricGroup),activityHeaders=['Group','Units','Applications created','Approval decisions','Signed leases','Lease starts','Expiring active leases','Completed showings'],activityRows=activity.map(r=>[r.name,r.units,r.applications,r.approved,r.signed,r.starts,r.expiring,r.showings]);
  function exportSummary(){if(!validLeasingRange(metricFrom,metricTo)){toast.error('Enter a valid activity date range');return;}download(new Blob([csv([['Leasing activity',metricFrom,metricTo],['Property',property?data.properties.find(p=>p.id===property)?.name:'All properties'],activityHeaders,...activityRows])],{type:'text/csv'}),'leasing-summary-'+period+'.csv');}
@@ -54,6 +55,7 @@ export default function LeasingWorkspace({data,period,busy,persist,onRecords,ini
  </div>{notes}{discardRequested&&<section className="notice" role="alertdialog" aria-label="Unsaved leasing changes"><h3>Keep your changes?</h3><p>This edit has not been saved.</p><div className="toolbar"><button className="secondary" onClick={()=>setDiscardRequested(false)}>Keep editing</button><button onClick={()=>{setDiscardRequested(false);setForm(null);}}>Discard changes</button></div></section>}<div className="toolbar"><button disabled={blocked||decisionLocked} onClick={save}><Plus size={16}/>{saving?'Saving…':'Save '+(kind==='lease'?(form.status==='Active'?'verified activation':'draft'):'record')}</button><button className="secondary" disabled={saving} onClick={closeForm}>{decisionLocked?'Done':'Cancel'}</button></div></>}</DialogContent></Dialog>
  </div>;
 }
+
 
 
 
