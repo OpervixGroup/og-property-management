@@ -2,7 +2,7 @@ name: Printing and report checks
 on:
   pull_request:
   push:
-    branches: [codex/owner-report-printing]
+    branches: [main, codex/owner-report-printing]
 permissions:
   contents: read
 jobs:
