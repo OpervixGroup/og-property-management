@@ -10,3 +10,4 @@ body{background:#faf8f3;color:#10283e;font-family:Arial,sans-serif}.app,.scoped-
 @media print {.record-link{color:inherit!important;text-decoration:none!important}}
 
 .manual-leasing-confirm{display:flex;align-items:center;gap:10px;margin:18px 0;font-size:14px}.manual-leasing-confirm input[type=checkbox]{width:18px;height:18px;flex:0 0 18px;margin:0}
+.leasing-provider-setup{border:1px solid #dcd8cf;border-radius:12px;padding:16px;margin:18px 0;background:#faf8f3}.leasing-provider-setup summary{font-weight:600;cursor:pointer;color:#17394c}.leasing-provider-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:18px}.leasing-provider-links>div{display:flex;flex-direction:column;gap:7px;background:white;border:1px solid #e5e1d8;padding:16px;border-radius:10px}.leasing-provider-links span,.leasing-provider-links small{font-size:12px;color:#526571}

@@ -1,6 +1,6 @@
 import {validateLeasingWorkflow,type RentalApplication,type LeasingShowing} from './leasing-workflow';
 import {canonicalRecord} from './workflow-controls';
-import {validateManualLeasing,type ManualLeasingEvent} from './leasing-services';
+import {validateManualLeasing,type LeasingProvider,type ManualLeasingEvent} from './leasing-services';
 export const workStatuses=['New','Assigned','Estimate requested','Estimated','Scheduled','Waiting','Work done, unbilled','Ready to bill','Completed'] as const;
 export type WorkStatus=typeof workStatuses[number];
 export type WorkOrder={permissionToEnter?:'Yes'|'No';entryInstructions?:string;id:string;number:string;unitId:string;title:string;description:string;status:WorkStatus;priority:'Normal'|'Urgent'|'Emergency';kind:'Repair'|'Inspection'|'Unit turn'|'Project';assignee:string;vendor:string;scheduled:string;followUp:string;estimate:number;hours100:number;rate:number;materials:number;ownerApproved:boolean;notes:string;created:string;updated:string};
@@ -17,7 +17,7 @@ export type TenantRecurring={category?:'Rent'|'Other';id:string;tenantId:string;
 export type VendorContact={id:string;name:string;company:string;phone:string;email:string;source:string};
 export type TenantEntryRevision={id:string;entryId:string;before:TenantEntry;after:TenantEntry;reason:string;created:string};
 export type RentAmendment={id:string;tenantId:string;unitId:string;from:string;before:number|null;cents:number;reason:string;created:string};
-export type Operations={manualLeasingEvents?:ManualLeasingEvent[];rentalApplications?:RentalApplication[];leasingShowings?:LeasingShowing[];rentAmendments?:RentAmendment[];tenantEntryRevisions?:TenantEntryRevision[];vendorContacts?:VendorContact[];tenants?:Tenant[];tenantEntries?:TenantEntry[];tenantRecurring?:TenantRecurring[];unitVendors?:UnitVendor[];occupancy?:Occupancy[];workOrders:WorkOrder[];events:CalendarEvent[];communications:Communication[];prospects:Prospect[];leases:Lease[];bankRecords:BankRecord[]};
+export type Operations={leasingProviders?:LeasingProvider[];manualLeasingEvents?:ManualLeasingEvent[];rentalApplications?:RentalApplication[];leasingShowings?:LeasingShowing[];rentAmendments?:RentAmendment[];tenantEntryRevisions?:TenantEntryRevision[];vendorContacts?:VendorContact[];tenants?:Tenant[];tenantEntries?:TenantEntry[];tenantRecurring?:TenantRecurring[];unitVendors?:UnitVendor[];occupancy?:Occupancy[];workOrders:WorkOrder[];events:CalendarEvent[];communications:Communication[];prospects:Prospect[];leases:Lease[];bankRecords:BankRecord[]};
 export const emptyOperations=():Operations=>({workOrders:[],events:[],communications:[],prospects:[],leases:[],bankRecords:[]});
 const validDate=(v:string)=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&!Number.isNaN(Date.parse(v+'T12:00:00'))&&new Date(v+'T12:00:00').toISOString().slice(0,10)===v;
 export function validateOperations(ops:Operations,unitIds:Set<string>,old?:Operations){
