@@ -1,0 +1,4 @@
+Monthly client reconciliation — 2026-10-07
+Super Admin > Account activity shows all clients by selected month. Saved monthly draft units/amounts remain separate from current company status and inventory. Summary totals, exceptions, receipt contact, payment preference and draft references. CSV export neutralizes spreadsheet formulas. Print excludes dashboard navigation and collapsible client details.
+No confirmed-payment or bank data exists for subscriptions: all payments remain unverified, drafts are not receipts or bank-reconciled balances. No draft is shown as no draft, never $0 due. Subscription billing reconciliation is distinct from client property accounting. No financial records altered by report generation.
+Tests verify historical snapshots, missing and duplicate drafts, CSV protection, invalid months, private no-cache responses and Super Admin-only access. No tenant admin may access the all-client endpoint.
