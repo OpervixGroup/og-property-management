@@ -17,3 +17,5 @@ The long-term roadmap includes leasing, resident/owner/vendor portals, maintenan
 Protect financial integrity: verify current external transaction status, identify the QBO company and bank by ID, preserve immutable audit history and approved source versions, enforce idempotency, distinguish printing from payment, and require verified original voids before replacement checks. Never issue or adjust money automatically. Reset monthly estimates and carry forward verified balances.
 
 This repository is public. Keep owner statements, backups, receipts, reconciliation records and credentials outside source control. Published tests must use synthetic financial records.
+
+Use /opervix-logo-luxury.webp as the shared OG image logo in all screens, loading states and metadata. Keep the ivory, navy and champagne theme consistent in every new or revised page.
