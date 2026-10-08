@@ -11,3 +11,13 @@ body{background:#faf8f3;color:#10283e;font-family:Arial,sans-serif}.app,.scoped-
 
 .manual-leasing-confirm{display:flex;align-items:center;gap:10px;margin:18px 0;font-size:14px}.manual-leasing-confirm input[type=checkbox]{width:18px;height:18px;flex:0 0 18px;margin:0}
 .leasing-provider-setup{border:1px solid #dcd8cf;border-radius:12px;padding:16px;margin:18px 0;background:#faf8f3}.leasing-provider-setup summary{font-weight:600;cursor:pointer;color:#17394c}.leasing-provider-links{display:flex;flex-wrap:wrap;gap:14px;margin-top:18px}.leasing-provider-links>div{display:flex;flex-direction:column;gap:7px;background:white;border:1px solid #e5e1d8;padding:16px;border-radius:10px}.leasing-provider-links span,.leasing-provider-links small{font-size:12px;color:#526571}
+
+/* Leasing navigation and selected-step presentation. */
+.leasing-workspace>.leasing-stages{background:#fffdf8;border:1px solid #e5dccf;border-radius:14px;padding:18px;margin:18px 0 0}
+.leasing-workspace .leasing-hero{padding:24px 28px;margin:16px 0;align-items:center}
+.app .leasing-workspace .leasing-hero h2{font-size:30px;margin:8px 0}.leasing-hero p:last-child{margin-bottom:0}
+.leasing-step-controls{display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0}.leasing-step-controls button{display:flex;align-items:center;gap:8px}
+.leasing-step-controls .secondary{background:transparent;color:#fffdf8;border-color:#7890a3}
+.leasing-tools{border:1px solid #e5dccf;border-radius:14px;background:#fffdf8;margin:20px 0;overflow:hidden}
+.leasing-tools>summary{padding:20px 24px;color:#10283e;cursor:pointer;font-weight:600}.leasing-tools>.panel{border:0;margin:0;border-radius:0}
+@media(max-width:900px){.leasing-workspace .leasing-hero{align-items:flex-start;flex-direction:column}.leasing-step-controls{flex-shrink:1}}
