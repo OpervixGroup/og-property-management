@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import ts from 'typescript';
+const root=new URL('./.mock-runtime/',import.meta.url);await mkdir(root,{recursive:true});
+await writeFile(new URL('invoice-context.mjs',root),`export const state={owner:null,user:{authId:'client',userId:'company-a',role:'Global Admin'},calls:[],accounts:[]};export function notFound(){throw Error('NOT_FOUND');}export function redirect(){throw Error('REDIRECT');}export async function platformOwner(){return state.owner;}export async function getChatGPTUser(){return state.user;}export function access(u){if(!u||u.role!=='Global Admin')throw Error('DENIED');return u;}export async function rpc(name,args){state.calls.push(args);return state.accounts;}export default function Invoice(){return null;}`);
+const source=ts.transpileModule(await readFile(new URL('../app/subscription-invoice/[id]/page.tsx',import.meta.url),'utf8'),{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ES2022}}).outputText.replace(/(['"])(?:@\/[^'"]+|next\/navigation|\.\.\/invoice)\1/g,"'./invoice-context.mjs'");await writeFile(new URL('invoice-page.mjs',root),source);
+const {default:Page}=await import(new URL('invoice-page.mjs',root));const {state}=await import(new URL('invoice-context.mjs',root));const id='00000000-0000-4000-8000-000000000001';
+const params={params:Promise.resolve({id})};await assert.rejects(Page(params),/NOT_FOUND/);assert.equal(state.calls.at(-1).p_workspace,'company-a');
+state.accounts=[{name:'Sample Company',receipt_email:'billing@example.test',invoices:[{id,month:'2026-10',unit_ids:['old-unit','removed-unit'],total_cents:1219,status:'Draft'}]}];let page=await Page(params);assert.equal(page.props.invoice.unit_ids.length,2);assert.equal(page.props.invoice.total_cents,1219);assert.equal(page.props.back,'/workspace');
+state.accounts[0].invoices[0].total_cents=1;await assert.rejects(Page(params),/totals require review/);state.accounts[0].invoices[0].total_cents=1219;
+state.user.role='Maintenance';await assert.rejects(Page(params),/REDIRECT/);state.owner={authId:'owner'};page=await Page(params);assert.equal(state.calls.at(-1).p_workspace,null);assert.equal(state.calls.at(-1).p_actor,'owner');assert.equal(page.props.back,'/platform');await assert.rejects(Page({params:Promise.resolve({id:'invalid'})}),/NOT_FOUND/);
+console.log('Subscription invoice: own-company scope, protected Super Admin access, immutable unit quantity and total validation passed');
