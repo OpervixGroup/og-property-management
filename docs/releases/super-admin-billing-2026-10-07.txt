@@ -1,0 +1,33 @@
+OG GLOBAL SUPER ADMIN, SUBSCRIPTIONS AND CLIENT ONBOARDING
+Release date: October 7, 2026
+
+Implemented
+- mmartinez@opervixgroup.com is the designated global Super Admin. Company Admin roles cannot grant platform access. Owner identity creation still requires the protected owner setup with your own password; no password was invented or changed.
+- Platform modules: Accounts (company identity, activation/disable), Users (edit company user name, role and status, session revocation, last Company Admin protection), Subscriptions (pricing, unit recurring-charge controls, payment preferences, monthly drafts and audit), Onboarding (public workflow and activation instructions).
+- Devonshire's existing administrator remains mmartinez@devonshirecondos.com in its own company workspace.
+- Fixed USD pricing: 999 cents per portal plus 110 cents per enabled unit per month. New units are counted from the current company records. Disable recurring charges in subscription settings to exclude a unit from future new drafts. Existing leases and accounting history are retained. Re-enable restores eligibility.
+- Changes apply to the next new monthly draft, without prorating. A company/month can have only one draft; retries return the same immutable amount and unit IDs. Subscription statuses: Pending activation, Active, Paused, Cancelled. Disabled companies and inactive subscriptions cannot create new drafts.
+- All existing subscriptions start Pending activation. No existing company subscription was activated, no invoices were created in production, and no money was collected.
+- Client onboarding: create authentication identity, confirm email, choose company display name and unique login name, acknowledge pricing, provision a blank private company, then enter its own workspace. Verified email is required by the database. Repeated submits cannot create duplicate portals. Reserved platform identities cannot self-provision as clients. Email domain is a display setting and never grants access to existing company records.
+- Client billing endpoints derive company scope from the authenticated membership, ignoring client-supplied foreign workspace IDs. Only a verified global owner can draft bills or activate subscriptions. Service-only database functions and tables deny browser access. Audit records preserve subscription and user changes.
+- Ivory, navy and champagne appearance with the shared luxury logo across new screens.
+
+Payment scope — provider chosen later
+ACH and Credit card are preferences only. No card numbers or bank account details are stored. No checkout, ACH debit, card charge, payment webhook or automatic collection exists yet. Choose a provider later, connect it privately, implement hosted checkout/consent and idempotent webhook processing, then test it before enabling real collection. Monthly drafts currently require the Super Admin action; production scheduling will be connected with the provider. Drafts are not payments or tax invoices.
+
+Publishing and onboarding setup
+1. Publish the complete reviewed source through the existing GoDaddy project. GitHub changes remain in the existing review branch until merged; Update Preview on main will not include an unmerged branch.
+2. Keep Supabase public email confirmation enabled. Configure reliable SMTP delivery, production site URL, and allow https://og.opervixgroup.com/onboarding/confirm as an authentication redirect. Signup uses the existing server-side cookie/PKCE client. A confirmation callback verifies the code; verified clients can also return and sign in through onboarding. Optional signup email-code verification requires a template displaying its OTP. Do not disable confirmation to bypass setup.
+3. Set OG_PUBLIC_ONBOARDING=true privately in hosting only after email delivery and redirect confirmation work. Default false keeps public signup closed while setup is pending. Existing company sign-ins continue to work.
+4. Complete protected /platform-setup as the designated owner using the existing private bootstrap token and your own password if owner setup remains pending. The ordinary Company Admin login is not the platform owner login.
+5. Test one consenting new client in production: verify email, create an empty company, log out and back in, add team and unit, disable its recurring charge, confirm another company remains inaccessible. Review/activate its subscription only when ready.
+6. Select payment provider later. Activation of the current draft billing model does not initiate collection.
+
+Database migration
+platform_subscriptions_onboarding is already applied to the connected OG Supabase project. Do not rerun its CREATE TABLE script in this existing database. Fresh environments need the existing staging/standalone and company-account migrations before platform-billing.sql. No existing workspace revision or financial payload changed; production verification retained revision 705 and its original payload hash.
+
+Verification
+Full existing test suite passed locally, including leasing, printing, owner financial controls, company sessions and QBO isolation. Added PGlite tests verify exact cents, unit disable/enable, immutable same-month retry, duplicate prevention, blank verified onboarding, cross-company rejection, last-admin protection and denied browser database access. Added actual subscription route tests verify trusted company scope, owner-only drafts, restricted roles and origin checks. TypeScript checking passed. Screenshots use synthetic example company data; no live client was registered or billed for testing. Actual production email delivery, owner password setup, public signup and payment collection are not represented as tested.
+
+Security advisors
+All four new tables have RLS enabled with no anonymous/authenticated grants. The no-policy informational notices are intentional for this server-only access model. A pre-existing leaked-password protection warning remains; review the Supabase password-security setting before opening public signup: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection

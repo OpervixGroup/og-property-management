@@ -1,3 +1,4 @@
+import '../platform.css';
 import {redirect} from 'next/navigation';
 import {platformOwner} from '@/lib/server/platform';
 import PlatformCompanies from './companies';
