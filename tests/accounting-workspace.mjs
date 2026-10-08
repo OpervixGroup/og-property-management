@@ -35,3 +35,4 @@ const diagnostics=accountingDiagnostics(d,'2026-10');assert.equal(diagnostics.fi
 for(const row of diagnostics)assert.ok(accountingSections.includes(row.section)&&accountingPages[row.section].includes(row.page));
 d.accounting.deposits=[{tenantId,approved:true,date:'2026-11-01',kind:'Refund',cents:100}];assert.equal(accountingDiagnostics(d,'2026-10').find(r=>r.id==='escrow').count,0);
 console.log('Accounting: balanced journal evidence, company isolation, duplicate references, immutable history, closed-month guards, transfer evidence, unchanged cash/owner/tenant sources, and dated diagnostics passed');
+

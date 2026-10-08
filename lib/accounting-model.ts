@@ -101,3 +101,4 @@ export function validateAccounting(d:Data,old?:Data){validateAccountingRegisters
 
 }
 
+

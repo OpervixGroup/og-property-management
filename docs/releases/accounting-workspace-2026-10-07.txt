@@ -18,3 +18,4 @@ This release is not a complete AppFolio/QBO accounting replacement. Native journ
 
 PUBLISH
 After successful GitHub tests/build, update preview for the existing og-property-management GoDaddy project, review Accounting in preview, then publish using the user-controlled GoDaddy publication process. Verify live navigation and imports with the correct client company. Do not copy HOA records into Leasing accounts. Never interpret evidence-register exports as posted transactions.
+

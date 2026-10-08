@@ -30,3 +30,4 @@ body{background:#faf8f3;color:#10283e;font-family:Arial,sans-serif}.app,.scoped-
 @media(max-width:1100px){.accounting-columns{grid-template-columns:1fr}.accounting-tasks{position:static}.accounting-workspace .leasing-hero{flex-direction:column;align-items:flex-start}}@media(max-width:600px){.accounting-service-grid,.accounting-journal-line{grid-template-columns:1fr}.accounting-exception{flex-wrap:wrap}.accounting-workspace .leasing-hero{padding:20px}}
 
 .leasing-step-controls button:not(.secondary){background:#dfbd87;color:#10283e;border-color:#dfbd87}
+

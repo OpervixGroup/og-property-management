@@ -17,7 +17,9 @@ export async function POST(request:Request){try{sameOrigin(request);const u=full
  const closing=(incoming.closeControls?.events??[]).filter((e:any)=>e.kind==='Closed'&&!old.data.closeControls?.events.some(p=>p.id===e.id));if(closing.length){const docs=(await listDocuments(u.userId)).map(d=>({statementId:d.statement_id,expenseId:d.expense_id}));for(const e of closing)if(missingOwnerSupport(incoming,e.period,docs).length)throw Error('Attach supporting invoices for manual repair, labor and material charges before closing.');}
  for(const record of incoming.statementLifecycle??[])if(!old.data.statementLifecycle?.some(e=>e.id===record.id)){record.reviewer=u.displayName;record.created=new Date().toISOString();}
  for(const key of ['approvals','checks','voids','prints','observations'] as const)for(const record of incoming.ownerRun?.[key]??[])if(!old.data.ownerRun?.[key]?.some(r=>r.id===record.id)){record.reviewer=u.displayName;}
+ for(const key of ['journalRecords','transferRecords'] as const)for(const record of incoming.accounting?.[key]??[])if(!old.data.accounting?.[key]?.some(r=>r.id===record.id)){record.reviewer=u.displayName;record.created=new Date().toISOString();}
  // A client cannot supply the actor of a new audit event or rewrite an existing audit event.
  audit(incoming,'Workspace saved',u.displayName+' · changes saved with immutable revision history');const oldIds=new Set(old.data.audit.map(e=>e.id));for(const event of incoming.audit)if(!oldIds.has(event.id)){event.actor=u.displayName;event.actorId=u.authId;event.at=new Date().toISOString();}
  const saved=await save(u.userId,p.revision,p.operation,incoming);await systemLog(u.userId,u.displayName,'Records','Info','Workspace saved','Revision '+saved.revision+' · Supabase PostgreSQL');return Response.json(saved);
  }catch(e){const message=e instanceof Error?e.message:'Save failed';return Response.json({error:message},{status:message.startsWith('CONFLICT')?409:400});}}
+
