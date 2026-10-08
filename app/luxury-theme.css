@@ -31,3 +31,5 @@ body{background:#faf8f3;color:#10283e;font-family:Arial,sans-serif}.app,.scoped-
 
 .leasing-step-controls button:not(.secondary){background:#dfbd87;color:#10283e;border-color:#dfbd87}
 
+.accounting-match-list{max-height:180px;overflow:auto;min-width:220px}.native-accounting .field{margin-bottom:16px}.native-accounting table input{min-width:120px}.native-accounting .check{display:flex;align-items:flex-start;gap:8px}
+

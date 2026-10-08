@@ -1,0 +1,29 @@
+OG NATIVE ACCOUNTING — 8 OCTOBER 2026
+
+IMPLEMENTED
+Journal entries > Native ledger: verified balanced company openings (including explicit zero openings), reviewed native journal postings, exact one-time reversal entries, debit/credit trial balance, cumulative financial review PDF, trial balance PDF/CSV, clickable GL amounts and exact journal/unit details.
+Journal entries > Recurring journals: monthly balanced templates with start/end dates, calendar-day clamping, pause/resume history and explicit monthly review/posting. Template/month duplicate posting is rejected. No automatic postings or QBO adjustments.
+Financial accounts > Statement reconciliation: CSV/manual bank statement rows, positive deposit/negative withdrawal convention, matching one or more ledger entries to each bank row, verified prior balance/date continuity, outstanding deposit/check carry-forward, zero statement and adjusted-bank differences, immutable completed history and reconciliation PDF. Backdated bank postings to reconciled periods are blocked; corrections must be later entries.
+Online payments > Provider setup: universal future provider name, clean HTTPS dashboard link, ACH/card preference and disable control. User explicitly chose to keep the provider connection ready. Live payment collection remains disabled until a processor-specific checkout/credential/settlement integration is implemented and tested. Dashboard access alone is not a payment integration.
+
+FINANCIAL AND ACCESS CONTROLS
+Records remain in the authenticated client's existing workspace and revision-controlled save path. Only existing authorized management roles can save. Server stamps new books, journals, templates, reconciliations and provider setup records with the authenticated reviewer and server time. No schema changes or broader access permissions were introduced. Read-only/scoped portals do not receive native ledger data.
+Balanced journal lines, safe integer cents, company chart matching, immutable history, duplicate journal references/external transaction IDs, exact reversals and closed-month guards are validated on save. Native entries and reconciliation records participate in monthly-close fingerprints. Native Bank accounts require completed statement reconciliation through month end before closing.
+
+ACTIVATION STEPS
+1. Publish the tested source update using the existing OG GoDaddy project.
+2. Review the correct client company chart in GL accounts.
+3. Choose a verified ledger cutover/opening date and enter the balanced prior trial balance with its original source reference. An explicitly verified all-zero opening can be used for genuinely new books.
+4. Post reviewed journals for transactions after cutover. Existing tenant/owner/QBO operational records are NOT automatically reposted or imported into native books. Do not duplicate previously booked transactions; verify cutover sources and external IDs first.
+5. Create recurring templates and review due monthly postings.
+6. Reconcile each native bank account against its original bank statement. Record legitimate missing fees/interest as balanced reviewed journals before matching. Retain originals in Documents and enter their source references.
+7. Prepare provider access now; choose/connect/test a real processor later before enabling live collection.
+
+QA
+Synthetic model tests verify postings/trial balance, immutable history, company guards, exact-cent arithmetic, duplicate prevention, exact reversals, closed/reconciled periods, statement arithmetic, matching and outstanding carry-forward, recurring calendar dates/pause/idempotency, month-close fingerprints and safe provider URLs. Existing accounting and monthly close tests pass.
+Browser QA verified native ledger balances and amount drilldown, recurring review/posting, bank CSV loading and zero-difference matching/completion, and provider setup saving while collection remains disabled. Screenshots contain synthetic local data. No production financial transactions were posted.
+Full release test/typecheck/build evidence is recorded in the accompanying verification file after CI completes.
+
+LIMITS
+Native books support explicitly reviewed double-entry postings and statement reconciliation. This release does not automatically convert all existing OG/QBO source records to GL entries and does not provide live bank feeds. Financial review reports contain only verified native openings and explicit native postings. Complete AppFolio parity (advanced bills/approvals, recurring bills, bulk charges, asset/prepaid accounting and automated settlement/refund flows) remains future development. Payment-provider activation is intentionally deferred by the user.
+

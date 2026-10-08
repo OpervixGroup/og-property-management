@@ -1,3 +1,4 @@
+import {validateNativeAccounting,type NativeAccounting} from './native-accounting';
 import {validateAccountingRegisters,type JournalRecord,type TransferRecord} from './accounting-workspace';
 import {ownerLedgerApplied} from './owner-run';
 import {importedInvoiceRow} from './invoice-import';
@@ -32,7 +33,7 @@ export type AllocationRun={financeReviewId?:string;weights?:{unitId:string;weigh
 export type UnitContract={id:string;unitId:string;from:string;managementKind:'Fixed'|'Percent';management:number;maintenance:number;hoa:number;source:string;reviewer:string};
 
 export type ApplicationRevision={id:string;entryId:string;before:ReceiptApplication;after:ReceiptApplication;reason:string;created:string};
-export type Accounting={journalRecords?:JournalRecord[];transferRecords?:TransferRecord[];applicationRevisions?:ApplicationRevision[];cashPlanning?:CashPlanning;applications:ReceiptApplication[];deposits:DepositEvent[];classifications:LineClassification[];settlements:ExternalSettlement[];exports:ExportBatch[];laborPosts:LaborPost[];allocations:AllocationRun[];contracts:UnitContract[]};
+export type Accounting={native?:NativeAccounting;journalRecords?:JournalRecord[];transferRecords?:TransferRecord[];applicationRevisions?:ApplicationRevision[];cashPlanning?:CashPlanning;applications:ReceiptApplication[];deposits:DepositEvent[];classifications:LineClassification[];settlements:ExternalSettlement[];exports:ExportBatch[];laborPosts:LaborPost[];allocations:AllocationRun[];contracts:UnitContract[]};
 
 export const emptyAccounting=():Accounting=>({applications:[],deposits:[],classifications:[],settlements:[],exports:[],laborPosts:[],allocations:[],contracts:[]});
 
@@ -69,7 +70,7 @@ export function incomeRows(d:Data,period:string){const rows:{id:string;kind:'Own
 
 export function qboBillRows(d:Data,period:string){const done=new Set((d.accounting?.exports??[]).flatMap(b=>b.sourceIds));return incomeRows(d,period).filter(r=>!importedInvoiceRow(d,r.id)&&r.confirmed&&r.treatment==='Expense'&&r.paymentState==='Unpaid'&&r.cents>0&&!done.has(r.id)).map(r=>{if(!r.accountName.trim()||!r.invoiceRef.trim()||!r.recipient.trim()||!r.dueDate)throw Error('Complete QBO account name, supplier, bill reference, and due date for '+r.description);verifiedGL(d,r.gl,r.accountName);return r;});}
 
-export function validateAccounting(d:Data,old?:Data){validateAccountingRegisters(d,old);validateCashPlanning(d,old);const a=d.accounting;if(!a){if(old?.accounting)throw Error('Accounting history must be preserved');return;}const integer=(n:number)=>{if(!Number.isSafeInteger(n)||n<0||n>100000000000)throw Error('Invalid accounting amount');},date=(s:string)=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(s)||new Date(s+'T12:00:00Z').toISOString().slice(0,10)!==s)throw Error('Invalid accounting date');};
+export function validateAccounting(d:Data,old?:Data){validateNativeAccounting(d,old);validateAccountingRegisters(d,old);validateCashPlanning(d,old);const a=d.accounting;if(!a){if(old?.accounting)throw Error('Accounting history must be preserved');return;}const integer=(n:number)=>{if(!Number.isSafeInteger(n)||n<0||n>100000000000)throw Error('Invalid accounting amount');},date=(s:string)=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(s)||new Date(s+'T12:00:00Z').toISOString().slice(0,10)!==s)throw Error('Invalid accounting date');};
 
  for(const k of ['applications','deposits','classifications','settlements','exports','laborPosts','allocations','contracts'] as const){if(!Array.isArray(a[k])||a[k].length>20000||new Set(a[k].map(r=>r.id)).size!==a[k].length)throw Error('Invalid accounting records');for(const r of old?.accounting?.[k]??[]){const next=(a[k] as any[]).find(x=>x.id===r.id);if(!next)throw Error('Accounting records cannot be removed');if(k==='exports'){const {status:x,reference:y,...left}=r as ExportBatch;const {status:z,reference:w,...right}=next;if(canonicalRecord(left)!==canonicalRecord(right)||x==='Imported externally'&&canonicalRecord(r)!==canonicalRecord(next))throw Error('Export batch is locked');}else if(canonicalRecord(r)!==canonicalRecord(next)){const history=(a.applicationRevisions??[]).filter(h=>h.before.id===r.id&&!old?.accounting?.applicationRevisions?.some(p=>p.id===h.id));if(k!=='applications'||history.length!==1||canonicalRecord(history[0].before)!==canonicalRecord(r)||canonicalRecord(history[0].after)!==canonicalRecord(next))throw Error('Accounting records are immutable without transaction correction history');}}}
 

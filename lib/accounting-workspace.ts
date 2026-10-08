@@ -9,15 +9,15 @@ export type AccountingSection=typeof accountingSections[number];
 export const accountingPages:Record<AccountingSection,string[]>={
  Receivables:['Tenant rent','Receipts & charges','QBO receipt imports','Escrow'],
  Payables:['Agency income & payables','Supplier invoice imports','Procurement & inventory'],
- 'Financial accounts':['Bank balances & checks'],
- 'Journal entries':['Journal register'],
+ 'Financial accounts':['Bank balances & checks','Statement reconciliation'],
+ 'Journal entries':['Native ledger','Recurring journals','Journal register'],
  'Bank transfers':['Transfer register'],
  'GL accounts':['Chart & mapping','QBO exports','QBO connection'],
  Diagnostics:['Review exceptions'],
- 'Online payments':['Payment availability'],
+ 'Online payments':['Provider setup','Payment availability'],
  'Monthly close':['Pool allocation & contracts','Owner bills & monthly close']
 };
-export const accountingDescriptions:Record<AccountingSection,string>={Receivables:'Review charges, receipts and tenant balances.',Payables:'Review supplier charges, supporting documents and accounting treatment.','Financial accounts':'Review operating and escrow balances and check capacity.','Journal entries':'Record balanced entries already verified in your external accounting system.','Bank transfers':'Retain evidence of transfers completed outside OG.','GL accounts':'Review your company chart, account mapping and QuickBooks exchange.',Diagnostics:'Find exceptions and open the records that need attention.','Online payments':'Review collection availability and recorded receipt activity.','Monthly close':'Review allocations, owner packets and monthly closing controls.'};
+export const accountingDescriptions:Record<AccountingSection,string>={Receivables:'Review charges, receipts and tenant balances.',Payables:'Review supplier charges, supporting documents and accounting treatment.','Financial accounts':'Review bank balances, reconcile statements and manage check capacity.','Journal entries':'Post and review native journals, recurring templates and external evidence.','Bank transfers':'Retain evidence of transfers completed outside OG.','GL accounts':'Review your company chart, account mapping and QuickBooks exchange.',Diagnostics:'Find exceptions and open the records that need attention.','Online payments':'Review collection availability and recorded receipt activity.','Monthly close':'Review allocations, owner packets and monthly closing controls.'};
 export type JournalRecord={id:string;date:string;reference:string;system:string;company:string;externalId:string;chartId:string;memo:string;reviewer:string;created:string;lines:{accountKey:string;debit:number;credit:number;unitId:string;memo:string}[]};
 export type TransferRecord={id:string;date:string;reference:string;system:string;company:string;externalId:string;chartId:string;fromKey:string;toKey:string;cents:number;outReference:string;inReference:string;reviewer:string;created:string};
 function text(v:unknown,max=500):v is string{return typeof v==='string'&&!!v.trim()&&v.length<=max;}
