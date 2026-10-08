@@ -26,3 +26,4 @@ export function leasingSnapshot(data:Data,month:string,asOf:string,propertyId=''
 }
 
 
+
