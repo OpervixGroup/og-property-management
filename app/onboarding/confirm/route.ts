@@ -1,0 +1,2 @@
+import {sessionClient} from '@/lib/server/supabase';
+export async function GET(request:Request){const url=new URL(request.url),target=new URL('/onboarding',process.env.OG_APP_URL??url.origin);try{const code=url.searchParams.get('code');if(!code)throw Error();const client=await sessionClient(),result=await client.auth.exchangeCodeForSession(code);if(result.error)throw Error();}catch{target.searchParams.set('verification','retry');}return Response.redirect(target,303);}

@@ -1,0 +1,8 @@
+import {getChatGPTUser} from '@/app/chatgpt-auth';
+import {platformOwner} from '@/lib/server/platform';
+import {rpc} from '@/lib/server/supabase';
+import {sameOrigin,body,access} from '@/lib/server/request';
+import {billingMonth} from '@/lib/subscription';
+async function context(request:Request){const owner=await platformOwner();if(owner)return {actor:owner.authId,workspace:new URL(request.url).searchParams.get('company'),owner:true};const user=access(await getChatGPTUser(),['Global Admin']);return {actor:user.authId,workspace:user.userId,owner:false};}
+export async function GET(request:Request){try{const c=await context(request);return Response.json({companies:await rpc('og_billing_overview',{p_actor:c.actor,p_workspace:c.workspace}),providerConnected:false},{headers:{'Cache-Control':'private, no-store'}});}catch{return Response.json({error:'Subscription access required'},{status:403});}}
+export async function POST(request:Request){try{sameOrigin(request);const c=await context(request),p=await body(request),workspace=c.owner?p.workspace_id:c.workspace;if(typeof workspace!=='string')throw Error('Choose a company');if(p.action==='invoice'){if(!c.owner)throw Error('Super Admin required');await rpc('og_draft_subscription_invoice',{p_actor:c.actor,p_workspace:workspace,p_month:billingMonth()});}else await rpc('og_manage_subscription',{p_actor:c.actor,p_workspace:workspace,p_action:p.action,p_value:p.value,p_unit:p.unit_id??null});return Response.json({ok:true});}catch(e){return Response.json({error:e instanceof Error?e.message:'Subscription update unavailable'},{status:400});}}

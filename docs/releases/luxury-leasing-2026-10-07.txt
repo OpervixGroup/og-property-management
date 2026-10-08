@@ -1,0 +1,33 @@
+OG LUXURY LEASING WORKFLOW — October 7, 2026
+Status: Built for review. GoDaddy publication is on hold at the user's request.
+
+WORKFLOW
+1. Leasing > Vacancies: verify occupancy and manual marketing status for the selected accounting month. Unknown occupancy never becomes a vacancy automatically.
+2. Guest cards: record contact, interested unit, source, assigned colleague, move-in date, follow-up and notes. Open the unit number for its global record.
+3. Showings: choose guest, date, Chicago time and host. Record completion or cancellation. Conflicting unit/host appointments at the same time are blocked.
+4. Applications: create a draft from the guest card. Save Submitted, then Under review. A person records Approved, Denied or Withdrawn with a date and reason. Reviewed decisions stay intact.
+5. Leases: approved applications create one draft. Enter dates and exact contract rent. Link the resident, attach your approved signed lease, then use Rent & residents > Occupancy, prospects & leases to verify signature and activate. Activation retains existing tenant/lease validation; it creates no payments.
+6. Renewals: active leases ending within 90 days appear automatically. Prepare one separate draft starting after the prior lease. Verify resident term and signature before activation. The original signed contract is preserved.
+7. Metrics: property-filtered saved-record counts, lead sources, and a CSV summary. Application counts are cumulative; vacancy reflects the selected month; showings are upcoming and renewals use the next 90 days.
+
+NAVIGATION AND APPEARANCE
+Ivory, navy and champagne throughout. Six stages, clear tasks that change with the section, search/property controls, reusable global unit dialog (unit, tenant, owner, vendors, leases, maintenance), read-only amount source dialogs in common tables, and print-safe links.
+
+SAFETY AND ACCESS
+Existing authenticated workspace save, revision checks, audit history and management permissions remain in place. No financial posting is introduced. No QBO payment, screening decision or AppFolio record was changed. New application/showing records are optional for existing backups. Reviewed records and completed showing history cannot be removed or overwritten. Duplicate applications, application leases and renewals are blocked. Signed lease and rent history controls remain enforced.
+
+INTEGRATIONS TO CONNECT LATER
+Listing publication/syndication, online public applications, application fees, tenant screening, self-guided lockboxes and e-signatures are not connected. This release records the team's manual workflow and existing lease attachments. Use your approved legal forms; no legal contract is generated automatically. Month-to-month residents without a dated active lease require manual review in Rent & residents.
+
+VALIDATION
+All existing test suites and added leasing workflow tests passed locally. TypeScript check passed. Browser verified with synthetic records: unit dialog, draft/submitted/under-review/reviewed application, application-to-lease draft, separate renewal, and contract amount source details. Improved date controls after browser testing. Production build and remote CI results are recorded with the release.
+Screenshots contain synthetic demonstration records only. Temporary unauthenticated test page is excluded from the release.
+
+PUBLISH LATER
+Keep this release unpublished while further changes are reviewed. The user handles GoDaddy publication. Before publishing: merge the reviewed source, update the GoDaddy preview, verify Leasing with authorized records, then publish the existing OG project. Do not purchase another domain.
+
+OPTION REVIEW — October 7, 2026
+Additional review against AppFolio Metrics verified date-range and grouping controls. OG now supports date-based activity grouped by property or unit type and exports the selected report. Property groups are not yet modeled in OG.
+Refinements: unit/person-aware search; direct review buttons for unverified availability; open/edit saved lease drafts; verify activation within Leasing with linked resident and signature date; signed lease and completed showing views are read-only; unsaved-edit protection; read-only reviewer access to card views; search clear control.
+Activation creates no tenant charges, owner distributions or payments. Existing server tenancy/financial controls validate every save. Add or correct resident contact/tenancy records through the existing Rent & residents workspace before activation when needed.
+Verified in the browser with synthetic data: unit-number search, lease opening/activation, signed record locks, unsaved edit prompt, unit-type grouping and actual downloaded CSV contents. External integration limits listed above remain explicit.
