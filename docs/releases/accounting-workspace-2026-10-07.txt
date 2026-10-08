@@ -1,0 +1,20 @@
+OG ACCOUNTING WORKSPACE — 7 OCTOBER 2026
+
+REFERENCE REVIEW
+AppFolio's signed-in reference is Devonshire Condominiums HOA; QBO's signed-in reference is Devonshire Leasing Agency Inc. Their accounts and transactions must remain separate. Reviewed navigation, receivables, payables, financial accounts, journals, transfers, chart of accounts, diagnostics, and online-payment availability without posting financial transactions.
+
+IMPLEMENTED
+Nine top-level steps: Receivables, Payables, Financial accounts, Journal entries, Bank transfers, GL accounts, Diagnostics, Online payments, Monthly close. Each step presents its own page, contextual actions, and previous/next controls. Removed the duplicate Accounting sidebar submenu; retained the main Accounting entry. Preserved access to existing tenant rent/ledger, receipt imports, escrow, supplier imports, procurement, cash/check capacity, chart mapping, QBO connection/exports, allocations and monthly owner close.
+
+Charges and receipts show records through the selected month; unit buttons open unit information, and amount buttons open the exact saved tenant entry. Diagnostics link to relevant pages and export a review CSV. Checks include outstanding charges, unapplied credits, source classifications, owner opening verification, reviewed chart availability, manual bank comparisons and negative deposit liabilities.
+
+Journal and bank-transfer registers record VERIFIED EXTERNAL EVIDENCE only. They do not post financial adjustments, execute transfers, or alter OG/QBO cash, tenant or owner balances. Journal lines must balance. Transfers require distinct active Bank accounts and both evidence references. Company chart matching, latest chart checks, unique external IDs/references, immutable history, authenticated reviewer stamps, valid dates and closed-month guards are enforced. CSV and print-ready PDF exports are available. Monthly-close fingerprints include register records only in their month.
+
+QA
+Local type checking passed. Targeted register, monthly close and manual-bank tests passed. Browser QA exercised all nine sections, import pages, next/previous controls, diagnostic drilldown, exact entry amount links, and synthetic journal/transfer form saves. No live financial transactions were created. Screenshots use synthetic local data only. Full release tests and production build are verified separately by the GitHub workflow before publication readiness is reported.
+
+REMAINING PARITY
+This release is not a complete AppFolio/QBO accounting replacement. Native journal posting/general ledger/trial balance/financial statements; bank-statement reconciliation and live feeds/rules; complete bill entry/approval/payment/credit workflows; recurring and batch transactions; bulk charges/late fees/lockbox/subsidy/chargebacks; fixed assets/prepaids and settlement automation require further implementation. ACH/cards/vendor disbursements require a provider connection; QBO login alone does not provide payment processing. Diagnostic zero counts are not external reconciliation certification.
+
+PUBLISH
+After successful GitHub tests/build, update preview for the existing og-property-management GoDaddy project, review Accounting in preview, then publish using the user-controlled GoDaddy publication process. Verify live navigation and imports with the correct client company. Do not copy HOA records into Leasing accounts. Never interpret evidence-register exports as posted transactions.
