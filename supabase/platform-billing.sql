@@ -32,6 +32,13 @@ begin
  if p_action='status' then
   if not owner_access or p_value not in ('Pending activation','Active','Paused','Cancelled') then raise exception 'Super Admin required'; end if;
   update public.og_subscriptions set status=p_value,updated=now() where workspace_id=p_workspace;
+ elsif p_action='cancel' then
+  if exists(select 1 from public.og_subscriptions where workspace_id=p_workspace and status='Cancelled') then return; end if;
+  update public.og_subscriptions set status='Cancelled',updated=now() where workspace_id=p_workspace;
+ elsif p_action='restart' then
+  if exists(select 1 from public.og_subscriptions where workspace_id=p_workspace and status='Pending activation') then return; end if;
+  if not exists(select 1 from public.og_subscriptions where workspace_id=p_workspace and status in ('Cancelled','Paused')) then raise exception 'Only cancelled or paused subscriptions can restart'; end if;
+  update public.og_subscriptions set status='Pending activation',updated=now() where workspace_id=p_workspace;
  elsif p_action='payment_method' then
   if p_value not in ('Not selected','ACH','Credit card') then raise exception 'Invalid payment preference'; end if;
   update public.og_subscriptions set payment_method=p_value,updated=now() where workspace_id=p_workspace;

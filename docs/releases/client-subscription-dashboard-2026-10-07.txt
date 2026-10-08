@@ -1,0 +1,6 @@
+Client subscription dashboard — 2026-10-07
+Company Admins: Settings > Company settings > Subscription & unit inventory.
+Shows total inventory, billable units, excluded units, status, monthly estimate and frozen billing history. Unit search/filter and per-unit future billing controls preserve property records.
+Cancel requires in-page confirmation, immediately blocks new monthly drafts, preserves existing drafts and records, and is idempotent. Restart requests Pending activation; only Super Admin can activate. Paused subscriptions may also request restart. All actions scoped to verified own-company admin, serialized by company lock and audited.
+ACH / credit card preference is available. No processor is connected, no banking/card fields collected, no payment is executed. Choose and connect provider before enabling checkout or automatic collection.
+Remote client_subscription_lifecycle migration applied and verified with public/browser execution denied. Platform billing and subscription endpoint tests plus TypeScript checks passed. User publishes GoDaddy after successful CI.

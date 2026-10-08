@@ -37,4 +37,17 @@ await assert.rejects(db.query("select public.og_manage_subscription($1,$2,'unit'
 assert.equal((await db.query('select status from public.og_subscriptions where workspace_id=$1',[workspace])).rows[0].status,'Pending activation');
 assert.deepEqual((await db.query('select payload from og_private.revisions where user_id=$1',[workspace])).rows[0].payload,blank);
 await assert.rejects(db.query("select public.og_platform_manage_user($1,'company-a',$2,'Admin','Global Admin','Disabled')",[owner,client]),/Keep one active Company Admin/);await assert.rejects(db.query("select public.og_platform_manage_user($1,'company-a',$2,'Admin','Global Admin','Active')",[client,client]),/Super Admin/);await db.exec('set role authenticated');await assert.rejects(db.query('select * from public.og_subscription_invoices'),/permission denied/);await assert.rejects(db.query('select public.og_billing_overview($1,$2)',[client,'company-a']),/permission denied/);await db.exec('reset role');
+await db.query("select public.og_manage_subscription($1,'company-a','cancel',null,null)",[client]);
+assert.equal((await db.query("select status from public.og_subscriptions where workspace_id='company-a'")).rows[0].status,'Cancelled');
+await assert.rejects(db.query('select public.og_draft_subscription_invoice($1,$2,$3)',[owner,'company-a',month]),/Activate company/);
+const cancelledAudit=(await db.query("select count(*)::int as n from public.og_platform_audit where event='Subscription cancel'")).rows[0].n;
+await db.query("select public.og_manage_subscription($1,'company-a','cancel',null,null)",[client]);
+assert.equal((await db.query("select count(*)::int as n from public.og_platform_audit where event='Subscription cancel'")).rows[0].n,cancelledAudit);
+await db.query("select public.og_manage_subscription($1,'company-a','restart',null,null)",[client]);
+assert.equal((await db.query("select status from public.og_subscriptions where workspace_id='company-a'")).rows[0].status,'Pending activation');
+await assert.rejects(db.query("select public.og_manage_subscription($1,'company-a','status','Active',null)",[client]),/Super Admin/);
+assert.equal((await db.query('select count(*)::int as n from public.og_subscription_invoices')).rows[0].n,1);
+await assert.rejects(db.query("select public.og_manage_subscription($1,'company-a','cancel',null,null)",[newClient]),/Billing access denied/);
+await db.query("select public.og_manage_subscription($1,'company-a','status','Active',null)",[owner]);
+await assert.rejects(db.query("select public.og_manage_subscription($1,'company-a','restart',null,null)",[client]),/Only cancelled/);
 await db.close();console.log('Platform billing: exact cents, disabled units, frozen monthly drafts, duplicate prevention, verified blank onboarding and tenant isolation passed');
