@@ -33,7 +33,7 @@ export type AllocationRun={financeReviewId?:string;weights?:{unitId:string;weigh
 export type UnitContract={id:string;unitId:string;from:string;managementKind:'Fixed'|'Percent';management:number;maintenance:number;hoa:number;source:string;reviewer:string};
 
 export type ApplicationRevision={id:string;entryId:string;before:ReceiptApplication;after:ReceiptApplication;reason:string;created:string};
-export type Accounting={native?:NativeAccounting;journalRecords?:JournalRecord[];transferRecords?:TransferRecord[];applicationRevisions?:ApplicationRevision[];cashPlanning?:CashPlanning;applications:ReceiptApplication[];deposits:DepositEvent[];classifications:LineClassification[];settlements:ExternalSettlement[];exports:ExportBatch[];laborPosts:LaborPost[];allocations:AllocationRun[];contracts:UnitContract[]};
+export type Accounting={rentDepositMatches?:import("./rent-reconciliation").RentDepositMatch[];native?:NativeAccounting;journalRecords?:JournalRecord[];transferRecords?:TransferRecord[];applicationRevisions?:ApplicationRevision[];cashPlanning?:CashPlanning;applications:ReceiptApplication[];deposits:DepositEvent[];classifications:LineClassification[];settlements:ExternalSettlement[];exports:ExportBatch[];laborPosts:LaborPost[];allocations:AllocationRun[];contracts:UnitContract[]};
 
 export const emptyAccounting=():Accounting=>({applications:[],deposits:[],classifications:[],settlements:[],exports:[],laborPosts:[],allocations:[],contracts:[]});
 

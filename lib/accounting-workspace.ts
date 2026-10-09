@@ -7,7 +7,7 @@ import {latest} from './pool';
 export const accountingSections=['Receivables','Payables','Financial accounts','Journal entries','Bank transfers','GL accounts','Diagnostics','Online payments','Monthly close'] as const;
 export type AccountingSection=typeof accountingSections[number];
 export const accountingPages:Record<AccountingSection,string[]>={
- Receivables:['Tenant rent','Receipts & charges','QBO receipt imports','Escrow'],
+ Receivables:['Tenant rent','Rent reconciliation','Receipts & charges','QBO receipt imports','Escrow'],
  Payables:['Agency income & payables','Supplier invoice imports','Procurement & inventory'],
  'Financial accounts':['Bank balances & checks','Statement reconciliation'],
  'Journal entries':['Native ledger','Recurring journals','Journal register'],
