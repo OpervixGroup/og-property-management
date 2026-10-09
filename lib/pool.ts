@@ -1,3 +1,4 @@
+import {validateRentDepositMatches} from './rent-reconciliation';
 import {validateHoaAssociations,type HoaAssociation} from './hoa-directory';
 import {validateOwnerRunPolicies,type OwnerRunPolicy} from './owner-run-policy';
 import {ownerLedgerApplied,validateOwnerRun,type OwnerRunLedger} from './owner-run';
@@ -37,6 +38,7 @@ function validateStatementLifecycle(old:Data,next:Data){const before=old.stateme
 export function audit(d:Data,action:string,detail:string){d.audit.unshift({id:crypto.randomUUID(),at:new Date().toISOString(),action,detail});}
 export function validate(old:Data,next:Data){
  validateHoaAssociations(old,next);
+ validateRentDepositMatches(old,next);
  validateOwnerRunPolicies(old,next);
  validateOwnerRun(old,next);
  validateRentMasters(old,next);
