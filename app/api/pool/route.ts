@@ -5,8 +5,9 @@ import {systemLog} from '@/lib/system-log';
 import {load,save} from '@/lib/storage';
 import {getChatGPTUser} from '@/app/chatgpt-auth';
 import {fullAccess,sameOrigin,body} from '@/lib/server/request';
+import {auditAccess} from '@/lib/audit-center';
 import {audit} from '@/lib/pool';
-export async function GET(){try{const u=fullAccess(await getChatGPTUser());return Response.json(await load(u.userId),{headers:{'Cache-Control':'private, no-store'}});}catch{return Response.json({error:'Access denied or records unavailable'},{status:403});}}
+export async function GET(){try{const u=fullAccess(await getChatGPTUser());const snapshot=await load(u.userId);if(!auditAccess(u.role))snapshot.data.audit=[];return Response.json(snapshot,{headers:{'Cache-Control':'private, no-store'}});}catch{return Response.json({error:'Access denied or records unavailable'},{status:403});}}
 export async function POST(request:Request){try{sameOrigin(request);const u=fullAccess(await getChatGPTUser(),true),p=await body(request,4000000);if(!Number.isInteger(p.revision)||typeof p.operation!=='string'||!p.operation||p.operation.length>100)throw Error('Invalid save request');const old=await load(u.userId,p.operation);if(old.operationApplied)return Response.json(old);if(p.revision!==old.revision)throw Error('CONFLICT: Records changed. Reload before saving.');const incoming=p.data;if(!incoming||!Array.isArray(incoming.audit))throw Error('Invalid record payload');
  if(canonicalRecord(incoming.workflow??null)!==canonicalRecord(old.data.workflow??null))throw Error('Use the approval workflow to change approvals or record states');
  for(const chart of incoming.glControls?.charts??[])if(!old.data.glControls?.charts.some(c=>c.id===chart.id)){if(typeof chart.source!=='string')throw Error('Invalid chart source');const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(chart.source)))).map(b=>b.toString(16).padStart(2,'0')).join('');if(hash!==chart.hash)throw Error('Chart source hash does not match uploaded file');}
