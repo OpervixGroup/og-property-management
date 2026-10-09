@@ -3,6 +3,7 @@ import {tenantRentProgress,unitRentApplications} from '@/lib/rent-progress';
 import {leasingManagement} from '@/lib/leasing-management';
 
 import VendorContacts from './vendor-contacts';
+import OwnerContactProfile from './owner-contact-profile';
 
 import DateInput from './date-input';
 
@@ -67,6 +68,7 @@ const dateText=(date:string)=>date?new Date(date+'T12:00:00').toLocaleDateString
 
 export default function OperationsArea({data,period,view,busy,dirty,persist,navigate,openUnit,workFilter,leasingEntryFilter,onRefresh}:Props){
 
+ const [contactOwner,setContactOwner]=useState<string|null>(null);
  const [amountErrors,setAmountErrors]=useState<Record<string,string>>({});
 
  const [leasingTab,setLeasingTab]=useState('Workflow'),[leasingFilter,setLeasingFilter]=useState(leasingEntryFilter);
@@ -138,13 +140,13 @@ export default function OperationsArea({data,period,view,busy,dirty,persist,navi
  {view==='leasing'&&leasingTabs}
  { (view==='people'||contactTab)&&<>{view==='people'&&<div className="people-tabs" role="tablist" aria-label="People directories">{['Owners','Tenants','Vendors'].map(v=><button key={v} role="tab" aria-selected={directoryTab===v} className={directoryTab===v?'selected':''} onClick={()=>{setPeopleTab(v);setSearch('');}}>{v}<span>{v==='Owners'?data.owners.length:v==='Tenants'?(ops.tenants??[]).length:(ops.unitVendors??[]).length}</span></button>)}</div>}<section className="panel"><div className="panel-heading"><h3>{directoryTab} directory</h3>{directoryTab==='Owners'?<button onClick={()=>navigate('units')}>Manage owners & units</button>:<div className="toolbar"><Pick label="Choose unit for new contact" value={directoryUnit} onChange={setDirectoryUnit} items={data.units.map(u=>({value:u.id,label:'Unit '+u.number}))}/><button disabled={dirty||busy||!directoryUnit} onClick={()=>{setProfileTab(directoryTab==='Tenants'?'Tenant':'Vendors');setProfileTenant('');setProfileUnit(directoryUnit);}}>Open unit / add {directoryTab==='Tenants'?'tenant':'vendor'}</button></div>}</div>{searchControl}
 
- {directoryTab==='Owners'&&<Grid headers={['Owner','Email','Units','']} rows={data.owners.filter(o=>matches(o)||data.units.some(u=>ownerAt(data,u.id,period+'-01')===o.id&&u.number.includes(search))).map(o=>[o.name,o.email||'Not entered',data.units.filter(u=>ownerAt(data,u.id,period+'-01')===o.id).map(u=>u.number).join(', '),<div className="toolbar">{data.units.filter(u=>ownerAt(data,u.id,period+'-01')===o.id).map(u=><button key={u.id} className="text-button" disabled={dirty||busy} onClick={()=>{setProfileTab('Owner');setProfileTenant('');setProfileUnit(u.id);}}>Unit {u.number}</button>)}</div>])}/>}
+ {directoryTab==='Owners'&&<Grid headers={['Owner','Email','Units','']} rows={data.owners.filter(o=>matches(o)||data.units.some(u=>ownerAt(data,u.id,period+'-01')===o.id&&u.number.includes(search))).map(o=>[<button className="text-button" onClick={()=>setContactOwner(o.id)} aria-label={'Open owner '+o.name}>{o.name}</button>,o.email||'Not entered',data.units.filter(u=>ownerAt(data,u.id,period+'-01')===o.id).map(u=>u.number).join(', '),<div className="toolbar">{data.units.filter(u=>ownerAt(data,u.id,period+'-01')===o.id).map(u=><button key={u.id} className="text-button" disabled={dirty||busy} onClick={()=>{setProfileTab('Owner');setProfileTenant('');setProfileUnit(u.id);}}>Unit {u.number}</button>)}</div>])}/>}
 
- {directoryTab==='Tenants'&&<Grid headers={['First name','Last name','Unit','Email','Cell','Tenancy','']} rows={(ops.tenants??[]).filter(matches).map(t=>[t.firstName,t.lastName,number(t.unitId),t.email||'Not entered',t.cell||'Not entered',t.start+' – '+(t.end||'Open'),<button className="text-button" disabled={dirty||busy} onClick={()=>{setProfileTab('Tenant');setProfileTenant(t.id);setProfileUnit(t.unitId);}}>Open tenant</button>])}/>}
+ {directoryTab==='Tenants'&&<Grid headers={['First name','Last name','Unit','Email','Cell','Tenancy','']} rows={(ops.tenants??[]).filter(matches).map(t=>[<button className="text-button" disabled={dirty||busy} onClick={()=>{setProfileTab('Tenant');setProfileTenant(t.id);setProfileUnit(t.unitId);}} aria-label={'Open tenant '+t.firstName+' '+t.lastName}>{t.firstName}</button>,<button className="text-button" disabled={dirty||busy} onClick={()=>{setProfileTab('Tenant');setProfileTenant(t.id);setProfileUnit(t.unitId);}} aria-label={'Open tenant surname '+t.firstName+' '+t.lastName}>{t.lastName}</button>,number(t.unitId),t.email||'Not entered',t.cell||'Not entered',t.start+' – '+(t.end||'Open'),<button className="text-button" disabled={dirty||busy} onClick={()=>{setProfileTab('Tenant');setProfileTenant(t.id);setProfileUnit(t.unitId);}}>Open tenant</button>])}/>}
 
  {directoryTab==='Vendors'&&<VendorContacts data={data} busy={busy||dirty} persist={persist}/>}
 
- {directoryTab==='Vendors'&&<Grid headers={['Vendor','Unit','Service','Email','Cell','Monthly charge','']} rows={(ops.unitVendors??[]).filter(matches).map(v=>[v.name,number(v.unitId),v.service,v.email||'Not entered',v.cell||'Not entered',money(v.amount),<button className="text-button" disabled={dirty||busy} onClick={()=>{setProfileTab('Vendors');setProfileTenant('');setProfileUnit(v.unitId);}}>Open vendor / unit</button>])}/>}
+ {directoryTab==='Vendors'&&<Grid headers={['Vendor','Unit','Service','Email','Cell','Monthly charge','']} rows={(ops.unitVendors??[]).filter(matches).map(v=>[<button className="text-button" disabled={dirty||busy} onClick={()=>{setProfileTab('Vendors');setProfileTenant('');setProfileUnit(v.unitId);}} aria-label={'Open vendor '+v.name}>{v.name}</button>,number(v.unitId),v.service,v.email||'Not entered',v.cell||'Not entered',money(v.amount),<button className="text-button" disabled={dirty||busy} onClick={()=>{setProfileTab('Vendors');setProfileTenant('');setProfileUnit(v.unitId);}}>Open vendor / unit</button>])}/>}
 
  <p className="hint">{directoryTab==='Vendors'?'Vendors are currently unit-linked service records. Recurring amounts do not initiate bills or payments.':directoryTab==='Tenants'?'Verified tenant records only. Tenant receivables remain separate from owner balances.':'Owner contacts and unit relationships require verification before statements are issued.'}</p></section></>}
 
@@ -183,6 +185,7 @@ export default function OperationsArea({data,period,view,busy,dirty,persist,navi
 
  ]}/><p className="hint">Reports include all saved records, independently of the on-screen page size. Operating financial statements remain in QuickBooks.</p></section>}
 
+ {contactOwner&&<OwnerContactProfile data={data} ownerId={contactOwner} period={period} busy={busy||dirty} close={()=>setContactOwner(null)} openUnit={id=>{setContactOwner(null);setProfileTab('Owner');setProfileTenant('');setProfileUnit(id);}}/>}
  {profileUnit&&<TenantProfile initialEntry={profileEntry} initialTab={profileTab} initialTenant={profileTenant} onTask={(task,recipient,audience)=>{const id=profileUnit;setProfileUnit(null);if(task==='work'){create('workOrders');setForm((f:any)=>({...f,unitId:id}));}else{create('communications');setForm((f:any)=>({...f,unitId:id,recipient:recipient??'',audience:audience??'Other'}));}}} data={data} period={period} unitId={profileUnit} close={()=>{setProfileUnit(null);setProfileEntry('');}} persist={persist} busy={busy||dirty} openOwner={()=>openUnit(profileUnit)}/>}
 
  <Dialog open={!!form} onOpenChange={v=>{if(!v){setForm(null);setKind(null);}}}><DialogContent className="app-dialog ops-dialog"><DialogHeader><DialogTitle>{kind==='occupancy'?'Unit occupancy':kind==='workOrders'?'Work order':kind==='membership'?'Change pool membership':kind==='property'?(data.properties.some(p=>p.id===form?.id)?'Edit property information':'Add property information'):kind==='communications'?'Prepare communication':kind==='prospects'?'Leasing prospect':kind==='leases'?'Lease record':kind==='bankRecords'?'Bank worksheet entry':'Calendar event'}</DialogTitle><DialogDescription>Work-order changes queue Outlook notifications when the mailbox is activated. Labor and inventory link to draft owner charges for review.</DialogDescription></DialogHeader>
