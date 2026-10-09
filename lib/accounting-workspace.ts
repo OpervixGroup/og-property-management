@@ -1,6 +1,6 @@
 import type {Data} from './pool';
 import {canonicalRecord} from './workflow-controls';
-import {incomeRows,chargeProgress} from './accounting-model';
+import {incomeRows} from './accounting-model';
 import {cashAccounts,manualBankBalance} from './cash-planning';
 import {latest} from './pool';
 
@@ -54,11 +54,15 @@ export function validateAccountingRegisters(d:Data,old?:Data){
  }
 }
 export type AccountingException={id:string;title:string;count:number;detail:string;section:AccountingSection;page:string};
+export function appliedThroughMonth(d:Data,entryId:string,period:string){
+ const entries=new Map((d.operations?.tenantEntries??[]).filter(e=>e.date.slice(0,7)<=period).map(e=>[e.id,e]));
+ return (d.accounting?.applications??[]).filter(a=>(a.receiptId===entryId||a.chargeId===entryId)&&entries.has(a.receiptId)&&entries.has(a.chargeId)).reduce((n,a)=>n+a.cents,0);
+}
 export function accountingDiagnostics(d:Data,period:string):AccountingException[]{
- const entries=(d.operations?.tenantEntries??[]).filter(e=>e.date.slice(0,7)<=period),applications=d.accounting?.applications??[],classifications=incomeRows(d,period),statements=latest(d,period),results:AccountingException[]=[];
+ const entries=(d.operations?.tenantEntries??[]).filter(e=>e.date.slice(0,7)<=period),classifications=incomeRows(d,period),statements=latest(d,period),results:AccountingException[]=[];
  const add=(id:string,title:string,count:number,detail:string,section:AccountingSection,page:string)=>results.push({id,title,count,detail,section,page});
- add('open-charges','Open tenant charges',entries.filter(e=>e.kind==='Charge'&&chargeProgress(d,e.id).remaining>0).length,'Includes unpaid and partially applied charges through this month.','Receivables','Receipts & charges');
- add('unapplied','Unapplied receipts & credits',entries.filter(e=>e.kind!=='Charge'&&e.cents>applications.filter(a=>a.receiptId===e.id).reduce((n,a)=>n+a.cents,0)).length,'Review each receipt or credit before matching it to a charge.','Receivables','Receipts & charges');
+ add('open-charges','Open tenant charges',entries.filter(e=>e.kind==='Charge'&&e.cents>appliedThroughMonth(d,e.id,period)).length,'Includes unpaid and partially applied charges through this month.','Receivables','Receipts & charges');
+ add('unapplied','Unapplied receipts & credits',entries.filter(e=>e.kind!=='Charge'&&e.cents>appliedThroughMonth(d,e.id,period)).length,'Review each receipt or credit before matching it to a charge.','Receivables','Receipts & charges');
  add('classifications','Unconfirmed accounting treatment',classifications.filter(r=>!r.confirmed).length,'Review supplier, source, payment state and company GL account.','Payables','Agency income & payables');
  add('opening','Unverified owner opening balances',statements.filter(s=>!s.openingConfirmed).length,'Verify source balances before approving statements.','Monthly close','Owner bills & monthly close');
  add('chart','Company chart review',d.glControls?.charts.length?0:1,'Import and verify the company chart before recording journal or transfer evidence.','GL accounts','Chart & mapping');
@@ -67,4 +71,3 @@ export function accountingDiagnostics(d:Data,period:string):AccountingException[
  add('escrow','Negative deposit liabilities',negative,'Review original deposit, refund and deduction evidence.','Receivables','Escrow');
  return results;
 }
-

@@ -4,7 +4,7 @@ import {stripTypeScriptTypes} from 'node:module';
 import {prepareModels} from './prepare-models.mjs';
 const root=new URL('./.mock-runtime/owner-run-server/',import.meta.url);
 process.env.OG_APP_URL='https://og.example.test';
-await prepareModels(root,['seed','month-close','workflow-controls','owner-run-policy','owner-run','access-policy']);
+await prepareModels(root,['seed','month-close','workflow-controls','owner-run-policy','owner-run','access-policy','audit-center']);
 let request=stripTypeScriptTypes(await readFile(new URL('../lib/server/request.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'@/lib/access-policy'","'./access-policy.mjs'");
 await writeFile(new URL('request.mjs',root),request);
 await writeFile(new URL('auth.mjs',root),"let user=null;export function setup(v){user=v;}export async function getChatGPTUser(){return user;}");
@@ -12,7 +12,7 @@ await writeFile(new URL('storage.mjs',root),"import {validate} from './pool.mjs'
 await writeFile(new URL('documents.mjs',root),"let docs=[];export function setup(v){docs=v;}export async function listDocuments(){return docs;}");
 await writeFile(new URL('system-log.mjs',root),'export async function systemLog(){}');
 let code=stripTypeScriptTypes(await readFile(new URL('../app/api/pool/route.ts',import.meta.url),'utf8'),{mode:'transform'});
-for(const [from,to] of Object.entries({'@/lib/month-close':'./month-close.mjs','@/lib/document-storage':'./documents.mjs','@/lib/workflow-controls':'./workflow-controls.mjs','@/lib/system-log':'./system-log.mjs','@/lib/storage':'./storage.mjs','@/app/chatgpt-auth':'./auth.mjs','@/lib/server/request':'./request.mjs','@/lib/pool':'./pool.mjs'}))code=code.replaceAll("'"+from+"'","'"+to+"'");
+for(const [from,to] of Object.entries({'@/lib/audit-center':'./audit-center.mjs','@/lib/month-close':'./month-close.mjs','@/lib/document-storage':'./documents.mjs','@/lib/workflow-controls':'./workflow-controls.mjs','@/lib/system-log':'./system-log.mjs','@/lib/storage':'./storage.mjs','@/app/chatgpt-auth':'./auth.mjs','@/lib/server/request':'./request.mjs','@/lib/pool':'./pool.mjs'}))code=code.replaceAll("'"+from+"'","'"+to+"'");
 await writeFile(new URL('route.mjs',root),code);
 const {POST}=await import(new URL('route.mjs',root)),auth=await import(new URL('auth.mjs',root)),storage=await import(new URL('storage.mjs',root)),documents=await import(new URL('documents.mjs',root)),{seed}=await import(new URL('seed.mjs',root)),{approveOwnerPacket,importOwnerCheck}=await import(new URL('owner-run.mjs',root)),{saveOwnerRunPolicy}=await import(new URL('owner-run-policy.mjs',root)),{latest}=await import(new URL('pool.mjs',root));
 function fixture(){const d=seed();d.ownerRunPolicies=[{id:'qa-policy',propertyId:'property-devonshire',version:1,reviewDay:5,evidenceHours:24,qboCompanyId:'QA',bankAccountId:'QA-bank',bankName:'QA',source:'QA reviewed',reviewer:'QA',created:new Date().toISOString()}];for(const s of latest(d,'2026-10').filter(s=>s.ownerId==='owner-1')){s.allocated=10000;s.opening=0;s.openingConfirmed=true;s.adjustments=0;s.expenses=[];}for(const s of d.settings){s.electricConfirmed=true;s.electricTotal=0;}const s=latest(d,'2026-10').find(s=>s.ownerId==='owner-1');s.expenses=[{id:'qa-labor',label:'Repair labor',cents:500,recipient:'QA vendor',classification:'Expense'}];approveOwnerPacket(d,'2026-10','owner-1','QA.pdf','a'.repeat(64),'QA');return d;}

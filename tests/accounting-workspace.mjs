@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {fixture} from './model-loader.mjs';
 const d=await fixture();
 const {emptyAccounting,validateAccounting}=await import('./.mock-runtime/accounting-model.mjs');
-const {validateAccountingRegisters,journalTotals,accountingDiagnostics,accountingSections,accountingPages}=await import('./.mock-runtime/accounting-workspace.mjs');
+const {validateAccountingRegisters,journalTotals,accountingDiagnostics,appliedThroughMonth,accountingSections,accountingPages}=await import('./.mock-runtime/accounting-workspace.mjs');
 const {closeFingerprint}=await import('./.mock-runtime/month-close.mjs');
 d.accounting=emptyAccounting();
 d.glControls={charts:[{id:'chart',company:'Example Leasing',fileName:'synthetic.csv',accounts:[{key:'a',number:'100',name:'Operating',type:'Bank',active:true},{key:'b',number:'101',name:'Escrow',type:'Bank',active:true},{key:'c',number:'500',name:'Expense',type:'Expenses',active:true},{key:'disabled',number:'900',name:'Inactive',type:'Bank',active:false}]}],mappings:[]};
@@ -35,4 +35,14 @@ const diagnostics=accountingDiagnostics(d,'2026-10');assert.equal(diagnostics.fi
 for(const row of diagnostics)assert.ok(accountingSections.includes(row.section)&&accountingPages[row.section].includes(row.page));
 d.accounting.deposits=[{tenantId,approved:true,date:'2026-11-01',kind:'Refund',cents:100}];assert.equal(accountingDiagnostics(d,'2026-10').find(r=>r.id==='escrow').count,0);
 console.log('Accounting: balanced journal evidence, company isolation, duplicate references, immutable history, closed-month guards, transfer evidence, unchanged cash/owner/tenant sources, and dated diagnostics passed');
-
+const dated=structuredClone(d);
+dated.operations.tenantEntries.push({id:'later-receipt',tenantId,kind:'Receipt',date:'2026-11-05',cents:5000});
+dated.accounting.applications.push({receiptId:'later-receipt',chargeId:'charge',cents:5000},{receiptId:'receipt',chargeId:'future',cents:1000});
+assert.equal(appliedThroughMonth(dated,'charge','2026-10'),5000);
+assert.equal(appliedThroughMonth(dated,'receipt','2026-10'),5000);
+assert.equal(accountingDiagnostics(dated,'2026-10').find(r=>r.id==='open-charges').count,1);
+assert.equal(appliedThroughMonth(dated,'charge','2026-11'),10000);
+assert.equal(appliedThroughMonth(dated,'receipt','2026-11'),6000);
+assert.equal(accountingDiagnostics(dated,'2026-11').find(r=>r.id==='open-charges').count,0);
+assert.deepEqual(dated.accounting.applications.slice(0,1),d.accounting.applications);
+console.log('PASS historical diagnostics and receipt rows exclude future counterpart transactions without changing saved matches');
