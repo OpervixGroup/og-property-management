@@ -1,0 +1,7 @@
+'use client';
+import {type Data,ownerAt} from '@/lib/pool';
+export default function OwnerDirectory({data,period,search,busy,openOwner,openUnit}:{data:Data;period:string;search:string;busy:boolean;openOwner:(id:string)=>void;openUnit:(id:string)=>void}){
+ const query=search.trim().toLowerCase();
+ const owners=data.owners.map(owner=>({owner,units:data.units.filter(u=>ownerAt(data,u.id,period+'-01')===owner.id).sort((a,b)=>a.number.localeCompare(b.number,undefined,{numeric:true}))})).filter(({owner,units})=>[owner.name,owner.email,owner.phone??'',...units.map(u=>u.number)].join(' ').toLowerCase().includes(query)).sort((a,b)=>a.owner.name.localeCompare(b.owner.name));
+ return <div>{owners.map(({owner,units})=><section className="panel" key={owner.id}><div className="panel-heading"><div><button className="text-button" disabled={busy} onClick={()=>openOwner(owner.id)}><strong>{owner.name}</strong></button><p>{owner.email||'Email not entered'} · {owner.phone||'Phone not entered'}</p></div><button className="secondary" disabled={busy} onClick={()=>openOwner(owner.id)}>Open owner account · {units.length} units</button></div><div className="toolbar" aria-label={owner.name+' units'}>{units.map(unit=><button className="secondary" disabled={busy} key={unit.id} onClick={()=>openUnit(unit.id)}>Unit {unit.number} · {unit.type===1?'1/1':'2/2'}</button>)}</div>{!units.length&&<p>No units linked for {period}.</p>}</section>)}{!owners.length&&<p>No owners match your search.</p>}</div>;
+}

@@ -8,6 +8,7 @@ import {download,csv} from '@/lib/exports';
 import {PDFDocument,StandardFonts,rgb} from 'pdf-lib';
 import {chargeProgress,applyTenantReceipt,correctTenantEntry,emptyAccounting} from '@/lib/accounting-model';
 import {Checkbox} from '@/components/ui/checkbox';
+import {isOwnerContact} from '@/lib/contact-directory';
 import {unitRentApplications} from '@/lib/rent-progress';
 import {monthTenants,expectedUnitRent} from '@/lib/tenancy';
 import {Grid,Pick} from './report-controls';
@@ -21,7 +22,7 @@ export default function TenantProfile({data,period,unitId,close,persist,busy,ope
  const monthlyRent=expectedUnitRent(data,unit,period);const nextPeriod=new Date(Date.UTC(Number(period.slice(0,4)),Number(period.slice(5)),1)).toISOString().slice(0,7);const nextRent=expectedUnitRent(data,unit,nextPeriod);const effective=monthTenants(data,unitId,period);
  const t=tenants.find(t=>t.id===tenantId)??(effective.length===1?effective[0]:undefined);
  const end=new Date(Date.UTC(Number(period.slice(0,4)),Number(period.slice(5,7)),0)).toISOString().slice(0,10),balance=t?tenantBalance(ops,t,end):null;
- const entries=(ops.tenantEntries??[]).filter(e=>e.tenantId===t?.id).sort((a,b)=>a.date.localeCompare(b.date)||a.id.localeCompare(b.id)),recurring=(ops.tenantRecurring??[]).filter(r=>r.tenantId===t?.id),vendors=(ops.unitVendors??[]).filter(v=>v.unitId===unitId),receipt=entries.filter(e=>e.kind==='Receipt'&&e.date<=end).at(-1);
+ const entries=(ops.tenantEntries??[]).filter(e=>e.tenantId===t?.id).sort((a,b)=>a.date.localeCompare(b.date)||a.id.localeCompare(b.id)),recurring=(ops.tenantRecurring??[]).filter(r=>r.tenantId===t?.id),vendors=(ops.unitVendors??[]).filter(v=>v.unitId===unitId&&!isOwnerContact(data,v)),receipt=entries.filter(e=>e.kind==='Receipt'&&e.date<=end).at(-1);
  const [pendingAction,setPendingAction]=useState<(()=>void)|null>(null);
  function requestAction(action:()=>void){if(form)setPendingAction(()=>action);else action();}
  function discardAndContinue(){const action=pendingAction;setPendingAction(null);setForm(null);setTimeout(()=>action?.(),0);}
