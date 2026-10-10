@@ -21,6 +21,7 @@ export function answerGuide(question:string,context='home'):GuideAnswer{
  if(/saved report|report layout|compare monthly reports|budget plan|report center|report library|report columns|favorite.*report|find.*report|customize.*report/.test(q))return guide('reporting');
  if(/(bulk|batch).*(bill|payable|supplier|credit)|(bill|payable).*(bulk|batch)/.test(q))return guide('accounting-bulk');
  if(/recurring.*(bill|payable|transaction)|(?:bill|payable).*recurring/.test(q))return guide('accounting-recurring');
+ if(/bank account setup|pool rent.*(opening|zero|starting)|starting balance|opening balance/.test(q))return guide('accounting-reconciliation');
  if(/bank.*reconcil|reconcil.*(bank|check|cheque)|issued checks|outstanding checks/.test(q))return guide('accounting-reconciliation');
  if(/tenant.*(post|native ledger)|(post|ledger posting).*(tenant|receipt|charge)/.test(q))return guide('accounting-receivables');
  if(/trial balance|balance sheet|profit and loss|journal register|check register|deposit register|native.*report|general ledger report/.test(q))return guide('accounting-reports');

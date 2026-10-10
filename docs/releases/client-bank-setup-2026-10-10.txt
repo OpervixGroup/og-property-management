@@ -1,0 +1,19 @@
+OG client bank account setup — 2026-10-10
+
+Implemented
+Financial accounts → Bank account setup provides versioned bank profiles. Pool clients can create separate Pool Rent, Operating and Escrow roles; non-pool clients default to Operating and may add bank/card accounts. No pool allocation is required for native bank reconciliation.
+Starting balance, cutoff, source and linked ledger account remain independent per profile. Blank balances remain unverified. Linking requires a matching verified native opening and distinct ledger accounts. This configuration does not create journal entries, post payments or import QBO transactions.
+Bank identification stores bank name and last four digits; full bank/routing credentials belong in the future connected payment/bank provider.
+Setup history is append-only; linked starting dates/balances/account identities cannot be silently changed. Server stamps authenticated reviewer and time. The assistant explains setup and balance separation.
+
+Workflow after publishing
+1. Open Accounting → Financial accounts → Bank account setup.
+2. Create missing account profiles. Enter bank names and identifiers. Confirm each bank opening from its own source.
+3. Review / initialize verified books with balanced opening entries and separate bank GL accounts. Do not repost activity already included at the opening cutoff.
+4. Link each profile to the matching bank GL account. Reconcile this account opens Statement reconciliation with that bank selected.
+5. Review existing receipts/checks/deposits; link or post only sources not already represented in the ledger. Import reviewed statement rows, match activity, and complete only at zero difference.
+Bank reconciliation includes transfers, deposits held as liabilities and other cash movements; income minus expenses alone is not always the cash balance. Issued checks remain outstanding until cleared.
+
+Verification
+All 49 local test scripts passed, including independent openings, unknown balances, role separation, append-only configuration and duplicate GL denial. Desktop synthetic UI: standard profile creation, three pool profiles, blank operating/escrow balances, saved four-digit identifier, accessible scrolling dialog. Typecheck and clean production CI results are recorded in the completion report.
+No production database migration, financial write, QBO edit or GoDaddy publish performed. Account profiles still require creation and bank-specific ledger verification after deployment.

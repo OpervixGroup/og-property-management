@@ -24,6 +24,7 @@ export async function POST(request:Request){try{sameOrigin(request);const u=full
  for(const record of incoming.budgetPlans??[])if(!old.data.budgetPlans?.some(r=>r.id===record.id)){record.reviewer=u.displayName;record.created=new Date().toISOString();}
  for(const record of incoming.reportLayouts??[])if(!old.data.reportLayouts?.some(r=>r.id===record.id)){record.reviewer=u.displayName;record.created=new Date().toISOString();}
  for(const record of incoming.serviceConnections??[])if(!old.data.serviceConnections?.some(r=>r.id===record.id)){record.reviewer=u.displayName;record.created=new Date().toISOString();}
+ for(const record of incoming.accounting?.bankSetup??[])if(!old.data.accounting?.bankSetup?.some(r=>r.id===record.id)){record.reviewer=u.displayName;record.created=new Date().toISOString();}
  for(const key of ['receipts','deposits','reviews'] as const)for(const record of incoming.accounting?.bankWorkflow?.[key]??[])if(!old.data.accounting?.bankWorkflow?.[key]?.some(r=>r.id===record.id)){record.reviewer=u.displayName;record.created=new Date().toISOString();}
  // A client cannot supply the actor of a new audit event or rewrite an existing audit event.
  audit(incoming,'Workspace saved',u.displayName+' · changes saved with immutable revision history');const oldIds=new Set(old.data.audit.map(e=>e.id));for(const event of incoming.audit)if(!oldIds.has(event.id)){event.actor=u.displayName;event.actorId=u.authId;event.at=new Date().toISOString();}

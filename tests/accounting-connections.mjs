@@ -39,3 +39,17 @@ const withoutBooks=structuredClone(d);withoutBooks.accounting.native=emptyNative
 console.log('PASS existing source visibility before initialization, monthly filtering, verified bank opening and read-only source review');
 
 const ownerZero=structuredClone(withoutBooks);ownerZero.statements=[{id:'synthetic-zero',unitId:ownerZero.units[0].id,period:'2026-10',version:1,opening:0,openingConfirmed:true}];ownerZero.accounting.cashPlanning.manualEntries=[];const zeroReview=reconciliationSourceReview(ownerZero,'2026-10');assert.equal(zeroReview.ownerOpening,0);assert.equal(zeroReview.openings.length,0);assert.equal(zeroReview.bookOpenings.length,0);assert.equal(reconciliationSourceReview(posted,'2026-10').bookOpenings[0].cents,100000);
+
+const {bankSetupTemplates,validateBankSetup}=await import('./.mock-runtime/accounting-connections.mjs');
+const pooled=structuredClone(d);pooled.properties=[{id:'property-devonshire'}];pooled.pools=[{id:'pool'}];
+const templates=bankSetupTemplates(pooled,'2026-10');assert.deepEqual(templates.map(r=>r.role),['Pool rent','Operating','Escrow']);assert.deepEqual(templates.map(r=>r.opening),[0,null,null]);assert.deepEqual(bankSetupTemplates(pooled,'2026-11').map(r=>r.opening),[null,null,null]);
+pooled.accounting.bankSetup=templates.map((r,i)=>({...r,...actor,id:'setup'+i,accountId:'account'+i,version:1}));validateBankSetup(pooled,d);
+const standard=structuredClone(d);standard.pools=[];assert.deepEqual(bankSetupTemplates(standard,'2026-10').map(r=>r.role),['Operating']);assert.equal(bankSetupTemplates(standard,'2026-10')[0].opening,null);
+standard.accounting.bankSetup=[{...bankSetupTemplates(standard,'2026-10')[0],...actor,id:'standard',accountId:'standard-bank',version:1,opening:100000,source:'Verified original bank statement',bookId:'book',accountKey:'bank',last4:'1234'}];validateBankSetup(standard,d);
+const wrong=structuredClone(standard);wrong.accounting.bankSetup[0].opening=0;assert.throws(()=>validateBankSetup(wrong),/opening must match/);
+const missing=structuredClone(standard);missing.accounting.bankSetup[0].opening=null;assert.throws(()=>validateBankSetup(missing),/Verify the starting balance/);
+const fullNumber=structuredClone(standard);fullNumber.accounting.bankSetup[0].last4='123456789';assert.throws(()=>validateBankSetup(fullNumber),/four-digit/);
+const duplicate=structuredClone(standard);duplicate.accounting.bankSetup.push({...duplicate.accounting.bankSetup[0],id:'second',accountId:'escrow',role:'Escrow'});assert.throws(()=>validateBankSetup(duplicate),/distinct ledger/);
+const history=structuredClone(standard);history.accounting.bankSetup[0].name='Changed';assert.throws(()=>validateBankSetup(history,standard),/history/);
+const revised=structuredClone(standard);revised.accounting.bankSetup.push({...revised.accounting.bankSetup[0],id:'revision',version:2,name:'Operating bank corrected display'});validateBankSetup(revised,standard);
+console.log('PASS separate Pool/Operating/Escrow openings, standard client setup, verified GL linking, distinct banks and immutable setup history');
