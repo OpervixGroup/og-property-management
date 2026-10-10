@@ -11,9 +11,16 @@ export const quickQuestions:Record<string,string[]>={
  'general-settings':['How do I set up Plaid?','Where are company connections?','How do I add a user?','What can an Accounting Clerk do?','Can the CPA edit records?'],
  properties:['Show vacant units','How do I edit the company profile?','How do I retire a unit?'],
 };
-function guide(id:string,intro=''):GuideAnswer{const g=workflowGuides.find(g=>g.id===id)!;return {text:(intro?intro+'\n\n':'')+g.location+'\n\n'+g.purpose+'\n\n'+g.steps.map((s,i)=>(i+1)+'. '+s).join('\n')+'\n\n'+g.note,guideIds:[id],questions:quickQuestions[id]??['How do I attach a receipt?','How do I prepare owner distributions?']};}
+function guide(id:string,intro=''):GuideAnswer{const g=workflowGuides.find(g=>g.id===id)!;return {text:(intro?intro+'\n\n':'')+g.location+'\n\n'+g.purpose+'\n\n'+g.steps.map((s,i)=>(i+1)+'. '+s).join('\n')+'\n\n'+g.note,guideIds:[id],questions:quickQuestions[id]??['Walk me through '+g.title,'What needs review this month?']};}
 export function answerGuide(question:string,context='home'):GuideAnswer{
  const q=question.trim().toLowerCase();
+ if(/subscription|billable units|software invoice|cancel.*portal|restart.*subscription/.test(q))return guide('subscription-help');
+ if(/backup|recovery drill|restore.*workspace/.test(q))return guide('backup-help');
+ if(/reset.*password|forgot.*password|platform.*admin|super admin/.test(q))return guide('account-access-help');
+ const pageGuide=workflowGuides.find(g=>g.page&&(g.target===context||g.title.length>8)&&(q.includes(g.title.toLowerCase())||g.page==='Bank account setup'&&/add.*(bank account|credit card)|open.*register/.test(q)));
+ if(pageGuide)return guide(pageGuide.id);
+ if(/walk me through|guide me|what can i do here|this page/.test(q)&&workflowGuides.some(g=>g.id===context))return guide(context);
+ const moduleGuide=workflowGuides.find(g=>['insurance','hoa','realtor','prospecting','marketing','lender','office'].includes(g.id)&&q.includes(g.title.toLowerCase()));if(moduleGuide)return guide(moduleGuide.id);
  if(/grouped deposit|undeposited|credit.card.*reconcil|bank transaction review|save.*later|additional receipt/.test(q))return {text:'Open Accounting → Financial accounts → Bank transaction review to import reviewed bank or card CSV rows, then match them to existing posted journals. Pending and Excluded rows do not post money. Use Grouped deposits to select ungrouped receipts already posted to Undeposited Funds, choose the bank and separately record a verified fee. Additional receipt types in Receivables supports owner contributions, other income, vendor refunds and tenant security-deposit liabilities. Next open Statement reconciliation: import the original statement, match its rows, and save for later or complete only when both differences are zero. Card charges are positive and payments / refunds negative; the balance is the amount owed. OG does not copy QBO reconciliation selections or alter QBO transactions.',guideIds:['accounting'],questions:['How do I post tenant receipts?','How do I reconcile issued checks?']};
  if(/weather|apartments\.com|rental search/.test(q))return {text:'The public OG homepage offers an external Apartments.com search link and National Weather Service forecasts for selected U.S. and Puerto Rico cities. Choose Your area, then Show forecast. OG does not track device location. Apartments.com search runs on their website, not as an embedded OG AI service. Forecasts show source update dates and may be temporarily unavailable.',guideIds:[],questions:['Where are company connections?']};
  if(/gl mapping|account mapping|mapping.*save|save.*mapping/.test(q))return {text:'Open Accounting → GL accounts → Chart & mapping. Review the company chart, select a role and a compatible active account, then enter the mapping source or approved agreement and the reviewer. The page explains missing requirements beside Save. DLA fee income requires an income account; an escrow bank account cannot be mapped as income. Bank roles must remain distinct. Saving a mapping does not post a payment or change QBO.',guideIds:['accounting'],questions:['Where are company connections?','What needs review this month?']};
@@ -25,6 +32,7 @@ export function answerGuide(question:string,context='home'):GuideAnswer{
  if(/bank.*reconcil|reconcil.*(bank|check|cheque)|issued checks|outstanding checks/.test(q))return guide('accounting-reconciliation');
  if(/tenant.*(post|native ledger)|(post|ledger posting).*(tenant|receipt|charge)/.test(q))return guide('accounting-receivables');
  if(/trial balance|balance sheet|profit and loss|journal register|check register|deposit register|native.*report|general ledger report/.test(q))return guide('accounting-reports');
+ const reportGuide=workflowGuides.find(g=>g.id.startsWith('report-page-')&&q.includes(g.title.toLowerCase()));if(reportGuide)return guide(reportGuide.id);
  if(/journal entr|journal.*(csv|batch|post)/.test(q))return guide('accounting-journals');
  if(/bank transfer|transfer.*bank/.test(q))return guide('accounting-transfers');
  if(/diagnostic|accounting exception/.test(q))return guide('accounting-diagnostics');

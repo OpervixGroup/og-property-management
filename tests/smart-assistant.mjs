@@ -20,7 +20,7 @@ check('Provider guide no longer claims demo storage',()=>{const a=answerRecords(
 check('Invalid month is rejected',()=>assert.throws(()=>answerRecords(d,manager,'Show unit 106','2026-99')));
 console.log(checks+' smart assistant scenarios passed');
 const {answerGuide}=await import(new URL('assistant-guide.mjs',root));
-const {workflowGuides}=await import(new URL('workflow-guide.mjs',root));
+const {workflowGuides,searchWorkflowGuides}=await import(new URL('workflow-guide.mjs',root));
 for(const [question,id] of [
  ['How do I import bulk bills?','bulk'],['How do I pause recurring bills?','recurring'],
  ['How do I reconcile issued checks?','reconciliation'],['How do I post tenant receipts?','receivables'],
@@ -36,3 +36,14 @@ check('Scoped roles receive guidance without company financial disclosure',()=>{
 console.log('Expanded accounting assistant checks passed: '+checks);
 check('Mapping guidance explains blocked Save and excludes escrow as income',()=>{const a=answerGuide('Why can I not save GL mapping?');assert.match(a.text,/reviewer/);assert.match(a.text,/escrow bank account cannot/);});
 check('Weather and rental search guidance does not claim embedded AI',()=>{const a=answerGuide('Where is Apartments.com rental search and weather?');assert.match(a.text,/not as an embedded OG AI/);assert.match(a.text,/does not track device location/);});
+
+const {accountingPages}=await import(new URL('accounting-workspace.mjs',root));
+check('Every accounting subpage has one exact navigation guide',()=>{for(const page of new Set(Object.values(accountingPages).flat()))assert.equal(workflowGuides.filter(g=>g.target==='accounting'&&g.page===page).length,1);});
+check('Guide IDs are unique and every walkthrough has steps',()=>{assert.equal(new Set(workflowGuides.map(g=>g.id)).size,workflowGuides.length);assert(workflowGuides.every(g=>g.steps.length&&g.steps.every(s=>s.trim())));});
+check('Card setup answer navigates to exact bank setup page',()=>{const a=answerRecords(d,manager,'How do I add a credit card?','2026-10','accounting');const g=workflowGuides.find(g=>g.id===a.guideIds[0]);assert.equal(g.page,'Bank account setup');assert.equal(a.mode,'Workflow guide');assert.equal(a.unitNumber,undefined);});
+check('Page-specific guided context retains its walkthrough',()=>{const id=workflowGuides.find(g=>g.page==='Grouped deposits').id;assert.equal(answerGuide('Walk me through this page',id).guideIds[0],id);});
+check('Marketing, prospecting and lender guidance cannot claim active integrations',()=>{for(const id of ['marketing','prospecting','lender'])assert.equal(workflowGuides.find(g=>g.id===id).availability,'Planned');});
+check('Knowledge base includes every daily navigation module',()=>{for(const id of ['home','properties','hoa','leasing','realtor','maintenance','accounting','reporting','communication','office','prospecting','marketing','lender','insurance'])assert(workflowGuides.some(g=>(g.target??g.id)===id));});
+check('Subscription and recovery answer without financial mutation',()=>{const before=JSON.stringify(d);assert.equal(answerGuide('Print software invoice').guideIds[0],'subscription-help');assert.equal(answerGuide('Download workspace backup').guideIds[0],'backup-help');assert.equal(JSON.stringify(d),before);});
+
+check('Knowledge search prioritizes exact page names',()=>{assert.equal(searchWorkflowGuides('bank account setup')[0].page,'Bank account setup');});

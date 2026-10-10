@@ -1,0 +1,18 @@
+OG Assistant knowledge and walkthrough release
+
+129 guides: 36 distinct accounting subpages, 47 operational/native/comparison report guides, leasing journey stages, all daily navigation modules and existing pool workflows. Account access, subscription and backup procedures are included.
+
+Chat continues to check authorized saved records through the existing private server endpoint. Page guidance now offers exact Accounting and Leasing navigation; changing company/module/month does not carry unit focus. Search ranks exact titles first. Knowledge cards show Available, Manual workflow, Connection required or Planned where confirmed.
+Walkthrough mode presents one step, Previous/Next, personal review checkboxes, progress and related guides. Checklist review is browser-session-only and does not certify a posted journal, reconciliation, approval, payment or task completion. Navigation preserves the unsaved-edit guard.
+Ivory/navy/champagne cards follow the shared workspace layout. The bank/card hub layout remains intact.
+
+Security/limitations
+No external generative model is configured or called. This is an enhanced knowledge-driven chat and guided workflow assistant; open-ended model-generated conversation requires a separately configured AI provider. Live bank/QBO data is not queried. Model tests preserve unit/property scoping and deny restricted balances. Existing APIs, financial posting rules, tenancy permissions and data storage are unchanged.
+Marketing, automated AI prospecting and lender collaboration remain planned. Screening, signatures and listings use manual evidence. Mail/bank/payment integrations depend on verified company-specific provider setup.
+
+QA
+Tests verify every accounting page has one matching page guide, guide IDs/steps, module coverage, exact card setup navigation, contextual walkthrough questions, search ranking and honest planned status. Existing scoped financial-answer tests passed. Browser preview verifies knowledge search, step progress, checkboxes, exact Accounting navigation and dialog closing. Full suite/typecheck/production CI results are recorded in the completion report.
+The review used source controls/models and synthetic assistant UI; it does not certify every live financial operation or external provider.
+
+Maintenance
+When adding a new accounting page, accountingPages automatically creates a discoverable catalog guide. Add page-specific instructions in accountingProcedures and a regression test. Reports use the actual operational/native/comparison name catalogs. Review availability and instructions whenever implementations change. Do not describe provider shortcuts as working API integrations.
