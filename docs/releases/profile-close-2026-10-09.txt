@@ -1,0 +1,5 @@
+Unit profile close fix — 2026-10-09
+Cause: unfinished-edit confirmation was rendered at the bottom of the long scrolling profile. X, outside click and Escape requested closure but the confirmation was out of view.
+Change: replace the inline guard with a centered nested Dialog, accessible title/description and visible Keep editing / Discard edit and continue controls. Dismissal of the confirmation retains the edit. Discard continues the original requested action without saving.
+Validation: TypeScript passed; tenancy and leasing workflow regression scripts passed. Local interactive browser test was blocked by preview/browser timeouts and has not been certified. Retest X, Escape and outside click after deploying to preview, both with and without an edit.
+No financial records or payment behavior changed.
