@@ -3,15 +3,15 @@ import {canonicalRecord} from './workflow-controls';
 import {incomeRows} from './accounting-model';
 import {cashAccounts,manualBankBalance} from './cash-planning';
 import {latest} from './pool';
-import {native,bookChart} from './native-accounting';
+import {native,bookChart,reconcilableAccount} from './native-accounting';
 import {payables,payableState} from './payables-ledger';
 
 export const accountingSections=['Receivables','Payables','Financial accounts','Journal entries','Bank transfers','GL accounts','Diagnostics','Online payments','Monthly close'] as const;
 export type AccountingSection=typeof accountingSections[number];
 export const accountingPages:Record<AccountingSection,string[]>={
- Receivables:['Tenant ledger posting','Tenant rent','Rent reconciliation','Receipts & charges','QBO receipt imports','Escrow'],
+ Receivables:['Additional receipt types','Tenant ledger posting','Tenant rent','Rent reconciliation','Receipts & charges','QBO receipt imports','Escrow'],
  Payables:['Bills & credits','Bulk bill entry & approval','Recorded bill settlement','Recurring bills & credits','Agency income & payables','Supplier invoice imports','Procurement & inventory','Payment posting review'],
- 'Financial accounts':['Financial account overview','Bank balances & checks','Payment posting review','Statement reconciliation','Company accounting reports'],
+ 'Financial accounts':['Bank transaction review','Grouped deposits','Financial account overview','Bank balances & checks','Payment posting review','Statement reconciliation','Company accounting reports'],
  'Journal entries':['Native ledger','Recurring journals','Journal entry batches','Journal register','Company accounting reports'],
  'Bank transfers':['Completed bank transfers','Transfer register'],
  'GL accounts':['Chart & mapping','QBO exports','QBO connection'],
@@ -76,7 +76,7 @@ export function accountingDiagnostics(d:Data,period:string):AccountingException[
  add('payable-overdue','Overdue posted supplier bills',documents.filter(r=>r.kind==='Bill'&&r.due<end&&['Open','Partially settled'].includes(payableState(d,r,end).status)).length,'Review the supplier balance and existing payment before applying settlement.','Payables','Recorded bill settlement');
  add('payable-reversed','Reversed payable postings',documents.filter(r=>payableState(d,r,end).status==='Posting reversed — review').length,'Review the original source and correction; no payment should be applied to a reversed liability.','Payables','Bills & credits');
  add('native-books','Company ledger opening review',native(d).books.length?0:1,'Initialize verified company opening balances to use native reports and statement reconciliation.','Journal entries','Native ledger');
- let stale=0;for(const b of native(d).books)for(const bank of bookChart(d,b.id)?.accounts.filter(a=>a.active&&a.type.toLowerCase()==='bank')??[]){const last=native(d).reconciliations.filter(r=>r.bookId===b.id&&r.accountKey===bank.key&&r.end<=end).at(-1)?.end??b.openingDate;if(Date.parse(end+'T12:00:00Z')-Date.parse(last+'T12:00:00Z')>60*86400000)stale++;}
- add('reconciliation-lapse','Bank reconciliations overdue by more than 60 days',stale,'Review each bank and carry forward its verified statement closing balance. Future statements do not clear historical exceptions.','Financial accounts','Statement reconciliation');
+ let stale=0;for(const b of native(d).books)for(const bank of bookChart(d,b.id)?.accounts.filter(a=>a.active&&reconcilableAccount(a.type))??[]){const last=native(d).reconciliations.filter(r=>r.bookId===b.id&&r.accountKey===bank.key&&r.end<=end).at(-1)?.end??b.openingDate;if(Date.parse(end+'T12:00:00Z')-Date.parse(last+'T12:00:00Z')>60*86400000)stale++;}
+ add('reconciliation-lapse','Bank / card reconciliations overdue by more than 60 days',stale,'Review each bank and carry forward its verified statement closing balance. Future statements do not clear historical exceptions.','Financial accounts','Statement reconciliation');
  return results;
 }

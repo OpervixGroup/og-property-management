@@ -1,11 +1,11 @@
 import type {Data} from './pool';
 import {tenantSourceReferences} from './receivables-ledger';
-import {native,bookChart,ledgerMovements,validateNativeAccounting,type LedgerEntry} from './native-accounting';
+import {native,bookChart,statementMovements,ledgerMovements,validateNativeAccounting,type LedgerEntry} from './native-accounting';
 function sourceReferences(d:Data,e:LedgerEntry){const link=d.accounting?.tenantLedgerLinks?.find(l=>l.ledgerEntryId===e.id);return [e.reference.trim().toLowerCase(),...(link?tenantSourceReferences(d,link.entryId):[])];}
 
 export function statementMatchCandidates(d:Data,input:{bookId:string;bankKey:string;reference:string;cents:number;through:string;excluded:string[]}){
  const cleared=new Set(native(d).reconciliations.filter(r=>r.bookId===input.bookId&&r.accountKey===input.bankKey).flatMap(r=>r.rows.flatMap(row=>row.entryIds)));
- const candidates=ledgerMovements(d,input.bookId,input.bankKey).filter(x=>x.entry.date<=input.through&&x.cents===input.cents&&!cleared.has(x.entry.id)&&!input.excluded.includes(x.entry.id));
+ const candidates=statementMovements(d,input.bookId,input.bankKey).filter(x=>x.entry.date<=input.through&&x.cents===input.cents&&!cleared.has(x.entry.id)&&!input.excluded.includes(x.entry.id));
  const exact=candidates.filter(x=>sourceReferences(d,x.entry).includes(input.reference.trim().toLowerCase()));
  return exact.length?exact:candidates;
 }

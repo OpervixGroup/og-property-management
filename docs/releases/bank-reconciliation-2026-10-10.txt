@@ -1,0 +1,137 @@
+OG accounting: bank review, receipts, grouped deposits and card reconciliation
+Release date: October 10, 2026
+
+WHAT CHANGES
+Accounting > Financial accounts now includes Bank transaction review and Grouped
+deposits. Accounting > Receivables adds Additional receipt types. The existing
+Statement reconciliation page now supports Bank and Credit Card accounts.
+The workflow is receipt posting -> grouped deposit where needed -> bank matching
+-> original statement reconciliation -> accounting review / monthly close.
+
+Bank review imports a reviewed CSV with these exact headers:
+date,reference,description,amount,external_id
+Rows start Pending. A reviewed row may be Matched to one or several existing
+ledger entries, or Excluded with a reason. Each review is an immutable version.
+Same-account source IDs cannot be imported twice. Matching does not create a
+journal, collect money, change QuickBooks, or finish a statement reconciliation.
+The page links to QuickBooks bank transactions and its reconciliation reference.
+
+Additional receipts: owner capital contributions, other income, vendor refunds
+and tenant security deposits. Owner contributions use equity / liability;
+security deposits use a tenant-linked liability; other income uses Income;
+vendor refunds use appropriate expense / payable accounts. Each reviewed receipt
+creates a balanced journal. A receipt goes directly to a bank or Undeposited Funds.
+Tenant rent still originates in the existing tenant source workflow.
+Recording an owner capital contribution here does not settle an approved owner
+statement. Use the existing owner-settlement workflow for that obligation.
+
+Tenant receipt posting now accepts a reviewed Undeposited Funds account as well
+as a Bank account. Grouped deposits only select original, ungrouped, unreversed
+posted receipts in the same company clearing account, dated no later than the
+deposit. One journal debits the net bank deposit and fee expense, and credits
+the gross clearing balance. Original receipts stay linked; income is not posted
+again. Direct-to-bank receipts are ineligible for another grouped deposit.
+Dollar amounts open exact receipt / deposit journal detail; unit numbers open
+their existing global unit profile.
+
+Reconciliation uses original statement rows with these headers:
+date,reference,description,amount
+It can also load eligible reviewed bank matches for the same book, account and
+period; the reviewer must still compare the original bank statement.
+Beginning balance and next start date carry forward from the verified opening
+or previous completed statement. Save for later preserves an immutable draft
+version with unmatched rows and nonzero differences. Resume retains the saved
+source, balances and matches. Drafts never count as completed reconciliations.
+Completion requires every row to match exact ledger movement, and both statement
+and adjusted-bank differences to be zero. Completed history remains immutable;
+backdated postings into a reconciled account period stay blocked.
+
+For BANK accounts: deposits are positive; withdrawals negative.
+For CREDIT CARD accounts: charges increase the amount owed and are positive;
+payments / refunds are negative. The GL remains debit-minus-credit internally;
+card statement presentation reverses that sign. A card payment is a debit to
+the card liability and credit to the bank; reconcile each side separately.
+Credit-card accounts now participate in monthly-close and stale-reconciliation
+checks. The Assistant and workflow guide explain the new sequence and limits.
+
+STORAGE FOUNDATION: IMPLEMENTED VS STAGED
+Implemented: the main workspace save sends revision-bound JSON changes instead
+of retransmitting all unchanged history. The trusted server reconstructs the
+record from its current workspace, checks revision and operation ID, overwrites
+new actor fields from the authenticated session, and runs the existing financial,
+authorization, approval and immutable-history checks before saving. Prototype,
+array-index, overlapping and malformed paths are rejected. The request-size
+limit is retained, not removed. A synthetic >6 MB record with a small append
+produced a change payload below 300 bytes and reconstructed exactly.
+
+Staged: supabase/accounting-foundation-reference.sql defines private normalized
+books, accounts, entries, lines and period locks. Database tests exercise integer
+cents, balanced postings at commit, composite workspace/book foreign keys,
+duplicate reference/source constraints, atomic failure, immutable posted rows,
+late-line rejection, exact reversal rules, period locks and browser-role denial.
+This SQL is a tested reference, not an applied production migration. No live
+customer records were backfilled or changed. OG still loads full workspaces and
+stores full immutable JSON revisions in its current Supabase adapter. This
+release therefore does not establish enterprise database capacity.
+
+NORMALIZED STORAGE CUTOVER GATES
+1. Verify private production backup and restore in an isolated project.
+2. Generate a Supabase CLI migration from the tested reference, after inspecting
+   existing production objects; do not execute the reference blindly.
+3. Implement a trusted transaction-posting adapter and reviewed legacy backfill.
+   Preserve original IDs, source references, journal order, reversal history and
+   verified opening entries; do not recreate operational receipts as cash.
+4. Compare every company/book/account/date balance and source count with legacy
+   snapshots; compare trial balance, reconciliation and month-close fingerprints.
+5. Add indexed server pagination, per-workspace idempotency and conflict tests,
+   transactional outbox, worker retry/lease rules, restore drill and rollback.
+6. Measure stated tenant/unit/posting/concurrency assumptions under production-
+   like load, then approve a controlled production cutover. Revenue is not a
+   workload measurement. No $300 million capacity certification is claimed.
+
+QA EVIDENCE
+New synthetic tests cover all four receipt types, tenant clearing receipts,
+deposit grouping and fees, duplicate receipts / groups, incompatible accounts,
+immutable bank-source identity, pending/matched/excluded history, card charge /
+payment signs, reconciliation differences, immutable draft versions, malformed
+save paths, large-record change transport and stale revision rejection.
+Existing accounting / posting / owner controls and role tests remain in the
+release suite. A development-only synthetic preview exercises actual components:
+/accounting-workflow-preview. It returns 404 in production and cannot save to
+the production API. No real tenant receipt, bank journal or QBO row was changed
+for QA. Browser tests exercised receipt -> deposit -> bank match and statement
+draft -> resume -> zero-difference completion. Screenshots use synthetic data.
+Build and release commit evidence are recorded in the private completion report.
+
+QUICKBOOKS BOUNDARY
+OG follows the separate bank-matching and statement-reconciliation workflow.
+No supported API for copying the user's in-progress QBO reconciliation selection
+was verified. No QBO selected clearing flags, adjustments or completed reconcile
+status were imported. Use original statements plus reviewed source rows, and
+verify that OG and QBO contain the same company/account ledger basis before
+comparing their balances. QBO differences must not be plugged or auto-adjusted.
+Official reference:
+https://quickbooks.intuit.com/learn-support/en-us/help-article/statement-reconciliation/reconcile-account-quickbooks-online/L3XzsllsK_US_en_US
+https://quickbooks.intuit.com/learn-support/en-us/help-article/bank-feeds/match-online-bank-transactions-quickbooks-online/L6qyw0PvP_US_en_US
+PostgreSQL constraints and Supabase RLS:
+https://www.postgresql.org/docs/17/ddl-constraints.html
+https://supabase.com/docs/guides/database/postgres/row-level-security
+
+GO DADDY RELEASE
+Publish only the tested GitHub release after CI succeeds. No hosting environment
+change, additional provider connection, or production migration is required for
+the new app workflows. The normalized storage reference stays inactive.
+Verify bank/card selectors, receipt types, grouped deposits, draft/resume,
+completed report download, unit / amount detail links, and company routing after
+publishing. Preserve the prior release SHA for rollback. Never upload private
+backups, bank exports, owner packets, tax data or credentials to public GitHub.
+
+KNOWN LIMITS
+Bank feeds remain reviewed CSV / provider-connection-ready; Plaid is not live.
+ACH/cards are not charged by this release. No new bank account is opened.
+Native books only include reviewed openings and explicitly posted entries.
+A pending bank row does not identify its tenant from the amount alone.
+Security-deposit receipt posting does not automatically migrate prior operational
+escrow records. Existing deposits must be linked / reviewed, not recreated.
+Full AppFolio/QBO parity, normalized production storage, automated provider
+settlements, enterprise load verification and restore drill remain separate work.
