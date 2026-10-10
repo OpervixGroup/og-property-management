@@ -1,5 +1,6 @@
 'use client';
 import RentReconciliation from './rent-reconciliation';
+import AccountingConnections from './accounting-connections';
 import NativeAccountingPanel from './native-accounting';
 import AccountingRegisters from './accounting-registers';
 import {ArrowRight} from 'lucide-react';
@@ -24,6 +25,7 @@ import QboCsvUpload from './qbo-csv-upload';
 import RentRoll from './rent-roll';
 import {Grid,Pick} from './report-controls';
 export default function AccountingPanel({data,period,busy,persist,navigate,openUnit,openTenant}:{data:Data;period:string;busy:boolean;persist:(d:Data,message?:string)=>Promise<boolean>;navigate:(s:string)=>void;openUnit:(id:string)=>void;openTenant:(unitId:string,tenantId:string,entryId?:string)=>void}){
+ const [accountingContext,setAccountingContext]=useState({bookId:'',bankKey:''});
  const [section,setSection]=useState<AccountingSection>('Receivables'),[tab,setCurrentTab]=useState('Tenant rent'),[form,setForm]=useState<any>(null),[kind,setKind]=useState('deposit'),[docs,setDocs]=useState<any[]>([]),[docsReady,setDocsReady]=useState(false);const a=data.accounting??emptyAccounting(),tenants=data.operations?.tenants??[],entries=data.operations?.tenantEntries??[],rows=incomeRows(data,period);useEffect(()=>{setDocsReady(false);fetch('/api/documents').then(r=>{if(!r.ok)throw Error('Documents unavailable');return r.json();}).then(x=>{if(Array.isArray(x)){setDocs(x);setDocsReady(true);}}).catch(()=>{setDocsReady(false);});},[data]);
  const escrowBank=manualBankBalance(data.accounting?.cashPlanning,'Escrow');
  const unit=(id:string)=>data.units.find(u=>u.id===id)?.number??id,tenantName=(id:string)=>{const t=tenants.find(t=>t.id===id);return t?t.firstName+' '+t.lastName:'Not found';};
@@ -36,14 +38,15 @@ export default function AccountingPanel({data,period,busy,persist,navigate,openU
  async function uploaded(file:File,target:string,id:string){try{const f=new FormData();f.set('file',file);f.set('linkType',target);f.set('linkId',id);const r=await fetch('/api/documents',{method:'POST',body:f}),j:any=await r.json();if(!r.ok)throw Error(j.error);const dr=await fetch('/api/documents');setDocs(await dr.json());toast.success('Supporting document uploaded');}catch(e){toast.error((e as Error).message);}}
  const income=rows.filter(r=>r.confirmed&&r.treatment==='Agency income').reduce((n,r)=>n+r.cents,0),payables=rows.filter(r=>r.confirmed&&(['Payable','Pass-through'].includes(r.treatment)||r.treatment==='Expense'&&r.paymentState==='Unpaid')).reduce((n,r)=>n+r.cents,0);
  function chooseSection(next:AccountingSection){setSection(next);setCurrentTab(accountingPages[next][0]);}
- function setTab(next:string){const nextSection=accountingSections.find(s=>accountingPages[s].includes(next));if(nextSection)setSection(nextSection);setCurrentTab(next);}
+ function setTab(next:string){const nextSection=accountingPages[section].includes(next)?section:accountingSections.find(s=>accountingPages[s].includes(next));if(nextSection)setSection(nextSection);setCurrentTab(next);}
  const workspaceLinks:Partial<Record<AccountingSection,[string,string][]>>={Receivables:[['Units & owners','units']],Payables:[['Owner statements','statements'],['Documents','documents']],
  'Financial accounts':[['Prepare distributions','distributions']],Diagnostics:[['Accounting activity','activity']],
  'Monthly close':[['Monthly owner run','owner-run'],['Pool overview','overview'],['Owner statements','statements'],['Monthly settings','settings'],['Documents','documents'],['Accounting activity','activity']]};
  const step=accountingSections.indexOf(section),exceptions=accountingDiagnostics(data,period);
  return <div className="accounting-workspace"><nav className="leasing-stages accounting-stages" aria-label="Accounting workflow">{accountingSections.map((s,i)=><button key={s} className={s===section?'active':'secondary'} aria-current={s===section?'page':undefined} onClick={()=>chooseSection(s)}><span>{i+1}</span>{s}</button>)}</nav><section className="leasing-hero"><div><p className="eyebrow">ACCOUNTING · {period} · STEP {step+1} OF {accountingSections.length}</p><h2>{section}</h2><p>{accountingDescriptions[section]}</p></div><div className="leasing-step-controls"><button className="secondary" disabled={step===0} onClick={()=>chooseSection(accountingSections[step-1])}>Previous step</button><button disabled={step===accountingSections.length-1} onClick={()=>chooseSection(accountingSections[step+1])}>Next step<ArrowRight size={16}/></button></div></section>{accountingPages[section].length>1&&<nav className="people-tabs" aria-label={section+' pages'}>{accountingPages[section].map(t=><button key={t} aria-current={tab===t?'page':undefined} className={tab===t?'selected':''} onClick={()=>setTab(t)}>{t==='Invoices & Received Payments Current Month'?'Supplier invoice imports':t==='Agency income & payables'?'Bills & expense review':t==='Pool allocation & contracts'?'Allocation & contracts':t==='Owner bills & monthly close'?'Owner bills & close':t}</button>)}</nav>}
  <div className="accounting-columns"><div className="accounting-main" aria-label={tab}>
- {(['Native ledger','Recurring journals','Statement reconciliation','Provider setup'].includes(tab))&&<NativeAccountingPanel key={tab} data={data} period={period} busy={busy} persist={persist} openUnit={openUnit} mode={tab==='Native ledger'?'ledger':tab==='Recurring journals'?'recurring':tab==='Statement reconciliation'?'reconciliation':'payments'}/>}
+ {tab==='Payment posting review'&&<AccountingConnections data={data} period={period} busy={busy} persist={persist} onPage={(page,context)=>{setAccountingContext(context);setTab(page);}}/>}
+ {(['Native ledger','Recurring journals','Statement reconciliation','Provider setup'].includes(tab))&&<NativeAccountingPanel key={tab} data={data} period={period} busy={busy} persist={persist} openUnit={openUnit} initialBook={accountingContext.bookId} initialBank={accountingContext.bankKey} mode={tab==='Native ledger'?'ledger':tab==='Recurring journals'?'recurring':tab==='Statement reconciliation'?'reconciliation':'payments'}/>}
  {tab==='Chart & mapping'&&<GLMapping data={data} period={period} busy={busy} persist={persist}/>}
  {tab==='QBO connection'&&<QboConnectionPanel period={period}/>}
  {tab==='Journal register'&&<AccountingRegisters data={data} period={period} busy={busy} persist={persist} kind="journal" openUnit={openUnit}/>}

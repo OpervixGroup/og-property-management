@@ -1,0 +1,18 @@
+.app-dialog.native-accounting-dialog {
+  width: calc(100vw - 32px);
+  max-width: min(1180px, calc(100vw - 32px)) !important;
+  background: #faf8f3;
+  color: #102b3d;
+  border-color: #e5ded1;
+}
+.native-accounting-dialog h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+}
+.native-accounting-dialog .accounting-match-list {
+  min-width: 240px;
+}
+.native-accounting-dialog input[type='checkbox'] {
+  width: auto;
+  accent-color: #102b3d;
+}

@@ -8,8 +8,8 @@ export const accountingSections=['Receivables','Payables','Financial accounts','
 export type AccountingSection=typeof accountingSections[number];
 export const accountingPages:Record<AccountingSection,string[]>={
  Receivables:['Tenant rent','Rent reconciliation','Receipts & charges','QBO receipt imports','Escrow'],
- Payables:['Agency income & payables','Supplier invoice imports','Procurement & inventory'],
- 'Financial accounts':['Bank balances & checks','Statement reconciliation'],
+ Payables:['Agency income & payables','Supplier invoice imports','Procurement & inventory','Payment posting review'],
+ 'Financial accounts':['Bank balances & checks','Payment posting review','Statement reconciliation'],
  'Journal entries':['Native ledger','Recurring journals','Journal register'],
  'Bank transfers':['Transfer register'],
  'GL accounts':['Chart & mapping','QBO exports','QBO connection'],
