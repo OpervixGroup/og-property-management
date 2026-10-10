@@ -1,0 +1,11 @@
+Reconciliation source visibility — October 10, 2026
+
+Problem: the Statement reconciliation page showed only native books. Existing operational tenant receipts, recorded bank activity and owner payment evidence were invisible when native books had not been initialized.
+
+Change: show Starting balances & recorded transactions on the reconciliation page even without native books. Preserve separate owner-statement opening totals, recorded manual-bank starting points and verified native bank/card book openings. Missing bank setup remains explicitly unverified rather than silently becoming zero. Display monthly tenant charges/receipts/credits, manual bank payments/deposits, security-deposit records, external owner settlements/check evidence and native vendor bill/credit documents. Source rows retain real dates, references, units and review links. Native journals are a separate expandable list. Search filters source records without posting or changing data.
+
+This is a source review, not a combined cash balance. Bills, receipts, checks and journals may describe the same economic activity at different workflow stages; do not sum these lists. Approved September 30 receipts allocated to October retain the actual receipt date. Existing source-to-ledger posting/review workflows remain available; no automatic migration or duplicate journal is created.
+
+The user's confirmed zero owner-statement balances do not independently confirm a bank opening balance. Exact bank account confirmation and original bank/ledger records remain necessary before initializing native books. This update does not write opening balances, import QBO reconciliation selections or post transactions.
+
+Tests: existing-source visibility before initialization; monthly filtering; immutable read-only view; linked manual posting status; zero owner balances remain separate from absent bank openings; verified native bank opening retained. Type check passes. Full CI and build evidence are in the private SharePoint completion note.

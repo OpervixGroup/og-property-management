@@ -1,4 +1,21 @@
 import type {Data} from './pool';
+import {latest} from './pool';
+import {receiptReportingMonth} from './cash-planning';
+export type ReconciliationSourceRow={id:string;date:string;reference:string;kind:string;description:string;cents:number;unitId:string;status:string;page:string};
+export function reconciliationSourceReview(d:Data,period:string){
+ const rows:ReconciliationSourceRow[]=[],ledger=native(d),add=(row:ReconciliationSourceRow)=>rows.push(row);
+ for(const r of d.operations?.tenantEntries??[])if((r.kind==='Receipt'?receiptReportingMonth(r):r.date.slice(0,7))===period){const link=d.accounting?.tenantLedgerLinks?.find(l=>l.entryId===r.id),tenant=d.operations?.tenants?.find(t=>t.id===r.tenantId);add({id:'tenant:'+r.id,date:r.date,reference:r.reference,kind:'Tenant '+r.kind,description:r.description,cents:r.cents,unitId:tenant?.unitId??'',status:link?'Linked to native ledger':'Source recorded · ledger link needed',page:'Tenant ledger posting'});}
+ for(const r of d.accounting?.cashPlanning?.manualEntries??[])if(r.date.startsWith(period)&&['Payment','Deposit'].includes(r.kind)){const entry=ledger.entries.find(e=>e.sourceSystem==='OG manual bank'&&e.externalId===r.id);add({id:'manual:'+r.id,date:r.date,reference:r.reference,kind:r.kind,description:r.account+' · '+r.payee,cents:r.cents,unitId:'',status:entry?'Posted to native ledger':'Review bank / ledger posting',page:'Payment posting review'});}
+ for(const r of d.accounting?.deposits??[])if(r.date.startsWith(period))add({id:'escrow:'+r.id,date:r.date,reference:r.reference,kind:'Security deposit '+r.kind,description:r.reason,cents:r.cents,unitId:r.unitId,status:r.approved?'Reviewed escrow source · verify ledger link':'Pending source review',page:'Escrow'});
+ for(const r of d.accounting?.settlements??[])if(r.period===period)add({id:'settlement:'+r.id,date:r.date,reference:r.reference,kind:'Owner settlement',description:d.owners.find(o=>o.id===r.ownerId)?.name??'Owner',cents:r.cash,unitId:'',status:'External payment recorded · verify ledger link',page:'Prepare distributions'});
+ for(const r of d.ownerRun?.checks??[])if(r.period===period){const e=r.evidence,voided=d.ownerRun?.voids.some(v=>v.evidence.companyId===e.companyId&&v.evidence.transactionId===e.transactionId);add({id:'owner-check:'+r.id,date:e.date,reference:e.checkNumber,kind:'Owner check',description:d.owners.find(o=>o.id===e.ownerId)?.name??'Owner',cents:e.cents,unitId:'',status:voided?'Voided · preserve history':e.status+' external evidence · verify ledger link',page:'Prepare distributions'});}
+ for(const r of d.accounting?.payablesLedger?.documents??[])if(r.date.startsWith(period))add({id:'payable:'+r.id,date:r.date,reference:r.reference,kind:'Vendor '+r.kind,description:r.payee,cents:r.lines.reduce((s,l)=>s+l.cents,0),unitId:r.lines.length===1?r.lines[0].unitId:'',status:'Payable source · review approval / ledger',page:'Bills & credits'});
+ const nativeRows=ledger.entries.filter(e=>e.date.startsWith(period));
+ const bookOpenings=ledger.books.filter(b=>b.openingDate<period+'-01').flatMap(b=>(bookChart(d,b.id)?.accounts??[]).filter(a=>['bank','credit card'].includes(a.type.toLowerCase())).map(a=>({id:b.id+':'+a.key,company:b.company,account:a.name,date:b.openingDate,source:b.source,cents:b.opening.filter(l=>l.accountKey===a.key).reduce((s,l)=>s+l.debit-l.credit,0)*(a.type.toLowerCase()==='credit card'?-1:1)})));
+ const statements=latest(d,period),verified=statements.filter(s=>s.openingConfirmed);
+ const openings=(d.accounting?.cashPlanning?.manualEntries??[]).filter(e=>e.kind==='Opening posted balance'&&e.date<=period+'-01');
+ return {rows:rows.sort((a,b)=>a.date.localeCompare(b.date)||a.id.localeCompare(b.id)),nativeRows,openings,bookOpenings,ownerOpening:statements.length&&verified.length===statements.length?verified.reduce((s,r)=>s+r.opening,0):null,verifiedOwners:verified.length,ownerStatements:statements.length};
+}
 import {tenantSourceReferences} from './receivables-ledger';
 import {native,bookChart,statementMovements,ledgerMovements,validateNativeAccounting,type LedgerEntry} from './native-accounting';
 function sourceReferences(d:Data,e:LedgerEntry){const link=d.accounting?.tenantLedgerLinks?.find(l=>l.ledgerEntryId===e.id);return [e.reference.trim().toLowerCase(),...(link?tenantSourceReferences(d,link.entryId):[])];}

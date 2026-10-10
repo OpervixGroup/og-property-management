@@ -32,3 +32,10 @@ posted.accounting.native.reconciliations.push({...actor,id:'statement',bookId:'b
 validateAccounting(posted,d);assert.equal(manualPostingStatus(posted,'paid-check','book','bank','2026-10-31').status,'Cleared');assert.equal(manualPostingStatus(posted,'paid-check','book','bank','2026-09-30').status,'Posted after selected period');
 assert.equal(statementMatchCandidates(posted,query).length,0);
 console.log('Accounting source-to-ledger-to-reconciliation tests passed.');
+
+const {reconciliationSourceReview}=await import('./.mock-runtime/accounting-connections.mjs');
+const beforeSourceView=structuredClone(posted),sourceReview=reconciliationSourceReview(posted,'2026-10');assert.deepEqual(posted,beforeSourceView);assert.equal(sourceReview.openings[0].cents,100000);assert.ok(sourceReview.rows.some(r=>r.reference==='CHECK-QA-100'&&r.status==='Posted to native ledger'));assert.equal(reconciliationSourceReview(posted,'2026-11').rows.some(r=>r.reference==='CHECK-QA-100'),false);
+const withoutBooks=structuredClone(d);withoutBooks.accounting.native=emptyNativeAccounting();assert.ok(reconciliationSourceReview(withoutBooks,'2026-10').rows.some(r=>r.reference==='CHECK-QA-100'));assert.equal(reconciliationSourceReview(withoutBooks,'2026-10').nativeRows.length,0);
+console.log('PASS existing source visibility before initialization, monthly filtering, verified bank opening and read-only source review');
+
+const ownerZero=structuredClone(withoutBooks);ownerZero.statements=[{id:'synthetic-zero',unitId:ownerZero.units[0].id,period:'2026-10',version:1,opening:0,openingConfirmed:true}];ownerZero.accounting.cashPlanning.manualEntries=[];const zeroReview=reconciliationSourceReview(ownerZero,'2026-10');assert.equal(zeroReview.ownerOpening,0);assert.equal(zeroReview.openings.length,0);assert.equal(zeroReview.bookOpenings.length,0);assert.equal(reconciliationSourceReview(posted,'2026-10').bookOpenings[0].cents,100000);
