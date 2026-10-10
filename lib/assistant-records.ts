@@ -16,6 +16,9 @@ export function answerRecords(d:Data,member:Member,question:string,period:string
  if(unit&&!finance&&/rent|balance|owed|paid|income|fees?|distribution|owner|hoa|escrow|payment/.test(q))return result('Your Maintenance role does not include tenant or owner financial balances. I can show unit occupancy and assigned work orders.', ['maintenance'],['Show work orders for unit '+unit.number],['OG access policy'],unit.number);
  const activeWork=(d.operations?.workOrders??[]).filter(w=>ids.has(w.unitId)&&recordState(d,'workOrders',w.id)==='Active'&&!['Completed','Canceled','Cancelled'].includes(w.status));
  const how=/\b(how|steps|procedure|where|help me|guide)\b/.test(q);
+ // Accounting workflow requests must precede generic arrears and unit-balance matching.
+ const accountingGuide=answerGuide(question,context);
+ if(accountingGuide.guideIds.some(id=>id.startsWith('accounting-')))return {...accountingGuide,sources:['OG accounting workflow knowledge base'],mode:'Workflow guide'};
  if(!how&&/\b(dla|10k|10,?000|agency income|shortfall)\b/.test(q)){
   if(!full)return result('DLA income is restricted to Management, Global Admin and accounting reviewers. I can help with records in your assigned scope.',[],['Show my open work orders'],['OG access policy']);
   const r=closeReview(d,period);return result('Private DLA review for '+period+': confirmed fee income '+money(r.summary.dlaIncome)+'. Review-only shortfall against the $10,000 minimum: '+money(r.summary.dlaShortfall)+'. This is income before operating expenses. Unconfirmed charges are not certified income; no additional fee is created.', ['accounting'],['What needs review this month?','How do I review GL mapping?'],['Saved income classifications and monthly close review']);

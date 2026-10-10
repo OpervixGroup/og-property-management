@@ -4,7 +4,7 @@ export const quickQuestions:Record<string,string[]>={
  home:['What needs review this month?','Show vacant units','Show my open work orders'],
  maintenance:['Show my open work orders','How do I issue inventory to a unit?','How do I post repair labor?','How do I return materials?'],
  people:['Show unpaid tenant charges','How do I match a tenant receipt?','How does rent become Partially Paid?'],
- accounting:['What needs review this month?','What is DLA income?','How do I allocate pool income?','How do I record escrow?','How do I export to QBO?'],
+ accounting:['What needs review this month?','How do I reconcile issued checks?','How do I import bulk bills?','How do I post tenant receipts?','How do I print the trial balance?'],
  statements:['How do I attach a receipt?','How do I approve a statement?','What does the owner see?'],
  distributions:['How do I combine owner units?','How do I record a payment?','How does Unit 108 HOA work?'],
  'general-settings':['How do I add a user?','What can an Accounting Clerk do?','Can the CPA edit records?'],
@@ -13,6 +13,16 @@ export const quickQuestions:Record<string,string[]>={
 function guide(id:string,intro=''):GuideAnswer{const g=workflowGuides.find(g=>g.id===id)!;return {text:(intro?intro+'\n\n':'')+g.location+'\n\n'+g.purpose+'\n\n'+g.steps.map((s,i)=>(i+1)+'. '+s).join('\n')+'\n\n'+g.note,guideIds:[id],questions:quickQuestions[id]??['How do I attach a receipt?','How do I prepare owner distributions?']};}
 export function answerGuide(question:string,context='home'):GuideAnswer{
  const q=question.trim().toLowerCase();
+ if(/(bulk|batch).*(bill|payable|supplier|credit)|(bill|payable).*(bulk|batch)/.test(q))return guide('accounting-bulk');
+ if(/recurring.*(bill|payable|transaction)|(?:bill|payable).*recurring/.test(q))return guide('accounting-recurring');
+ if(/bank.*reconcil|reconcil.*(bank|check|cheque)|issued checks|outstanding checks/.test(q))return guide('accounting-reconciliation');
+ if(/tenant.*(post|native ledger)|(post|ledger posting).*(tenant|receipt|charge)/.test(q))return guide('accounting-receivables');
+ if(/trial balance|balance sheet|profit and loss|journal register|check register|deposit register|native.*report|general ledger report/.test(q))return guide('accounting-reports');
+ if(/journal entr|journal.*(csv|batch|post)/.test(q))return guide('accounting-journals');
+ if(/bank transfer|transfer.*bank/.test(q))return guide('accounting-transfers');
+ if(/diagnostic|accounting exception/.test(q))return guide('accounting-diagnostics');
+ if(/(ach|card|payment).*(provider|processor|connect|setup)|online payments/.test(q))return guide('accounting-provider');
+ if(/\b(payables|supplier bill|vendor bill|aged payable|unpaid bills|bill approval)\b/.test(q))return guide('accounting-payables');
  if(!q)return {text:'What would you like to do in OG?',guideIds:[],questions:quickQuestions[context]??['How do I prepare owner distributions?','How do I add a user?']};
  if(/\b(1099|w-?9|taxpayer|onboarding)\b/.test(q))return guide('properties','Basic unit/owner onboarding is available from Units & owners or Properties → Activate / retire Unit → Onboard a new unit. Full protected tax records and 1099 preparation are not implemented. Dustin must review the reporting basis before year-end tax exports are added.');
  if(/\b(sharepoint|integrations?|connected|connect|sms|send.*email|email.*send|live ai)\b/.test(q))return {text:'OG uses Supabase records and private document storage. General settings shows Microsoft sign-in and Outlook setup status. Work-order changes queue shared-mailbox notices; sending and reply checks require activated Microsoft settings and a scheduler. Reviewed QBO CSV exchange is available; direct QBO API exchange remains pending. The assistant reads authorized saved OG records, without an external AI service.',guideIds:['communication','documents','general-settings'],questions:['How do I prepare an owner email?','How do I attach a receipt?']};

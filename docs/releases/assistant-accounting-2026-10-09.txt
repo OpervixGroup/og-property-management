@@ -1,0 +1,6 @@
+Published accounting and assistant QA — 2026-10-09
+Live read-only smoke checks: all nine main accounting steps opened; tenant ledger posting, bulk bills, recorded settlement, recurring bills, financial overview, statement reconciliation and company reports rendered. No live financial records changed.
+Setup finding: the live company ledger is not initialized; tenant native posting is correctly disabled. Opening balances require verified setup before use. Payment collection remains provider-ready.
+Assistant changes: ten accounting guides, accurate reconciliation/report availability, current accounting suggestions, specific intent routing before generic bulk/tenant/balance matching, valid navigation back to Accounting. New workflow questions use guides, not invented financial totals or live QBO claims.
+Validation: all 43 regression scripts passed. Assistant scenarios: 29 passed. Local TypeScript check passed with generated .next cache excluded.
+Remaining: deploy this assistant update through GoDaddy, then retest live assistant responses. Full AppFolio parity and external integrations are not certified by these smoke tests.

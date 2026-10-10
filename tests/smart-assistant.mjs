@@ -19,3 +19,18 @@ check('Unsupported questions receive honest guide fallback',()=>assert.equal(ans
 check('Provider guide no longer claims demo storage',()=>{const a=answerRecords(d,manager,'How do I connect Outlook?','2026-10');assert.match(a.text,/Supabase/);assert(!a.text.includes('demo record'));});
 check('Invalid month is rejected',()=>assert.throws(()=>answerRecords(d,manager,'Show unit 106','2026-99')));
 console.log(checks+' smart assistant scenarios passed');
+const {answerGuide}=await import(new URL('assistant-guide.mjs',root));
+const {workflowGuides}=await import(new URL('workflow-guide.mjs',root));
+for(const [question,id] of [
+ ['How do I import bulk bills?','bulk'],['How do I pause recurring bills?','recurring'],
+ ['How do I reconcile issued checks?','reconciliation'],['How do I post tenant receipts?','receivables'],
+ ['Show trial balance','reports'],['How do I import journal entries?','journals'],
+ ['How do I record a bank transfer?','transfers'],['Show accounting diagnostics','diagnostics'],
+ ['How do I connect an ACH provider?','provider'],['Show unpaid bills','payables']
+])check(question,()=>{const before=JSON.stringify(d),a=answerRecords(d,manager,question,'2026-10','accounting','106');assert.deepEqual(a.guideIds,['accounting-'+id]);assert.equal(a.mode,'Workflow guide');assert.equal(a.unitNumber,undefined);assert.equal(JSON.stringify(d),before);});
+check('Bulk inventory remains Maintenance',()=>assert.deepEqual(answerGuide('How do I receive bulk parts?').guideIds,['maintenance']));
+check('New guides navigate to valid Accounting screen and retain valid related guides',()=>{for(const g of workflowGuides.filter(g=>g.id.startsWith('accounting-'))){assert.equal(g.target,'accounting');for(const id of g.links)assert(workflowGuides.some(x=>x.id===id));}});
+check('Bank guidance no longer denies reconciliation availability',()=>{assert(!workflowGuides.find(g=>g.id==='accounting').note.includes('No bank balance'));assert.match(answerGuide('How do I reconcile issued checks?').text,/outstanding until the bank clears/);});
+check('Provider guidance does not promise live collection',()=>assert.match(answerGuide('How do I connect an ACH provider?').text,/does not send ACH/));
+check('Scoped roles receive guidance without company financial disclosure',()=>{for(const member of [maintenance,agent]){const a=answerRecords(d,member,'Show unpaid bills','2026-10');assert.equal(a.mode,'Workflow guide');assert(!a.text.includes('$1,000'));}});
+console.log('Expanded accounting assistant checks passed: '+checks);
