@@ -20,8 +20,10 @@ export async function POST(request:Request){try{sameOrigin(request);const u=full
  for(const key of ['approvals','checks','voids','prints','observations'] as const)for(const record of incoming.ownerRun?.[key]??[])if(!old.data.ownerRun?.[key]?.some(r=>r.id===record.id)){record.reviewer=u.displayName;}
  for(const key of ['journalRecords','transferRecords'] as const)for(const record of incoming.accounting?.[key]??[])if(!old.data.accounting?.[key]?.some(r=>r.id===record.id)){record.reviewer=u.displayName;record.created=new Date().toISOString();}
  for(const key of ['books','entries','rules','reconciliations','paymentConnections'] as const)for(const record of incoming.accounting?.native?.[key]??[])if(!old.data.accounting?.native?.[key]?.some(r=>r.id===record.id)){record.reviewer=u.displayName;record.created=new Date().toISOString();}
+ for(const record of incoming.budgetPlans??[])if(!old.data.budgetPlans?.some(r=>r.id===record.id)){record.reviewer=u.displayName;record.created=new Date().toISOString();}
+ for(const record of incoming.reportLayouts??[])if(!old.data.reportLayouts?.some(r=>r.id===record.id)){record.reviewer=u.displayName;record.created=new Date().toISOString();}
+ for(const record of incoming.serviceConnections??[])if(!old.data.serviceConnections?.some(r=>r.id===record.id)){record.reviewer=u.displayName;record.created=new Date().toISOString();}
  // A client cannot supply the actor of a new audit event or rewrite an existing audit event.
  audit(incoming,'Workspace saved',u.displayName+' · changes saved with immutable revision history');const oldIds=new Set(old.data.audit.map(e=>e.id));for(const event of incoming.audit)if(!oldIds.has(event.id)){event.actor=u.displayName;event.actorId=u.authId;event.at=new Date().toISOString();}
  const saved=await save(u.userId,p.revision,p.operation,incoming);await systemLog(u.userId,u.displayName,'Records','Info','Workspace saved','Revision '+saved.revision+' · Supabase PostgreSQL');return Response.json(saved);
  }catch(e){const message=e instanceof Error?e.message:'Save failed';return Response.json({error:message},{status:message.startsWith('CONFLICT')?409:400});}}
-

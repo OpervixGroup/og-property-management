@@ -13,4 +13,4 @@ assert.equal(operationalReport(d,'audit','2026-10',property).rows.length,0);
 for(const [id] of operationalReports){const r=operationalReport(d,id,'2026-10',property);assert(r.headers.length);assert.equal(r.rows.length,r.unitIds.length);assert(r.rows.every(x=>x.length===r.headers.length));}
 assert.equal(JSON.stringify(d),before);assert.throws(()=>operationalReport(d,'units','2026-99'));
 const pdf=await simpleReportPDF('Synthetic receipt report',[receipt.headers.join(' | '),...receipt.rows.map(r=>r.join(' | '))]);assert((await PDFDocument.load(await pdf.arrayBuffer())).getPageCount()>0);assert(csv(receipt.rows).includes('QA-OCT'));
-console.log('Report center: all 24 report schemas, month cutoff, property isolation, owner/vendor separation, unknown occupancy, nonmutation and PDF/CSV exports passed.');
+console.log('Report center: all 36 report schemas, month cutoff, property isolation, owner/vendor separation, unknown occupancy, nonmutation and PDF/CSV exports passed.');

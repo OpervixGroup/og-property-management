@@ -1,0 +1,11 @@
+.app .connected-settings>h3{font-family:Georgia,serif;font-size:28px;line-height:1.25;color:#112b3e;margin:8px 0 12px}
+.app .connected-settings h4{font-family:Georgia,serif;font-size:21px;line-height:1.35;color:#112b3e;margin:18px 0 12px}
+.app .connected-settings>nav{gap:8px;margin:24px 0;flex-wrap:wrap}
+.app .connected-settings .panel{padding:24px;border:1px solid #e1d8c9;background:#fffdf9;border-radius:16px;margin:16px 0}
+.app .connected-settings p{line-height:1.6;margin:10px 0}
+.app .connected-settings ol{list-style:decimal;padding-left:24px;margin:16px 0}
+.app .connected-settings li{padding-left:6px;margin:10px 0;line-height:1.5}
+.app .connected-settings details{margin:20px 0;border-top:1px solid #e1d8c9;padding-top:16px}
+.app .connected-settings summary{font-weight:600;color:#112b3e;cursor:pointer}
+.app .connected-settings .toolbar{gap:12px;flex-wrap:wrap;align-items:center}
+@media(max-width:700px){.app .connected-settings .panel{padding:16px}.app .connected-settings>h3{font-size:24px}.app .connected-settings>nav button{flex:1 1 140px}}

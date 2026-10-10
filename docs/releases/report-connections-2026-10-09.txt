@@ -1,0 +1,19 @@
+OG advanced report center and company connections — 2026-10-09
+
+Implemented:
+36 operational report views; 8 native ledger reports; comparative financial statements and 12-month income statements; budget CSV review, monthly and year-to-date comparisons; custom filtering/grouping/totals; company saved report layouts; numeric sorting; repeated-header multipage branded PDF; selected-column CSV.
+General settings: Connections & outside services with Overview, Banking, Microsoft 365, QuickBooks, Leasing providers, Payments & tax. Existing QBO connection panel and manual screening/signature/listing provider access reused. New company-scoped sign-in shortcuts can be saved and disabled while retaining immutable history. Mailbox readiness is scoped to the configured company.
+Plaid Link: user selected prepare setup, no existing Plaid account. Setup checklist and safe server readiness checks included. No active Plaid bank link, private token storage or feed synchronization is implemented. These require subsequent implementation and authorized sandbox testing after the Plaid account is created.
+Assistant help covers reports, custom views, budgets, company connections and Plaid setup.
+
+Verification:
+All 45 regression scripts passed. Type checking passed before the final settings CSS changes; final clean CI must pass before release.
+Browser: all original 52 report catalog choices opened; budget and custom builder added afterward. Saved/reopened layout, favorites, column toggles, PDF download dialog, numeric sorting and custom filter/group controls checked. Settings bank/Microsoft sections and provider save/disable checked with synthetic-only local data. Unauthenticated status endpoints deny access; no live company records changed.
+PDF: synthetic wide/multipage report parsed; all final records retained; initial rendered page reviewed. Final visual QA repeated before delivery.
+
+Remaining full AppFolio parity:
+Fund accounting, loan servicing, association compliance, surveys, tax records/filing, arbitrary joins/formulas, scheduled email report delivery, and external usage data are not complete. External services remain connection-ready as explicitly requested. Native financial reports require verified company opening balances and posted/imported entries; unimported QBO records are excluded. Some operational views represent current statuses, with limitations stated in report notes.
+No money issued, posted to external providers or moved.
+
+Publishing:
+Only curated source files and synthetic tests should be published to public GitHub. Temporary QA route, outputs, backups, receipts and financial documents must remain excluded. User publishes GoDaddy preview/live.
