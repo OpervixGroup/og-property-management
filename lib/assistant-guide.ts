@@ -1,6 +1,7 @@
 import {workflowGuides} from './workflow-guide';
 export type GuideAnswer={text:string;guideIds:string[];questions:string[]};
 export const quickQuestions:Record<string,string[]>={
+ reporting:['How do I find a report?','How do I customize report columns?','How do I print owner packets?'],
  home:['What needs review this month?','Show vacant units','Show my open work orders'],
  maintenance:['Show my open work orders','How do I issue inventory to a unit?','How do I post repair labor?','How do I return materials?'],
  people:['Show unpaid tenant charges','How do I match a tenant receipt?','How does rent become Partially Paid?'],
@@ -13,6 +14,7 @@ export const quickQuestions:Record<string,string[]>={
 function guide(id:string,intro=''):GuideAnswer{const g=workflowGuides.find(g=>g.id===id)!;return {text:(intro?intro+'\n\n':'')+g.location+'\n\n'+g.purpose+'\n\n'+g.steps.map((s,i)=>(i+1)+'. '+s).join('\n')+'\n\n'+g.note,guideIds:[id],questions:quickQuestions[id]??['How do I attach a receipt?','How do I prepare owner distributions?']};}
 export function answerGuide(question:string,context='home'):GuideAnswer{
  const q=question.trim().toLowerCase();
+ if(/report center|report library|report columns|favorite.*report|find.*report|customize.*report/.test(q))return guide('reporting');
  if(/(bulk|batch).*(bill|payable|supplier|credit)|(bill|payable).*(bulk|batch)/.test(q))return guide('accounting-bulk');
  if(/recurring.*(bill|payable|transaction)|(?:bill|payable).*recurring/.test(q))return guide('accounting-recurring');
  if(/bank.*reconcil|reconcil.*(bank|check|cheque)|issued checks|outstanding checks/.test(q))return guide('accounting-reconciliation');

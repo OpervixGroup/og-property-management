@@ -3,6 +3,7 @@ import {tenantRentProgress,unitRentApplications} from '@/lib/rent-progress';
 import {leasingManagement} from '@/lib/leasing-management';
 
 import VendorContacts from './vendor-contacts';
+import ReportCenter from './report-center';
 import OwnerContactProfile from './owner-contact-profile';
 import OwnerDirectory from './owner-directory';
 import {isOwnerContact} from '@/lib/contact-directory';
@@ -168,25 +169,7 @@ export default function OperationsArea({data,period,view,busy,dirty,persist,navi
  {view==='metrics'&&<><div className="ops-metrics"><div className="ops-metric"><span>Active units</span><strong>{active.length}</strong></div><div className="ops-metric"><span>Work orders open</span><strong>{open.length}</strong></div><button className="ops-metric" onClick={()=>{setLeasingFilter('Pending');setLeasingTab('Management');navigate('leasing','Pending');}}><span>Rent payment follow-up</span><strong>{rentManagement.counts.pending}</strong><small>{money(rentManagement.pending)} still due</small></button><div className="ops-metric"><span>Verified rent records</span><strong>{data.units.length-rentCounters.needsReview}/{data.units.length}</strong></div></div><section className="panel"><h3>Monthly rent & pool performance</h3><Grid headers={['Month','Pool participants','Contract rent expected','Tenant rent collected','Pending rent','Approved owner allocations','Drafts awaiting approval']} rows={data.periods.map(p=>{const r=tenantRentProgress(data,p.month),m=leasingManagement(data,p.month),records=latest(data,p.month),approved=records.filter(s=>s.status!=='Pending');return [p.month,data.units.filter(u=>isParticipating(data,u,p.month)).length,money(r.expected),money(r.applied),money(m.pending),approved.length?money(approved.reduce((n,s)=>n+s.allocated,0)):'Not approved',records.filter(s=>s.status==='Pending').length];})}/><p className="hint">Contract amounts and applied tenant receipts use the same sources as Leasing and Accounting. Escrow is excluded. Pending rent includes full and partial unpaid monthly amounts; this follow-up list does not invent late fees or contractual due dates. Unapproved assumptions are not income.</p></section><section className="panel"><h3>Units awaiting rent payment · {period}</h3><Grid headers={['Unit','Tenant','Contract rent','Received','Still pending','']} rows={rentManagement.rows.filter(r=>r.pending!==null&&r.pending>0).map(r=>[r.number,r.tenant,money(r.expected!),money(r.collected),money(r.pending!),<button className="text-button" onClick={()=>{setProfileTab('Tenant');setProfileTenant('');setProfileUnit(r.unitId);}}>Tenant / receipts</button>])}/><p>{rentCounters.needsReview} units require contract review and are not treated as paid or zero rent.</p></section></>}
 
 
- {view==='reporting'&&<section className="panel"><h3>Report center</h3><Grid headers={['Report','Contents','']} rows={[
-
- ['Maintenance register','Status, assignments, dates, labor, and materials',<button className="text-button" onClick={workReport}>Export CSV</button>],
-
- ['Unit & pool membership','Permanent IDs and effective monthly participation',<button className="text-button" onClick={()=>exportRows('Membership',[['unit_id','unit','owner','property','pool','month','active'],...data.units.map(u=>[u.id,u.number,owner(ownerAt(data,u.id,period+'-01')),data.properties.find(p=>p.id===u.propertyId)?.name,data.pools.find(p=>p.id===u.poolId)?.name,period,isParticipating(data,u,period)])])}>Export CSV</button>],
-
- ['Rent roll from lease records','Contract rent, tenant, dates, and lease status',<button className="text-button" onClick={()=>exportRows('Lease_Roll',[['unit','tenant','start','end','contract_rent','status'],...ops.leases.map(l=>[number(l.unitId),l.tenant,l.start,l.end,(l.rent/100).toFixed(2),l.status])])}>Export CSV</button>],
-
- ['Leasing pipeline','Prospect stage and scheduled tours',<button className="text-button" onClick={()=>exportRows('Leasing_Pipeline',[['name','email','unit','stage','tour'],...ops.prospects.map(p=>[p.name,p.email,number(p.unitId),p.stage,p.tour])])}>Export CSV</button>],
-
- ['Owner distribution register','Actual rent, pool allocation, charges, balances and status',<button className="text-button" onClick={()=>navigate('overview')}>Open register</button>],
-
- ['Owner statement package','Versioned PDF and supporting invoices / receipts',<button className="text-button" onClick={()=>navigate('statements')}>Open statements</button>],
-
- ['Agency income, payables & QBO exports','Reviewed fee income, vendor/HOA charges, GL mapping and receipt packages',<button className="text-button" onClick={()=>navigate('accounting')}>Open accounting</button>],
-
- ['Audit history','Financial and operational changes',<button className="text-button" onClick={()=>navigate('activity')}>Open history</button>]
-
- ]}/><p className="hint">Reports include all saved records, independently of the on-screen page size. Operating financial statements remain in QuickBooks.</p></section>}
+ {view==='reporting'&&<ReportCenter data={data} period={period} busy={busy||dirty} persist={persist} navigate={navigate} openUnit={id=>{setProfileTab('Unit');setProfileTenant('');setProfileEntry('');setProfileUnit(id);}}/>}
 
  {contactOwner&&<OwnerContactProfile data={data} ownerId={contactOwner} period={period} busy={busy||dirty} close={()=>setContactOwner(null)} openUnit={id=>{setProfileTab('Tenant');setProfileTenant('');setProfileUnit(id);}}/>}
  {profileUnit&&<TenantProfile initialEntry={profileEntry} initialTab={profileTab} initialTenant={profileTenant} onTask={(task,recipient,audience)=>{const id=profileUnit;setProfileUnit(null);if(task==='work'){create('workOrders');setForm((f:any)=>({...f,unitId:id}));}else{create('communications');setForm((f:any)=>({...f,unitId:id,recipient:recipient??'',audience:audience??'Other'}));}}} data={data} period={period} unitId={profileUnit} close={()=>{setProfileUnit(null);setProfileEntry('');}} persist={persist} busy={busy||dirty} openOwner={()=>openUnit(profileUnit)}/>}
@@ -216,3 +199,13 @@ export default function OperationsArea({data,period,view,busy,dirty,persist,navi
  </div>;
 
 }
+
+
+
+
+
+
+
+
+
+
