@@ -34,3 +34,5 @@ check('Bank guidance no longer denies reconciliation availability',()=>{assert(!
 check('Provider guidance does not promise live collection',()=>assert.match(answerGuide('How do I connect an ACH provider?').text,/does not send ACH/));
 check('Scoped roles receive guidance without company financial disclosure',()=>{for(const member of [maintenance,agent]){const a=answerRecords(d,member,'Show unpaid bills','2026-10');assert.equal(a.mode,'Workflow guide');assert(!a.text.includes('$1,000'));}});
 console.log('Expanded accounting assistant checks passed: '+checks);
+check('Mapping guidance explains blocked Save and excludes escrow as income',()=>{const a=answerGuide('Why can I not save GL mapping?');assert.match(a.text,/reviewer/);assert.match(a.text,/escrow bank account cannot/);});
+check('Weather and rental search guidance does not claim embedded AI',()=>{const a=answerGuide('Where is Apartments.com rental search and weather?');assert.match(a.text,/not as an embedded OG AI/);assert.match(a.text,/does not track device location/);});

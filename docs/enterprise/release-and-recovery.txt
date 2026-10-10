@@ -1,0 +1,12 @@
+OG RELEASE AND RECOVERY RUNBOOK
+
+Before edits: create and verify a private development archive. Source backup is not database recovery.
+Before financial migration: verify a managed database restore point, separately back up document objects, retain immutable source evidence and record restore coordinates privately. Database backup does not by itself recover object bytes.
+Staging: use a separate database and synthetic or securely approved/redacted data. Disable live payment/email jobs. Rebuild schema from versioned migrations and reconcile totals before cutover.
+GitHub: pull request/main verification installs lockfile dependencies, runs all tests, type checks and builds production on Node 22. Runs are serialized per branch and superseded runs cancelled. No credentials or backups belong in this public repository.
+GoDaddy: update preview from the verified main SHA, inspect startup/runtime logs, verify login/workspace, mapping, report navigation and weather. Publish only that verified SHA. Record preview/live timestamp and checks in SharePoint.
+Rollback application: redeploy the last known verified commit. Additive indexes can remain; they do not require rollback with the application. Do not roll back financial data by replacing snapshots after subsequent postings.
+Incident: suspend affected outbound workers first, retain logs without secrets, identify tenant scope, compare provider operation IDs and accounting evidence, restore into an isolated environment, reconcile results, then perform a reviewed production recovery.
+Backup gate: measure an actual recovery drill; select approved RPO/RTO and confirm hosting plan supports them. Neither PITR nor disaster recovery was certified in this release.
+Provider gate: credentials, consent and scoped sender/payment/bank permissions must be verified separately. Setup-ready is not connected.
+Regional gate: English/Spanish content, locale/timezone/currency and US/Puerto Rico business rules require dedicated validation; worldwide compatibility is not claimed.

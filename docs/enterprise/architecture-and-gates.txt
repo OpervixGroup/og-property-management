@@ -1,0 +1,33 @@
+OG ENTERPRISE ARCHITECTURE - VERIFIED BASELINE AND RELEASE GATES
+
+Verified source and live metadata, October 10, 2026:
+- Next.js app with Supabase authentication and trusted server-only database access.
+- All 16 app tables have RLS enabled; anon/authenticated/PUBLIC have no application-table grants.
+- og_load_records / og_save_records are SECURITY INVOKER, executable only by postgres/service_role.
+- Save RPC locks a workspace row, checks expected revision and detects a repeated operation before inserting immutable revision history.
+- The HTTP save path enforces a 4,000,000-byte body cap. Whole-company JSON snapshots are not a scalable transaction store for unlimited portfolio growth.
+- Four supporting session/audit indexes installed by the recorded og_session_and_audit_lookup_indexes migration. No financial balances or records were changed.
+- Compromised-password protection is disabled and remains an administrator configuration prerequisite. Do not claim all security findings resolved.
+
+TARGET ARCHITECTURE - NOT YET CUT OVER
+Keep identity/company membership as the authoritative access boundary. Normalize units, parties, leases, ledger books, journal entries/lines, receipts, allocations, payable documents and reconciliation matches with tenant/workspace keys and database constraints. Persist money as integer minor units with explicit currency. Enforce balanced postings in an atomic server transaction, append reversals and audit events instead of rewriting posted history. Add database-unique external operation identifiers.
+Use a transaction/outbox boundary for provider calls: commit intent, dispatch through queue workers, verify signed webhooks, deduplicate event IDs and reconcile provider results. Never infer successful payment from UI state.
+Paginate tenant-scoped queries, index tenant plus common date/status filters, and keep public weather/search independent of private tenant data. Avoid global searches via service-role credentials without explicit authorized scope.
+Migrate by expand/backfill/verify/dual-read/controlled-cutover, retaining previous immutable evidence. Never replace current snapshot storage until totals, ownership, IDs and application behavior reconcile in staging.
+
+MEASURABLE GATES
+Planning scenarios: 10k, 50k, 100k units; 100, 500, 1000 client organizations; 50, 250, 1000 concurrent users. These are hypothetical scenarios, not passed benchmarks.
+Agree real workload and service objectives first. Proposed targets for review: p95 interactive reads under 1 second; p95 posting under 2 seconds; zero lost/duplicated postings; zero cross-tenant access. Measure p99, conflict rate, queue delay, database CPU/IO and storage growth.
+Run realistic dataset tests, concurrent posting/retry tests, restoration drills and third-party outage tests. A successful CI build does not prove these targets.
+Production portfolio expansion is gated on measured capacity and restoration evidence, not annual revenue alone.
+
+SAFE RELEASE SCOPE
+Accounting mapping guidance, external rental search, selected-city official forecasts, repeat-safe supporting indexes and release verification workflow. Native records remain on the existing storage path.
+Full normalized storage, provider-backed payments/email, staging cutover and enterprise capacity certification are NOT delivered by this release.
+
+REFERENCES
+https://supabase.com/docs/guides/platform/backups
+https://supabase.com/docs/guides/database/postgres/row-level-security
+https://www.postgresql.org/docs/current/transaction-iso.html
+https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
+https://www.weather.gov/documentation/services-web-api

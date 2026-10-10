@@ -5,6 +5,7 @@ export type GLAccount={key:string;number:string;name:string;type:string;detail:s
 export type GLChart={id:string;company:string;fileName:string;hash:string;source:string;created:string;accounts:GLAccount[]};
 export const GL_ROLES=['Owner pool operating','Owner escrow','DLA operating','DLA management income','DLA maintenance income','Owner management expense','Owner maintenance expense','Pool electricity expense'] as const;
 export type GLRole=typeof GL_ROLES[number];
+export function compatibleGLAccount(role:GLRole,account:GLAccount){const type=account.type.toLowerCase();if(!account.active)return false;if(role.includes('income'))return ['income','other income'].includes(type);if(role.includes('expense'))return ['expense','expenses','other expense','other expenses'].includes(type);return type==='bank';}
 export type GLMapping={id:string;chartId:string;accountKey:string;role:GLRole;from:string;reviewer:string;source:string;created:string};
 export type GLControls={charts:GLChart[];mappings:GLMapping[]};
 function rows(text:string){const result:string[][]=[];let row:string[]=[],v='',q=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(q&&text[i+1]==='"'){v+='"';i++;}else q=!q;}else if(c===','&&!q){row.push(v);v='';}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&text[i+1]==='\n')i++;row.push(v);if(row.some(v=>v.trim()))result.push(row);row=[];v='';}else v+=c;}if(q)throw Error('Unclosed chart CSV quote');row.push(v);if(row.some(v=>v.trim()))result.push(row);return result;}
