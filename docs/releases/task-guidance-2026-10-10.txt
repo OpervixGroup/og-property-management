@@ -1,0 +1,10 @@
+OG task guidance — October 10, 2026
+
+Shared workspace task panels now explain each main module's purpose and link to company setup/connections. Current-page shortcuts are omitted so a next-step button does not simply reopen the same workspace. Planned modules remain honestly described.
+Accounting suggests the following page in the existing section order and puts other section pages in a disclosure. It retains exception/report/monthly-close links; sequence is suggested navigation, not certified completion or an automated accounting decision.
+Leasing adds stage-specific instructions for availability, guest records, applications, leases, renewals and metrics. Empty states explain that filters may hide existing records.
+Account setup has four saved-state tasks: profiles, independent opening evidence, verified book links, source/activity review. Manual Pool Rent bank details are optional. Pool Rent appears in the filter for pool clients. Assistant procedures match the new guidance.
+No financial rules, database writes, provider permissions or posting behavior were changed. No production records were edited. Tasks navigate or open forms; a user must explicitly review and save the appropriate record.
+
+Verification: local type check passed; accounting-workspace and leasing-workflow regression tests passed. Existing bank connection/source tests passed. Smart assistant tests passed. Local production builds were blocked twice by Windows EPERM when creating the output api directory, including in an isolated output folder. Interactive browser verification and a clean production build remain required before deployment. No GoDaddy publishing performed.
+This is a shared task-panel improvement, not proof that every feature or provider is production-ready. Full account verification and real reconciliation remain separate launch gates.

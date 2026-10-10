@@ -1,0 +1,7 @@
+Guided account setup — October 10, 2026
+
+Bank account setup now shows four tasks: choose profiles, review independent openings, link verified books, review activity before reconciliation. Task counts reflect saved configuration, not certified accuracy. Buttons open configuration or review pages; they never save or post automatically.
+Pool Rent is available in the account filter for pool clients. Manual Pool Rent cards clarify optional bank details. The setup dialog separates account details from the optional accounting link and explains that income allocation alone is not a cash account.
+Validation, original opening requirements, role restrictions and append-only setup history remain unchanged. No production data was changed.
+Scope: account setup only. This is an incremental start toward a unified configuration/task experience; other modules have not been redesigned in this release.
+Local type checking and accounting connection tests are recorded separately. Browser QA and production build must be completed before publication. Changes are local until an explicitly verified release is prepared.
