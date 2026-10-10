@@ -1,17 +1,19 @@
 import type {Data} from './pool';
+import {tenantSourceReferences} from './receivables-ledger';
 import {native,bookChart,ledgerMovements,validateNativeAccounting,type LedgerEntry} from './native-accounting';
+function sourceReferences(d:Data,e:LedgerEntry){const link=d.accounting?.tenantLedgerLinks?.find(l=>l.ledgerEntryId===e.id);return [e.reference.trim().toLowerCase(),...(link?tenantSourceReferences(d,link.entryId):[])];}
 
 export function statementMatchCandidates(d:Data,input:{bookId:string;bankKey:string;reference:string;cents:number;through:string;excluded:string[]}){
  const cleared=new Set(native(d).reconciliations.filter(r=>r.bookId===input.bookId&&r.accountKey===input.bankKey).flatMap(r=>r.rows.flatMap(row=>row.entryIds)));
  const candidates=ledgerMovements(d,input.bookId,input.bankKey).filter(x=>x.entry.date<=input.through&&x.cents===input.cents&&!cleared.has(x.entry.id)&&!input.excluded.includes(x.entry.id));
- const exact=candidates.filter(x=>x.entry.reference.trim().toLowerCase()===input.reference.trim().toLowerCase());
+ const exact=candidates.filter(x=>sourceReferences(d,x.entry).includes(input.reference.trim().toLowerCase()));
  return exact.length?exact:candidates;
 }
 
 export function manualPostingStatus(d:Data,sourceId:string,bookId:string,bankKey:string,through:string){
  const source=d.accounting?.cashPlanning?.manualEntries?.find(e=>e.id===sourceId);
  if(!source||!['Payment','Deposit'].includes(source.kind))return {status:'Unavailable',entry:undefined as LedgerEntry|undefined,candidates:[] as LedgerEntry[]};
- const candidates=native(d).entries.filter(e=>e.bookId===bookId&&e.reference.trim().toLowerCase()===source.reference.trim().toLowerCase()&&e.lines.some(l=>l.accountKey===bankKey));
+ const candidates=native(d).entries.filter(e=>e.bookId===bookId&&sourceReferences(d,e).includes(source.reference.trim().toLowerCase())&&e.lines.some(l=>l.accountKey===bankKey));
  const entry=native(d).entries.find(e=>e.bookId===bookId&&e.sourceSystem==='OG manual bank'&&e.externalId===source.id);
  const cleared=entry&&native(d).reconciliations.some(r=>r.bookId===bookId&&r.accountKey===bankKey&&r.end<=through&&r.rows.some(row=>row.entryIds.includes(entry.id)));
  const reversed=entry&&native(d).entries.some(e=>e.reverses===entry.id&&e.date<=through);
@@ -33,6 +35,7 @@ export function postManualBankActivity(d:Data,input:{sourceId:string;bookId:stri
  const next=structuredClone(d),ledger=next.accounting!.native!,payment=source.kind==='Payment',memo=source.payee+' · '+source.kind+' · '+source.account;
  ledger.entries.push({id:crypto.randomUUID(),bookId:book.id,date:source.date,reference:source.reference,memo,reviewer:input.reviewer.trim(),created:new Date().toISOString(),reverses:'',recurringId:'',sourceSystem:'OG manual bank',externalId:source.id,lines:[{accountKey:counter.key,debit:payment?source.cents:0,credit:payment?0:source.cents,unitId:'',memo},{accountKey:bank.key,debit:payment?0:source.cents,credit:payment?source.cents:0,unitId:'',memo}]});
  validateNativeAccounting(next,d);
+ validateManualBankPostings(next,d);
  return next;
 }
 
@@ -43,6 +46,7 @@ export function validateManualBankPostings(d:Data,old?:Data){
   const banks=entry.lines.filter(l=>chart?.accounts.find(a=>a.key===l.accountKey)?.type.toLowerCase()==='bank');
   if(!source||!['Payment','Deposit'].includes(source.kind)||!book||source.date<=book.openingDate||entry.date!==source.date||entry.reference!==source.reference||entry.reverses||entry.recurringId||entry.lines.length!==2||banks.length!==1||banks[0].debit-banks[0].credit!==(source.kind==='Payment'?-source.cents:source.cents))throw Error('Manual bank posting must preserve the verified source date, reference and amount');
   if(!old?.accounting?.native?.entries.some(e=>e.id===entry.id)){
+   if(native(d).entries.some(e=>e.id!==entry.id&&e.bookId===book.id&&e.lines.some(l=>l.accountKey===banks[0].accountKey)&&sourceReferences(d,e).includes(source.reference.trim().toLowerCase())))throw Error('Bank activity is already posted through another source; link the original ledger entry');
    const role=source.account==='Escrow'?'Owner escrow':source.account==='Owners pool operating'?'Owner pool operating':'DLA operating';
    const mapping=d.glControls?.mappings.filter(m=>m.chartId===book.chartId&&m.role===role&&m.from<=source.date.slice(0,7)).at(-1);
    if(!mapping||mapping.accountKey!==banks[0].accountKey)throw Error('Review the dated source-bank GL mapping before posting to this bank');

@@ -3,21 +3,23 @@ import {canonicalRecord} from './workflow-controls';
 import {incomeRows} from './accounting-model';
 import {cashAccounts,manualBankBalance} from './cash-planning';
 import {latest} from './pool';
+import {native,bookChart} from './native-accounting';
+import {payables,payableState} from './payables-ledger';
 
 export const accountingSections=['Receivables','Payables','Financial accounts','Journal entries','Bank transfers','GL accounts','Diagnostics','Online payments','Monthly close'] as const;
 export type AccountingSection=typeof accountingSections[number];
 export const accountingPages:Record<AccountingSection,string[]>={
- Receivables:['Tenant rent','Rent reconciliation','Receipts & charges','QBO receipt imports','Escrow'],
- Payables:['Agency income & payables','Supplier invoice imports','Procurement & inventory','Payment posting review'],
- 'Financial accounts':['Bank balances & checks','Payment posting review','Statement reconciliation'],
- 'Journal entries':['Native ledger','Recurring journals','Journal register'],
- 'Bank transfers':['Transfer register'],
+ Receivables:['Tenant ledger posting','Tenant rent','Rent reconciliation','Receipts & charges','QBO receipt imports','Escrow'],
+ Payables:['Bills & credits','Bulk bill entry & approval','Recorded bill settlement','Recurring bills & credits','Agency income & payables','Supplier invoice imports','Procurement & inventory','Payment posting review'],
+ 'Financial accounts':['Financial account overview','Bank balances & checks','Payment posting review','Statement reconciliation','Company accounting reports'],
+ 'Journal entries':['Native ledger','Recurring journals','Journal entry batches','Journal register','Company accounting reports'],
+ 'Bank transfers':['Completed bank transfers','Transfer register'],
  'GL accounts':['Chart & mapping','QBO exports','QBO connection'],
  Diagnostics:['Review exceptions'],
  'Online payments':['Provider setup','Payment availability'],
  'Monthly close':['Pool allocation & contracts','Owner bills & monthly close']
 };
-export const accountingDescriptions:Record<AccountingSection,string>={Receivables:'Review charges, receipts and tenant balances.',Payables:'Review supplier charges, supporting documents and accounting treatment.','Financial accounts':'Review bank balances, reconcile statements and manage check capacity.','Journal entries':'Post and review native journals, recurring templates and external evidence.','Bank transfers':'Retain evidence of transfers completed outside OG.','GL accounts':'Review your company chart, account mapping and QuickBooks exchange.',Diagnostics:'Find exceptions and open the records that need attention.','Online payments':'Review collection availability and recorded receipt activity.','Monthly close':'Review allocations, owner packets and monthly closing controls.'};
+export const accountingDescriptions:Record<AccountingSection,string>={Receivables:'Review charges, receipts and tenant balances.',Payables:'Review supplier charges, supporting documents and accounting treatment.','Financial accounts':'Review bank balances, reconcile statements and manage check capacity.','Journal entries':'Post and review native journals, recurring templates and external evidence.','Bank transfers':'Review completed transfers, post both bank sides and reconcile each account.','GL accounts':'Review your company chart, account mapping and QuickBooks exchange.',Diagnostics:'Find exceptions and open the records that need attention.','Online payments':'Review collection availability and recorded receipt activity.','Monthly close':'Review allocations, owner packets and monthly closing controls.'};
 export type JournalRecord={id:string;date:string;reference:string;system:string;company:string;externalId:string;chartId:string;memo:string;reviewer:string;created:string;lines:{accountKey:string;debit:number;credit:number;unitId:string;memo:string}[]};
 export type TransferRecord={id:string;date:string;reference:string;system:string;company:string;externalId:string;chartId:string;fromKey:string;toKey:string;cents:number;outReference:string;inReference:string;reviewer:string;created:string};
 function text(v:unknown,max=500):v is string{return typeof v==='string'&&!!v.trim()&&v.length<=max;}
@@ -69,5 +71,12 @@ export function accountingDiagnostics(d:Data,period:string):AccountingException[
  for(const account of cashAccounts){const planning=d.accounting?.cashPlanning;const b=manualBankBalance(planning?{...planning,manualEntries:(planning.manualEntries??[]).filter(e=>e.date.slice(0,7)<=period)}:undefined,account);add('bank:'+account,account+' balance review',b.difference===0?0:1,b.difference===null?'Starting posted balance or bank snapshot is missing.':'Recorded bank and posted amounts differ. Matching amounts alone do not certify bank reconciliation.','Financial accounts','Bank balances & checks');}
  const deposits=(d.accounting?.deposits??[]).filter(e=>e.date.slice(0,7)<=period),tenantIds=(d.operations?.tenants??[]).map(t=>t.id),negative=tenantIds.filter(id=>deposits.filter(e=>e.tenantId===id&&e.approved).reduce((n,e)=>n+(e.kind==='Received'?e.cents:-e.cents),0)<0).length;
  add('escrow','Negative deposit liabilities',negative,'Review original deposit, refund and deduction evidence.','Receivables','Escrow');
+ const end=new Date(Date.UTC(Number(period.slice(0,4)),Number(period.slice(5)),0)).toISOString().slice(0,10),p=payables(d),documents=p.documents.filter(r=>r.date<=end);
+ add('payable-approval','Payables awaiting approval or posting',documents.filter(r=>['Pending approval','On hold','Approved'].includes(payableState(d,r,end).status)).length,'Review the original itemized bill, approval decision and liability posting.','Payables','Bills & credits');
+ add('payable-overdue','Overdue posted supplier bills',documents.filter(r=>r.kind==='Bill'&&r.due<end&&['Open','Partially settled'].includes(payableState(d,r,end).status)).length,'Review the supplier balance and existing payment before applying settlement.','Payables','Recorded bill settlement');
+ add('payable-reversed','Reversed payable postings',documents.filter(r=>payableState(d,r,end).status==='Posting reversed — review').length,'Review the original source and correction; no payment should be applied to a reversed liability.','Payables','Bills & credits');
+ add('native-books','Company ledger opening review',native(d).books.length?0:1,'Initialize verified company opening balances to use native reports and statement reconciliation.','Journal entries','Native ledger');
+ let stale=0;for(const b of native(d).books)for(const bank of bookChart(d,b.id)?.accounts.filter(a=>a.active&&a.type.toLowerCase()==='bank')??[]){const last=native(d).reconciliations.filter(r=>r.bookId===b.id&&r.accountKey===bank.key&&r.end<=end).at(-1)?.end??b.openingDate;if(Date.parse(end+'T12:00:00Z')-Date.parse(last+'T12:00:00Z')>60*86400000)stale++;}
+ add('reconciliation-lapse','Bank reconciliations overdue by more than 60 days',stale,'Review each bank and carry forward its verified statement closing balance. Future statements do not clear historical exceptions.','Financial accounts','Statement reconciliation');
  return results;
 }

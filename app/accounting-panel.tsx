@@ -1,6 +1,10 @@
 'use client';
 import RentReconciliation from './rent-reconciliation';
 import AccountingConnections from './accounting-connections';
+import AccountingTools from './accounting-tools';
+import PayablesLedger from './payables-ledger';
+import PayableBatch from './payable-batch';
+import ReceivablesLedger from './receivables-ledger';
 import NativeAccountingPanel from './native-accounting';
 import AccountingRegisters from './accounting-registers';
 import {ArrowRight} from 'lucide-react';
@@ -45,6 +49,10 @@ export default function AccountingPanel({data,period,busy,persist,navigate,openU
  const step=accountingSections.indexOf(section),exceptions=accountingDiagnostics(data,period);
  return <div className="accounting-workspace"><nav className="leasing-stages accounting-stages" aria-label="Accounting workflow">{accountingSections.map((s,i)=><button key={s} className={s===section?'active':'secondary'} aria-current={s===section?'page':undefined} onClick={()=>chooseSection(s)}><span>{i+1}</span>{s}</button>)}</nav><section className="leasing-hero"><div><p className="eyebrow">ACCOUNTING · {period} · STEP {step+1} OF {accountingSections.length}</p><h2>{section}</h2><p>{accountingDescriptions[section]}</p></div><div className="leasing-step-controls"><button className="secondary" disabled={step===0} onClick={()=>chooseSection(accountingSections[step-1])}>Previous step</button><button disabled={step===accountingSections.length-1} onClick={()=>chooseSection(accountingSections[step+1])}>Next step<ArrowRight size={16}/></button></div></section>{accountingPages[section].length>1&&<nav className="people-tabs" aria-label={section+' pages'}>{accountingPages[section].map(t=><button key={t} aria-current={tab===t?'page':undefined} className={tab===t?'selected':''} onClick={()=>setTab(t)}>{t==='Invoices & Received Payments Current Month'?'Supplier invoice imports':t==='Agency income & payables'?'Bills & expense review':t==='Pool allocation & contracts'?'Allocation & contracts':t==='Owner bills & monthly close'?'Owner bills & close':t}</button>)}</nav>}
  <div className="accounting-columns"><div className="accounting-main" aria-label={tab}>
+ {tab==='Tenant ledger posting'&&<ReceivablesLedger data={data} period={period} busy={busy} persist={persist} openUnit={openUnit} openTenant={openTenant} initialBook={accountingContext.bookId} onPage={(page,context)=>{setAccountingContext(context);setTab(page);}}/>}
+ {tab==='Bulk bill entry & approval'&&<PayableBatch data={data} period={period} busy={busy} persist={persist} openUnit={openUnit} initialBook={accountingContext.bookId} onPage={(page,context)=>{setAccountingContext(context);setTab(page);}}/>}
+ {['Bills & credits','Recorded bill settlement','Recurring bills & credits'].includes(tab)&&<PayablesLedger key={tab} data={data} period={period} busy={busy} persist={persist} openUnit={openUnit} initialBook={accountingContext.bookId} mode={tab==='Bills & credits'?'bills':tab==='Recorded bill settlement'?'payments':'recurring'} onPage={(page,context)=>{setAccountingContext(context);setTab(page);}}/>}
+ {['Completed bank transfers','Journal entry batches','Company accounting reports','Financial account overview'].includes(tab)&&<AccountingTools key={tab} data={data} period={period} busy={busy} persist={persist} openUnit={openUnit} initialBook={accountingContext.bookId} mode={tab==='Completed bank transfers'?'transfers':tab==='Journal entry batches'?'batches':tab==='Financial account overview'?'accounts':'reports'} onPage={(page,context)=>{setAccountingContext(context);setTab(page);}}/>}
  {tab==='Payment posting review'&&<AccountingConnections data={data} period={period} busy={busy} persist={persist} onPage={(page,context)=>{setAccountingContext(context);setTab(page);}}/>}
  {(['Native ledger','Recurring journals','Statement reconciliation','Provider setup'].includes(tab))&&<NativeAccountingPanel key={tab} data={data} period={period} busy={busy} persist={persist} openUnit={openUnit} initialBook={accountingContext.bookId} initialBank={accountingContext.bankKey} mode={tab==='Native ledger'?'ledger':tab==='Recurring journals'?'recurring':tab==='Statement reconciliation'?'reconciliation':'payments'}/>}
  {tab==='Chart & mapping'&&<GLMapping data={data} period={period} busy={busy} persist={persist}/>}

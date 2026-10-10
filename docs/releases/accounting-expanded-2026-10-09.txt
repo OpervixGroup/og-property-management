@@ -1,0 +1,27 @@
+OG ACCOUNTING EXPANSION — 2026-10-09
+
+Scope: core manual accounting workflows, not full AppFolio parity.
+
+Implemented:
+1. Itemized supplier bills and credits, service dates, original source references, immutable approval history, liability posting, and recorded-payment/credit applications.
+2. Bulk bill/credit CSV import with atomic validation, account/unit resolution, duplicate checks, itemized previews and selected-document approval.
+3. Monthly recurring bill/credit templates, pause/resume history, one preparation per template/month, separate approval and posting. The UI defaults to next month and clears prior invoice service dates.
+4. Existing tenant charge/receipt/credit source posting to company AR/income/bank accounts. Exact matching existing journal entries can be linked without new bank postings. Source amount/date/unit/reference remain locked.
+5. Verified completed bank transfer posting with two bank sides and separate reconciliation navigation. No actual money transfer.
+6. Balanced journal CSV batch preview and atomic posting with duplicate, company, account, unit and closed-period guards.
+7. Native trial balance, balance sheet, income statement, GL, bank activity, check/withdrawal register, deposit register and journal register with CSV/PDF exports and account/entry drilldowns.
+8. Company financial-account overview, source-to-bank reference matching, payables exceptions and monthly-close controls.
+
+Browser QA used synthetic in-memory records only: itemized bill approval/posting and $40 partial settlement of a $100 bill; linking an existing $40 tenant receipt without another deposit; completed $25 transfer; balanced $10 journal batch; recurring template creation; bulk two-line $50 bill import and approval. Trial balance debit/credit totals matched with zero difference. Temporary QA routes are removed before release.
+
+Reviewed reference applications: AppFolio Devonshire Condominiums HOA and QBO Devonshire Leasing Agency Inc. These are different company contexts. No AppFolio financial records were copied into OG and no external accounting/payment records were changed.
+
+Remaining AppFolio parity work:
+- Native homeowner/owner/vendor/other receipts and charges, subsidy/application-fee flows, bulk/common charges, late fees and lockbox/debt-collection integrations.
+- Imported supplier-document conversion into native AP with source linkage; Smart Bill/OCR, board-specific approvals, management-fee/owner-draw batches, loan schedules and loan servicing.
+- Grouped bank deposit workflow, credit-card account reconciliation, live bank feeds/rules and bank authorization lifecycle.
+- Gross potential rent posting, advanced account map/GL permissions and specialized security deposit/prepayment diagnostics.
+- Provider-specific ACH/card collection, eCheck fees and live online bank authorization. Provider selection/connection is deferred by the user.
+- Advanced reports, tax/1099 workflows and automatic external-system synchronization.
+
+Financial limits: existing source registers are evidence unless explicitly posted to the native company ledger; reports label that scope. Importing/approving documents does not issue checks, transfer money, or charge ACH/cards. Production use still requires verified company opening balances and reviewed account mapping.
