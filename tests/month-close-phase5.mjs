@@ -30,3 +30,5 @@ await check('Manual repair requires supporting invoice; generated labor/material
 await check('Outside-month distribution is flagged before close',()=>{const d=settled();d.statements[0].paidDate='2026-11-01';assert(closeReview(d,'2026-10').blockers.some(b=>b.includes('outside')));});
 await check('Raw payload cannot bypass normalized receipt reference or recorded contribution totals',()=>{const d=negative(),old=structuredClone(d);recordContribution(d,d.statements[0].id,100,'2026-10-04','OWNER-1','QA');const n=structuredClone(d);n.closeControls.contributions[0].reference=' OWNER-1 ';assert.throws(()=>validateClose(old,n),/Invalid/);n.closeControls.contributions[0].reference='OWNER-1';n.closeControls.contributions[0].cents=30000;assert.throws(()=>validateClose(old,n),/exceeds/);});
 console.log('Phase 5 monthly close QA: '+checks+' scenarios passed.');
+
+await import('./draft-month-opening.mjs');
