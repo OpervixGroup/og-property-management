@@ -51,3 +51,5 @@ check('Direct market CPS expenses survive shared-electric recalculation',()=>{co
 check('Private 1315 HOA agreement updates its through-1607 line once',()=>{const d=structuredClone(base);d.accounting.contracts.push({id:'private-hoa',unitId:'unit-1315',from:period,managementKind:'Fixed',management:0,maintenance:0,hoa:28100,source:'Private HOA agreement',reviewer:'QA'});const st=latest(d,period).find(s=>s.unitId==='unit-1607');applyContracts(d,st);assert.equal(st.expenses.filter(e=>e.linkedUnitId==='unit-1315').length,1);assert.equal(st.expenses.find(e=>e.linkedUnitId==='unit-1315').cents,28100);assert.equal(st.expenses.filter(e=>e.gl==='80000').reduce((n,e)=>n+e.cents,0),60000);});
 check('Whitespace preserves negative money signs and CPS rejects negative inputs',()=>{assert.equal(cents(' -1.00 '),-100);assert.equal(cents(' 1.00 '),100);assert.throws(()=>calculatePool(base,{...inputs,bills:[{unitId:u2.id,cents:cents(' -1.00 '),reference:'negative'}]}),/nonnegative/);});
 console.log(count+' Phase 3 scenarios passed');
+
+await import('./monthly-type-pool.mjs');
