@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {fixture} from './model-loader.mjs';
+const d=await fixture();
+const {suggestBill,smartBillDuplicates}=await import('./.mock-runtime/smart-bill.mjs');
+const s=suggestBill('Vendor: Synthetic Repair LLC\nInvoice #: INV-42\nInvoice Date: 10/15/2026\nDue Date: 2026-10-30\nSubtotal: 100.00\nGrand Total: $1,234.56\nAccount Number: TEST-ONLY');
+assert.equal(s.payee,'Synthetic Repair LLC');assert.equal(s.reference,'INV-42');assert.equal(s.date,'2026-10-15');assert.equal(s.due,'2026-10-30');assert.equal(s.total,'1234.56');assert.match(s.memo,/TEST-ONLY/);
+assert.equal(suggestBill('Invoice Date: 02/30/2026\nBalance due 500').date,'');assert.equal(suggestBill('Subtotal: 55.00').total,'');assert.throws(()=>suggestBill('x'.repeat(200001)),/exceeds/);
+d.accounting={payablesLedger:{documents:[{id:'a',bookId:'b',payee:'Synthetic Repair LLC',reference:'INV-42',source:'Smart Bill SHA256 '+'a'.repeat(64),lines:[{cents:123456}]}]}};
+assert.equal(smartBillDuplicates(d,'b','Synthetic Repair LLC','INV42',0,'').length,1);
+assert.equal(smartBillDuplicates(d,'b','Synthetic Repair LLC','other',123456,'').length,1);
+assert.equal(smartBillDuplicates(d,'b','other','other',1,'a'.repeat(64)).length,1);
+assert.equal(smartBillDuplicates(d,'another','Synthetic Repair LLC','INV42',123456,'a'.repeat(64)).length,0);
+console.log('PASS conservative Smart Bill suggestions, invalid dates, missing totals, limits and company-scoped duplicate warnings');

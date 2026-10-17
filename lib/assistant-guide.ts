@@ -14,6 +14,7 @@ export const quickQuestions:Record<string,string[]>={
 function guide(id:string,intro=''):GuideAnswer{const g=workflowGuides.find(g=>g.id===id)!;return {text:(intro?intro+'\n\n':'')+g.location+'\n\n'+g.purpose+'\n\n'+g.steps.map((s,i)=>(i+1)+'. '+s).join('\n')+'\n\n'+g.note,guideIds:[id],questions:quickQuestions[id]??['Walk me through '+g.title,'What needs review this month?']};}
 export function answerGuide(question:string,context='home'):GuideAnswer{
  const q=question.trim().toLowerCase();
+ if(/smart.?bill|read.*invoice|scan.*invoice/.test(q))return guide('smart-bill-entry');
  if(/subscription|billable units|software invoice|cancel.*portal|restart.*subscription/.test(q))return guide('subscription-help');
  if(/backup|recovery drill|restore.*workspace/.test(q))return guide('backup-help');
  if(/reset.*password|forgot.*password|platform.*admin|super admin/.test(q))return guide('account-access-help');

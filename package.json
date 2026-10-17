@@ -3,13 +3,13 @@
   "version": "26.9.3",
   "private": true,
   "engines": {
-    "node": "22.x"
+    "node": ">=22.13.0 <23"
   },
   "scripts": {
     "dev": "next dev --webpack",
     "build": "node scripts/build-node.mjs",
     "start": "next start",
-    "test": "node tests/printing.mjs && node tests/printing-server.mjs && node tests/run.mjs && node tests/access-policy.mjs && node tests/workflow-foundation.mjs && node tests/tenancy-phase2.mjs && node tests/pool-finance-phase3.mjs && node tests/maintenance-phase4.mjs && node tests/month-close-phase5.mjs && node tests/integrations-phase6.mjs && node tests/work-mail-server.mjs && node tests/smart-assistant.mjs && node tests/qbo-exchange.mjs && node tests/qbo-server.mjs && node tests/rent-progress.mjs && node tests/leasing-management.mjs && node tests/leasing-workflow.mjs && node tests/leasing-services.mjs && node tests/company-sessions.mjs && node tests/platform-billing.mjs && node tests/subscription-server.mjs && node tests/subscription-reconciliation.mjs && node tests/subscription-invoice.mjs && node tests/password-recovery.mjs && node tests/support-server.mjs && node tests/cash-planning.mjs && node tests/manual-bank.mjs && node tests/accounting-workspace.mjs && node tests/accounting-connections.mjs && node tests/accounting-tools.mjs && node tests/payables-ledger.mjs && node tests/receivables-ledger.mjs && node tests/native-accounting.mjs && node tests/pool-assumption.mjs && node tests/invoice-import.mjs && node tests/rent-master.mjs && node tests/pool-projection.mjs && node tests/contract-pool-forecast.mjs && node tests/owner-run.mjs && node tests/owner-run-server.mjs && node tests/public-market.mjs && node tests/public-weather.mjs && node tests/hoa-directory.mjs && node tests/rent-reconciliation.mjs && node tests/report-center.mjs && node tests/report-advanced.mjs && node tests/release-foundation.mjs && node tests/bank-workflow.mjs && node tests/accounting-storage.mjs",
+    "test": "node tests/printing.mjs && node tests/printing-server.mjs && node tests/run.mjs && node tests/access-policy.mjs && node tests/workflow-foundation.mjs && node tests/tenancy-phase2.mjs && node tests/pool-finance-phase3.mjs && node tests/maintenance-phase4.mjs && node tests/month-close-phase5.mjs && node tests/integrations-phase6.mjs && node tests/work-mail-server.mjs && node tests/smart-assistant.mjs && node tests/qbo-exchange.mjs && node tests/qbo-server.mjs && node tests/rent-progress.mjs && node tests/leasing-management.mjs && node tests/leasing-workflow.mjs && node tests/leasing-services.mjs && node tests/company-sessions.mjs && node tests/platform-billing.mjs && node tests/subscription-server.mjs && node tests/subscription-reconciliation.mjs && node tests/subscription-invoice.mjs && node tests/password-recovery.mjs && node tests/support-server.mjs && node tests/cash-planning.mjs && node tests/manual-bank.mjs && node tests/accounting-workspace.mjs && node tests/accounting-connections.mjs && node tests/accounting-tools.mjs && node tests/payables-ledger.mjs && node tests/receivables-ledger.mjs && node tests/native-accounting.mjs && node tests/pool-assumption.mjs && node tests/invoice-import.mjs && node tests/rent-master.mjs && node tests/pool-projection.mjs && node tests/contract-pool-forecast.mjs && node tests/owner-run.mjs && node tests/owner-run-server.mjs && node tests/public-market.mjs && node tests/public-weather.mjs && node tests/hoa-directory.mjs && node tests/rent-reconciliation.mjs && node tests/report-center.mjs && node tests/report-advanced.mjs && node tests/release-foundation.mjs && node tests/bank-workflow.mjs && node tests/accounting-storage.mjs && node tests/smart-bill.mjs",
     "test:owner-controls": "node tests/owner-run.mjs && node tests/owner-run-server.mjs && node tests/public-market.mjs",
     "typecheck": "tsc --noEmit"
   },
@@ -35,6 +35,7 @@
     "next": "16.3.4",
     "next-themes": "^0.4.6",
     "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "6.4.299",
     "radix-ui": "^1.6.7",
     "react": "19.2.6",
     "react-day-picker": "^10.0.1",
@@ -45,6 +46,7 @@
     "sonner": "^2.0.8",
     "tailwind-merge": "3.6.0",
     "tailwindcss": "4.2.1",
+    "tesseract.js": "7.0.0",
     "tw-animate-css": "^1.4.0",
     "typescript": "5.9.3",
     "vaul": "^1.1.2",
@@ -61,5 +63,3 @@
   "type": "module",
   "packageManager": "npm@11.6.2"
 }
-
-

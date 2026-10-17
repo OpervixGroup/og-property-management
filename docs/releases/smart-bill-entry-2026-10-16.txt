@@ -1,0 +1,25 @@
+OG Smart Bill Entry — October 16, 2026
+Location: Accounting > Payables > Smart Bill Entry.
+
+Workflow:
+1. Choose verified company books. Upload one original PDF/JPG/PNG up to 10 MB.
+2. Text PDFs (up to 30 pages) supply conservative field suggestions. For scanned PDFs (up to 10 pages) and images (up to 20 megapixels), choose English or Spanish and run OCR. First OCR run downloads versioned Tesseract engine/language assets from public CDNs. Contents are processed locally. Blocked CDNs or unavailable OCR allow manual entry.
+3. Check vendor, invoice reference, actual dates, USD total, original unpaid status and existing QBO records. Enter line descriptions, GL, service dates and optional unit allocations. Split totals must match exactly. No automatic GL coding or vendor creation.
+4. Resolve possible duplicate warnings. Enter reviewer and confirm review. Save once for approval.
+5. The original attaches through OG private document storage, with server-side SHA-256 matching. If attachment fails, the bill remains pending and the screen offers retry. The inbox allows exact-original recovery after refresh without another bill.
+6. Bills & credits / Bulk bill entry & approval handle separate approval and liability posting. Existing payment settlement remains separate; no money or QBO transaction is created by Smart Bill saving.
+
+Controls:
+Existing payable validation, immutable documents, company books and open period checks remain enforced. Original checksum duplicates are rejected on the server/model even with a changed reference. Restricted document access requires every bill line to belong to the user’s allowed units; mixed/company-wide bills stay restricted. No database migration, public bucket or permission expansion.
+
+Differences from AppFolio:
+AppFolio live Smart Bill queue reviewed read-only, including PDF/JPEG/PNG intake, property/vendor/uploader filters, email intake and settings links. OG currently handles one invoice at a time, locally extracts/OCRs suggestions, supports GL/unit splits and sends reviewed drafts into existing approvals. Email ingestion, learned/predictive coding, unattended bulk intake and automatic payment services are not implemented. Do not advertise full AppFolio parity.
+
+Dependencies:
+PDF.js pdfjs-dist 6.4.299 and Tesseract.js 7.0.0 pinned with lockfile. Node 22.13+ within Node 22 required. Normalized English/Spanish date suggestion formats: YYYY-MM-DD and MM/DD/YYYY; all other formats require review/manual correction.
+
+Verification:
+Synthetic PDF text extraction and OCR both read supplier, invoice number, dates and $125.00 total. Browser review reset after split changes, save-to-pending and attachment failure recovery verified with synthetic local state only. No production bills or external invoices changed. Model tests cover missing/invalid fields, date validation, exact file duplicate prevention, company-scoped duplicate warnings, payable approval/posting/settlement and restricted document scope. Private cloud attachment delivery still needs a signed-in preview smoke test after deployment; local development API intentionally rejected an unconfigured origin.
+
+Publishing:
+After GitHub release checks pass: GoDaddy Update Preview, test a disposable unpaid invoice in a test workspace, verify original attachment/download and separate approval, then Publish. No GoDaddy publishing performed by the agent.

@@ -10,7 +10,7 @@ export const accountingSections=['Receivables','Payables','Financial accounts','
 export type AccountingSection=typeof accountingSections[number];
 export const accountingPages:Record<AccountingSection,string[]>={
  Receivables:['Additional receipt types','Tenant ledger posting','Tenant rent','Rent reconciliation','Receipts & charges','QBO receipt imports','Escrow'],
- Payables:['Bills & credits','Bulk bill entry & approval','Recorded bill settlement','Recurring bills & credits','Agency income & payables','Supplier invoice imports','Procurement & inventory','Payment posting review'],
+ Payables:['Smart Bill Entry','Bills & credits','Bulk bill entry & approval','Recorded bill settlement','Recurring bills & credits','Agency income & payables','Supplier invoice imports','Procurement & inventory','Payment posting review'],
  'Financial accounts':['Bank account setup','Bank transaction review','Grouped deposits','Financial account overview','Bank balances & checks','Payment posting review','Statement reconciliation','Company accounting reports'],
  'Journal entries':['Native ledger','Recurring journals','Journal entry batches','Journal register','Company accounting reports'],
  'Bank transfers':['Completed bank transfers','Transfer register'],

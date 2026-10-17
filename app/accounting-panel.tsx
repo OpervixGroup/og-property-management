@@ -4,6 +4,7 @@ import AccountingConnections from './accounting-connections';
 import AccountingTools from './accounting-tools';
 import PayablesLedger from './payables-ledger';
 import PayableBatch from './payable-batch';
+import SmartBill from './smart-bill';
 import ReceivablesLedger from './receivables-ledger';
 import BankAccountSetup from './bank-account-setup';
 import BankWorkflowPanel from './bank-workflow';
@@ -55,6 +56,7 @@ export default function AccountingPanel({data,period,busy,persist,navigate,openU
  {tab==='Bank account setup'&&<BankAccountSetup data={data} period={period} busy={busy} persist={persist} onPage={(page,context)=>{if(context)setAccountingContext(context);setTab(page);}}/>}
  {['Additional receipt types','Grouped deposits','Bank transaction review'].includes(tab)&&<BankWorkflowPanel key={tab} data={data} period={period} busy={busy} persist={persist} onPage={(page,context)=>{if(context)setAccountingContext(context);setTab(page);}} initialBook={accountingContext.bookId} initialBank={accountingContext.bankKey} openUnit={openUnit} mode={tab==='Additional receipt types'?'receipts':tab==='Grouped deposits'?'deposits':'review'}/>}
  {tab==='Tenant ledger posting'&&<ReceivablesLedger data={data} period={period} busy={busy} persist={persist} openUnit={openUnit} openTenant={openTenant} initialBook={accountingContext.bookId} onPage={(page,context)=>{setAccountingContext(context);setTab(page);}}/>}
+ {tab==='Smart Bill Entry'&&<SmartBill data={data} period={period} busy={busy} persist={persist} onPage={setTab}/>}
  {tab==='Bulk bill entry & approval'&&<PayableBatch data={data} period={period} busy={busy} persist={persist} openUnit={openUnit} initialBook={accountingContext.bookId} onPage={(page,context)=>{setAccountingContext(context);setTab(page);}}/>}
  {['Bills & credits','Recorded bill settlement','Recurring bills & credits'].includes(tab)&&<PayablesLedger key={tab} data={data} period={period} busy={busy} persist={persist} openUnit={openUnit} initialBook={accountingContext.bookId} mode={tab==='Bills & credits'?'bills':tab==='Recorded bill settlement'?'payments':'recurring'} onPage={(page,context)=>{setAccountingContext(context);setTab(page);}}/>}
  {['Completed bank transfers','Journal entry batches','Company accounting reports','Financial account overview'].includes(tab)&&<AccountingTools key={tab} data={data} period={period} busy={busy} persist={persist} openUnit={openUnit} initialBook={accountingContext.bookId} mode={tab==='Completed bank transfers'?'transfers':tab==='Journal entry batches'?'batches':tab==='Financial account overview'?'accounts':'reports'} onPage={(page,context)=>{setAccountingContext(context);setTab(page);}}/>}
