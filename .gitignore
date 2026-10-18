@@ -56,3 +56,4 @@ Devonshire_Source.zip
 # Preserved local build caches are not source.
 /.next-*/
 /tests/.platform-admin-runtime/
+/tests/.office-roster-runtime/
