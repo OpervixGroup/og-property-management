@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
+import {spawnSync} from 'node:child_process';
 
 const workflow=(await readFile(new URL('../.github/workflows/company-control-cycle.yml',import.meta.url),'utf8')).replace(/\r\n/g,'\n');
 // Exercise the actual shell condition expressions without network access. Bash/MSYS
@@ -49,4 +50,18 @@ assert.ok(persistence<summary&&summary<failure&&failure>0,'save evidence, summar
 assert.match(workflow.slice(failure),/exit 1/);
 const finalCondition=workflow.slice(failure).match(/^if (.+); then/)[1];
 for(const overall_status of ['Completed','Failed'])for(const persisted of ['Confirmed','Failed'])assert.equal(evaluate(finalCondition,{overall_status,persisted}),overall_status!=='Completed'||persisted!=='Confirmed','failed control or unconfirmed persistence must fail runner');
-console.log(`PASS company-control workflow: ${cases} synthetic HTTP combinations, actual 18-record payload/status propagation, immutable IDs, bounded transport, no POST retry, persistence/summary/failure ordering. Bash execution unavailable in this sandbox; no network calls performed.`);
+if(process.platform==='linux'){
+ const marker='        run: |\n',start=workflow.indexOf(marker);
+ assert.ok(start>=0,'control shell block exists');
+ const lines=workflow.slice(start+marker.length).trimEnd().split('\n');
+ assert.ok(lines.every(line=>!line.trim()||line.startsWith('          ')),'control shell block has expected indentation');
+ const script=lines.map(line=>line.slice(10)).join('\n')+'\n';
+ const result=spawnSync('bash',['-n','-'],{input:script,encoding:'utf8'});
+ if(result.error)throw result.error;
+ assert.equal(result.status,0,'native Bash syntax check: '+result.stderr);
+ console.log('PASS native Bash syntax for the complete actual control workflow; no requests executed.');
+}else{
+ console.log('SKIP native Bash syntax on '+process.platform+'; Linux CI performs this check.');
+}
+console.log(`PASS company-control workflow: ${cases} synthetic HTTP combinations, actual 18-record payload/status propagation, immutable IDs, bounded transport, no POST retry, persistence/summary/failure ordering. No network calls performed.`);
+
