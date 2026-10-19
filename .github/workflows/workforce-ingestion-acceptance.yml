@@ -1,0 +1,65 @@
+name: Headquarters workforce ingestion acceptance
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/workforce-ingestion-acceptance
+
+permissions:
+  contents: read
+
+concurrency:
+  group: workforce-ingestion-acceptance
+  cancel-in-progress: false
+
+jobs:
+  verify-ingestion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Submit bounded acceptance evidence
+        env:
+          INGEST_SECRET: ${{ secrets.OG_WORKFORCE_INGEST_SECRET }}
+          INGEST_URL: https://og.opervixgroup.com/api/platform/workforce/events
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${INGEST_SECRET}"
+          started_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          run_id="github-acceptance-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          payload="$(jq -n \
+            --arg id "${run_id}" \
+            --arg startedAt "${started_at}" \
+            --arg finishedAt "${started_at}" \
+            --arg messageId "${run_id}-message" \
+            '{
+              runs: [{
+                id: $id,
+                agentId: "orchestration",
+                task: "Verify the authenticated cloud evidence path to Headquarters",
+                status: "Completed",
+                result: "Production ingestion accepted a bounded GitHub Actions diagnostic; no client, financial, or permission-changing action was performed.",
+                startedAt: $startedAt,
+                finishedAt: $finishedAt
+              }],
+              messages: [{
+                id: $messageId,
+                senderId: "orchestration",
+                recipientId: "security",
+                kind: "Acceptance test",
+                text: "Authenticated workforce evidence path verified from the approved repository executor.",
+                recordedAt: $finishedAt,
+                taskId: $id
+              }]
+            }')"
+          response_file="$(mktemp)"
+          status="$(curl --silent --show-error \
+            --output "${response_file}" \
+            --write-out '%{http_code}' \
+            --request POST "${INGEST_URL}" \
+            --header "Authorization: Bearer ${INGEST_SECRET}" \
+            --header 'Content-Type: application/json' \
+            --data "${payload}")"
+          test "${status}" = "202"
+          jq -e '.accepted == 2 and .runs == 1 and .messages == 1' "${response_file}" >/dev/null
