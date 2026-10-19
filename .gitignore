@@ -57,3 +57,5 @@ Devonshire_Source.zip
 /.next-*/
 /tests/.platform-admin-runtime/
 /tests/.office-roster-runtime/
+/tests/.ceo-inbox-runtime/
+/tests/.support-runtime/

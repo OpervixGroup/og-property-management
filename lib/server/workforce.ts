@@ -30,19 +30,19 @@ export function parseRun(value:unknown):WorkforceRun{
 export function parseMessage(value:unknown):WorkforceMessage{
  if(!value||typeof value!=='object')throw Error('Invalid workforce message');
  const item=value as Record<string,unknown>,id=clean(item.id,100),senderId=clean(item.senderId,100),recipientId=clean(item.recipientId,100),sender=roleById.get(senderId),recipient=roleById.get(recipientId),text=clean(item.text,4000);
- if(!id||!sender||!recipient||!text)throw Error('Use registered sender and recipient role IDs');
+ if(!id||id.startsWith('ceo-chat:')||!sender||!recipient||!text)throw Error('Use registered sender and recipient role IDs');
  return {id,office:sender.office,sender:sender.name,recipient:recipient.name,kind:clean(item.kind,50)||'Update',text,recordedAt:iso(item.recordedAt),taskId:clean(item.taskId,100)};
 }
 
 export async function workforceFeed(){
  const db=admin(),[runsResult,messagesResult]=await Promise.all([
   db.from('og_workforce_runs').select('external_id,agent_id,office,role,task,status,result,started_at,finished_at').order('started_at',{ascending:false}).limit(300),
-  db.from('og_workforce_messages').select('external_id,office,sender,recipient,kind,text,recorded_at,task_id').order('recorded_at',{ascending:false}).limit(300)
+  db.from('og_workforce_messages').select('external_id,office,sender,recipient,kind,text,recorded_at,task_id').not('external_id','like','ceo-chat:%').order('recorded_at',{ascending:false}).limit(300)
  ]);
  if(runsResult.error||messagesResult.error)throw Error('Cloud workforce storage unavailable');
  const runs=(runsResult.data??[]).reverse().map(row=>({id:row.external_id,agentId:row.agent_id,office:row.office,role:row.role,task:row.task,status:row.status,result:row.result??'',startedAt:row.started_at,finishedAt:row.finished_at??''}));
  const messages=(messagesResult.data??[]).reverse().map(row=>({id:row.external_id,office:row.office,sender:row.sender,recipient:row.recipient,kind:row.kind,text:row.text,recordedAt:row.recorded_at,taskId:row.task_id??''}));
- const latest=[...runs.map(x=>x.finishedAt||x.startedAt),...messages.map(x=>x.recordedAt)].sort().at(-1)??new Date().toISOString();
+ const latest=[...runs.map(x=>x.finishedAt||x.startedAt),...messages.map(x=>x.recordedAt)].sort().at(-1)??'';
  return {connected:true,updatedAt:latest,runs,messages};
 }
 
