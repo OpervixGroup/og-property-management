@@ -51,14 +51,17 @@ assert.match(workflow.slice(failure),/exit 1/);
 const finalCondition=workflow.slice(failure).match(/^if (.+); then/)[1];
 for(const overall_status of ['Completed','Failed'])for(const persisted of ['Confirmed','Failed'])assert.equal(evaluate(finalCondition,{overall_status,persisted}),overall_status!=='Completed'||persisted!=='Confirmed','failed control or unconfirmed persistence must fail runner');
 if(process.platform==='linux'){
- const marker='        run: |\n',start=workflow.indexOf(marker);
- assert.ok(start>=0,'control shell block exists');
- const lines=workflow.slice(start+marker.length).trimEnd().split('\n');
- assert.ok(lines.every(line=>!line.trim()||line.startsWith('          ')),'control shell block has expected indentation');
- const script=lines.map(line=>line.slice(10)).join('\n')+'\n';
- const result=spawnSync('bash',['-n','-'],{input:script,encoding:'utf8'});
- if(result.error)throw result.error;
- assert.equal(result.status,0,'native Bash syntax check: '+result.stderr);
+ const markers=[...workflow.matchAll(/^        run: \|\n/gm)];
+ assert.ok(markers.length>=2,'control and coordinator shell blocks exist');
+ for(const marker of markers){
+  const lines=[];
+  for(const line of workflow.slice(marker.index+marker[0].length).split('\n')){if(line.trim()&&!line.startsWith('          '))break;lines.push(line);}
+  assert.ok(lines.some(line=>line.trim()),'each actual shell block has content');
+  const script=lines.map(line=>line.slice(10)).join('\n')+'\n';
+  const result=spawnSync('bash',['-n','-'],{input:script,encoding:'utf8'});
+  if(result.error)throw result.error;
+  assert.equal(result.status,0,'native Bash syntax check: '+result.stderr);
+ }
  console.log('PASS native Bash syntax for the complete actual control workflow; no requests executed.');
 }else{
  console.log('SKIP native Bash syntax on '+process.platform+'; Linux CI performs this check.');
