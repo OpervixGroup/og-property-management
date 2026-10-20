@@ -111,3 +111,27 @@ jobs:
           if [ "${overall_status}" != "Completed" ] || [ "${persisted}" != "Confirmed" ]; then
             exit 1
           fi
+
+      - name: Advance at most one reviewed internal task
+        env:
+          COORDINATOR_SECRET: ${{ secrets.OG_WORKFORCE_INGEST_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${COORDINATOR_SECRET}" ]; then
+            printf 'Coordinator credential not configured; no task executed.\n' >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+          result_file="$(mktemp)"
+          trap 'rm -f "${result_file}"' EXIT
+          code="$(curl --silent --show-error --connect-timeout 10 --max-time 45 --output "${result_file}" --write-out '%{http_code}' --request POST 'https://og.opervixgroup.com/api/platform/autonomy/run' --header "Authorization: Bearer ${COORDINATOR_SECRET}" --header 'Content-Type: application/json' --data '{}')"
+          if [ "${code}" = "404" ]; then
+            printf 'Coordinator release not published; no coordinator task executed.\n' >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+          if [ "${code}" != "200" ]; then
+            printf 'Coordinator execution not confirmed (HTTP %s); reconcile before retry.\n' "${code}" >> "${GITHUB_STEP_SUMMARY}"
+            exit 1
+          fi
+          state="$(jq -er '.status | select(. == "Paused" or . == "No executable task" or . == "Awaiting audit")' "${result_file}")"
+          printf 'Coordinator status: %s. This is bounded task execution, not independent department staffing or completion of client workflows.\n' "${state}" >> "${GITHUB_STEP_SUMMARY}"
