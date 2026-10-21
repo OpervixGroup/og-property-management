@@ -298,6 +298,15 @@ export const staff:StaffProfile[]=[
   "executive": false,
   "human": false
  }
+,{
+  "id": "hubspot-cloud-engineer",
+  "name": "HubSpot Cloud Applications Engineer",
+  "role": "AI Senior Full-Stack HubSpot & Cloud Applications Engineer",
+  "office": "technology",
+  "reportsTo": "engineering-lead",
+  "executive": false,
+  "human": false
+}
 ];
 export const offices=[['ceo','CEO Office'],['secretary','Executive Secretariat'],['operations','Operations'],['technology','Technology & Product'],['sales','Strategy, Sales & Marketing'],['clients','Client Experience'],['finance','Finance & Accounting'],['legal','Legal & Compliance'],['risk','Risk, Security & Privacy'],['people','AI Resources & Capacity'],['audit','Audit Evidence']];
 export type Activity={agentId?:string;office:string;status:string};
