@@ -3,7 +3,7 @@ import {admin} from '@/lib/server/supabase';
 import {durableStore} from '@/lib/task-coordinator-store.mjs';
 import {privateWorkerBridge,privateWorkerHTTP} from '@/lib/private-worker-http.mjs';
 import {workerAuthObserver,boundedWorkerAuthLogger} from '@/lib/worker-auth-diagnostic.mjs';
-const authLog=boundedWorkerAuthLogger((entry:unknown)=>console.warn(JSON.stringify(entry)));
+const authLog=boundedWorkerAuthLogger((entry:{reason:string})=>console.warn('[private-worker-auth] '+entry.reason));
 export const dynamic='force-dynamic';
 export const runtime='nodejs';
 export async function POST(request:Request){
