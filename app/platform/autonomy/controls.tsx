@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react';
 type Task={id:string;agentId:string;status:string;result:string;artifact?:unknown};
 type Control={paused:boolean;epoch:number;roles:Record<string,{paused:boolean}>};
-const roles=['coo','cfo','sales-vp','cmo','cto','ai-resources','controller','legal-lead','cpo','secretary','strategy','operations-lead','project-manager','vendor-coordinator','account-executive','research','engineering-lead','developer','quality','designer','security','capacity','orchestration','knowledge','evaluation','receivables','payables','reconciliation','clients-lead','support','risk','audit'];
+import {roles} from '@/lib/ai-role-ids.mjs';
 export default function Controls(){const [control,setControl]=useState<Control|null>(null),[message,setMessage]=useState('Loading verified controls…'),[busy,setBusy]=useState(false),[role,setRole]=useState(roles[0]),[reason,setReason]=useState('');
  const [diagnostic,setDiagnostic]=useState('Not checked');
  async function checkWorker(){setDiagnostic('Checking runtime configuration…');try{const r=await fetch('/api/platform/autonomy/private-worker/diagnostic',{cache:'no-store'}),p=await r.json();if(!r.ok)throw Error();setDiagnostic('Credential configured: '+String(p.configured)+'; whitespace/control anomaly: '+String(p.hasWhitespaceOrControl)+'; surrounding quotes: '+String(p.hasSurroundingQuotes)+'; internal authentication: '+p.internalAuthentication+'; coordinator read: '+p.controlRead+'. External worker connection and execution remain separately verified.');}catch{setDiagnostic('Diagnostic unavailable. Worker connection is not confirmed.');}}
