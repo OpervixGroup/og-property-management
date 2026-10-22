@@ -24,3 +24,4 @@ jobs:
       - run: node node_modules/next/dist/bin/next build --webpack
         env:
           NEXT_TELEMETRY_DISABLED: '1'
+      - run: node scripts/verify-build-assets.mjs
