@@ -37,9 +37,9 @@ assert.ok(html.includes('Prepare task brief'));assert.ok(html.includes('Autonomo
 assert.equal((html.match(/data-role-seat=/g)||[]).length,9,'All nine client role seats must be visible across the two tables');
 for(const role of campusRoles)assert.ok(html.includes(`data-role-seat="${role.id}"`),role.id);
 assert.ok(html.includes('5 AI role profiles around this table'));assert.ok(html.includes('4 AI role profiles around this table'));
-assert.ok(html.includes('9 client AI role profiles'));assert.ok(html.includes('Role layout only; execution is not connected.'));
+assert.ok(html.includes('9 client AI role profiles'));assert.ok(html.includes('Role layout only; seats do not indicate active execution.'));
 assert.equal((html.match(/aria-pressed="true"/g)||[]).length,1);assert.equal((html.match(/aria-controls="client-desk-details"/g)||[]).length,2);
-assert.ok(!source.includes('localStorage'));assert.ok(!source.includes('fetch('),'No unverified client data or execution endpoint');
+assert.ok(!source.includes('localStorage'));assert.equal((source.match(/fetch\('/g)||[]).length,2);assert.equal((source.match(/fetch\('\/api\/platform\/client-learning'/g)||[]).length,2,'Only protected learning status and pause controls');assert.ok(html.includes('Learning status connection unavailable. Execution cannot be confirmed.'));assert.ok(html.includes('Completed learning reviews:'));
 const route=await fs.readFile(new URL('../app/platform/headquarters/client-campus/page.tsx',import.meta.url),'utf8');assert.ok(route.includes('platformOwner()'));assert.ok(route.includes("redirect('/login')"));
 const headquarters=await fs.readFile(new URL('../app/platform/headquarters/workforce.tsx',import.meta.url),'utf8');assert.ok(headquarters.includes('href="/platform/headquarters/client-campus"'));
 console.log('PASS client campus rendering, distinct Leasing/HOA workflow guides, authenticated route, accessible desk selection and truthful disconnected-learning state. No client reads or writes.');
