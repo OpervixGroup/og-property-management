@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "enabled": false,
+  "status": "Example only; not a verified client registration",
+  "executionOwner": "digitalocean-corporate-v1",
+  "workstationId": null,
+  "coordinatorTransport": null,
+  "providers": {
+    "openai": {"mode": "existing authorized ChatGPT/Codex session", "verified": false},
+    "anthropic": {"mode": "existing Claude integration, type to verify on target", "verified": false, "approvedPrivateDataFlowRef": null}
+  },
+  "desks": [
+    {"id": "devonshire-leasing", "roleId": "leasing-property-manager", "sources": [], "folderId": null, "calendarFromVerifiedCoordinator": true},
+    {"id": "devonshire-hoa", "roleId": "hoa-community-manager", "sources": [], "folderId": null, "calendarFromVerifiedCoordinator": true}
+  ]
+}

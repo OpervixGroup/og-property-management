@@ -1,0 +1,19 @@
+RELEASE AND CUTOVER — EXISTING INFRASTRUCTURE ONLY
+
+GitHub
+Create a feature branch from the verified current connected branch. Commit only public source, synthetic tests and generic setup documents. Run Node22 tests, typecheck, production build and asset checks. Open a reviewable PR. This kit alone is deployment preparation; it does not wire the workstation transport or require a GoDaddy website release.
+
+DigitalOcean
+Run the included Verify-DigitalOcean.sh only in the existing root console for read-only metadata/integrity verification. It does not install a timer or start a cycle. Inspect private state only through already-authorized tools; do not paste secrets in the terminal transcript.
+For the future implemented bridge, prepare a reviewed versioned installer from its exact tested commit. The installer must verify current runtime hashes and owner, preserve activation/configuration/registries/ledger/locks, stage alongside existing files, perform offline synthetic checks and keep a rollback copy. Replace only reviewed files, update the manifest from actual installed bytes and verify it as node UID1000. Do not overwrite the existing active installation with this setup kit.
+Use the existing timer. No new cron, Task Scheduler, Windows service, host timer, broad SSH key or duplicate queue. A cloud-hosted Claude login is separate from a workstation Claude login. If workstation processing is required, verify a narrow authenticated bridge before enabling it; cloud cannot automatically inherit desktop app sessions.
+Only release an attempt after actual effect reconciliation and corresponding authority. During cutover, verify one owner and no overlapping lease, then one bounded source-to-proposed-lesson cycle per desk. For failure rollback, preserve uncertain effect records and use read-only recovery; do not erase state to restore old code.
+
+GoDaddy (Miguel performs publication)
+1. Merge the final tested application/bridge PR only after applicable release authorization.
+2. In the existing project z64hid4a52, update Preview to the exact merged SHA.
+3. Wait for Healthy; verify authentication, headquarters/client campus, both desks and actual pause/receipt behavior. Preview success is not live acceptance.
+4. Miguel selects Publish to Live and completes confirmation.
+5. Verify Published SHA, site/infra health, protected controls and both client workflows in production. Record actual acceptance evidence. Publishing UI code does not release a worker hold or approve private provider access.
+
+Initial target status: STANDBY / connections unverified. No unconditional activate or delete-lock command is provided.

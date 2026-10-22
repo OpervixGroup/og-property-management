@@ -1,0 +1,22 @@
+SAFETY VALIDATION OWNERSHIP AND CHANGE ORDER
+
+Accountable: existing risk role, Javier Ibarra — Business Risk & Safety Validation.
+Security: existing security role — machine/provider identity, least privilege, source isolation and credential handling.
+Legal: existing legal-lead role — exact authority and private-data/provider scope.
+QA: existing quality role — actual regression and failure-boundary evidence.
+Audit: existing audit role — persisted outcome, immutable attempt and readback evidence.
+These are logical AI responsibilities. No staff account, tool access, permanent worker or additional role is created. Same-executor reviews must be disclosed and are not independent human signoff.
+
+Existing live controls already require Legal/Risk proposal review, CEO/desk/role pause, time/calendar/epoch/lease checks and outcome Audit. This kit adds a candidate stage-specific safety gate to the workstation pipeline; it is not deployed in the live cloud worker. It requires authenticated assessment verification supplied by the future coordinator adapter. A local JSON file or model-generated Pass cannot satisfy that authentication contract by itself. Missing adapters/assessments hold before source/model/save effects.
+
+Risk order
+1. Low: read-only inventory, source/folder metadata, synthetic testing and role-feed mapping. No activation, private model input or external effect.
+2. High: workstation connection, private provider processing and source expansion. Verify exact host/account/source/destination, provider-specific authorization, protected credentials, same-client boundaries and a single coordinator owner. New access still needs its exact approval. No public listeners or credential sharing.
+3. High: stopped-worker recovery. Verify exact attempt, process absence, current state and actual effects; preserve history and immutable intents. Use reviewed recovery; never reset a lock or resend an uncertain effect for a passing test.
+4. High: live run/cutover. Require pre-source Risk/Security/Legal reviews; before-save add QA; after actual readback require Audit. Recheck live controls around every step. Corporate/client hours and holidays remain binding. Model output is proposed knowledge, not approved SOP or completed client business work.
+5. Protected: financial/CRM changes, outbound commitments, spending, housing/credit decisions and production publication. This procedure-learning pipeline never authorizes them. Miguel retains GoDaddy publication.
+
+Blockers at preparation: workstation transport/provider/source adapters not verified; exact Desktop feed path unverified; role maps are proposals; old cloud controller hold needs separate evidence-backed recovery; no real client learning completion has been verified. No universal activation command is provided.
+
+Acceptance
+Bind each assessment to the exact task, client, epoch, plan/source/artifact digests and stage; verify reviewer role/actor, receipt provenance, disclosure and current expiry. Reject wrong client, stale or changed plan, duplicate role receipt, blocked review, absent verifier, pause and uncertain save/readback. Preserve evidence for every hold. Never generate an automatic approval to satisfy a missing role.
