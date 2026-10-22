@@ -1,0 +1,9 @@
+/local-state/
+/private/
+/registry.local.json
+/provider-receipts/
+/drafts/
+/lessons/
+*.token
+*.key
+.env*

@@ -1,0 +1,48 @@
+TASK FOR CHATGPT/CODEX ON THE DEVONSHIRE WORK COMPUTER
+
+Miguel requests the existing OG OPERVIX GROUP · CORPORATE CLIENT CAMPUS, Devonshire office, to work through this workstation's existing ChatGPT and Claude setup. Implement and verify the remaining connections. Do not report the teams active based on profiles, a schedule, installed apps or synthetic tests.
+
+1. VERIFY THIS COMPUTER
+Read this package's README, AGENTS and RELEASE files and run Start-Devonshire.ps1. Confirm the actual machine name with Miguel's intended Devonshire workstation. Identify whether Claude is Desktop, Claude Code or another integration. Verify the existing OpenAI and Anthropic accounts without displaying credentials. A standalone CLI does not automatically inherit this chat's native connectors. Do not install paid services or create accounts. If access to the intended computer is absent, record that exact blocker rather than creating fake evidence.
+
+2. LOAD CURRENT AUTHORITY AND PRIVATE REGISTRATION
+Read fresh corporate/desk/role pause state and exact client registrations from the authorized headquarters connection. Preserve epoch, task IDs, provider IDs, leases and unresolved history. The current coordinator requires executionOwner digitalocean-corporate-v1; do not change it to bypass a gate.
+Confirmed source selections from Miguel: Devonshire Leasing for Leasing; Devonshire HOA at /sites/DevonshireHOA for HOA. Obtain exact site/drive/item/folder IDs from existing protected registration and verify via authenticated read. Never copy private registration into this public repo. Initial client scope is the approved Leasing readiness/workflow guide and selected HOA English SOP plus same-desk prior proposed lessons. Financial records, email bodies and credentials are excluded.
+Hours: weekdays 08:30 inclusive to 15:30 exclusive America/Chicago. Close on federal observed holidays and Texas state office-closure days; optional/skeleton-crew days remain working. Use the registered verified calendar, not guessed holidays.
+
+3. VERIFY CLAUDE PROCESSING SCOPE
+Miguel previously approved bounded procedure excerpts to the existing OpenAI/Codex Pro session. That existing approval did not establish the exact Anthropic private-source data flow. Before transmitting private excerpts to Claude, present the exact source classes, account/destination, purpose and retention expectations and obtain the corresponding specific authorization if not already verified. Synthetic text may be used for connection acceptance. Do not copy ChatGPT credentials into Claude or vice versa, or assume one subscription pays for the other.
+
+4. IMPLEMENT AN AUTHENTICATED WORKSTATION BRIDGE
+This kit does NOT yet supply the transport. Inspect the current source before implementing it:
+  lib/client-learning.mjs
+  lib/client-learning-http.mjs
+  deploy/client-learning/cycle.mjs
+  deploy/client-learning/model.mjs
+  deploy/client-learning/integration.mjs
+  app/api/platform/client-learning/route.ts
+  lib/task-coordinator-http.mjs
+  deploy/client-workstation/review-pipeline.mjs
+Keep DigitalOcean as the only schedule owner. The workstation is a proposed delegated execution station, not a second independent queue. Add a tested, authenticated, narrowly scoped task handoff/receipt mechanism using existing authorized capabilities. Do not expose a public unauthenticated model/command endpoint. Do not share the broad corporate worker credential with a client workstation. New credentials, access mappings or provider grants require exact security approval before their use.
+Cloud remains the authority for task eligibility, exact source bindings, exclusive lease, epoch, corporate/desk/role pause, calendar, provider scope, Legal/Risk review and immutable save intent. Connect reviewPipeline through verified adapters; a local JSON checkpoint or synthetic fixture is not cloud authorization. The candidate protocol does not itself implement substantive Legal/Risk assessment; coordinator.prepare must enforce the existing exact-plan review gate. The final coordinator.finish must enforce outcome Audit and actual readback evidence. Preserve the prior proposed lesson and source version; never automatically promote a policy change.
+
+5. PROVIDERS AND ADAPTERS
+Use verified existing provider sessions. ChatGPT drafts from only the permitted bounded excerpt. Claude independently assesses the exact source/draft/digest; disclose separate AI assessment, not human approval. Require a receipt tied to actual provider/account/model/attempt and source/plan digest. Reject invented or cached reviews. Disable unnecessary tools for excerpt-only model calls and test their actual denial. Never use bypass-permission switches. If either provider is unavailable, hold; do not auto-approve or silently substitute.
+Source and storage adapters must assert exact desk/site/source/version/folder. Save only proposed lessons to the existing Leasing training folder or selected HOA 06_Office_Management folder. Do not add other source types because the account happens to have access. Keep detailed client evidence in that client's tenant; headquarters receives only minimal protected status references.
+
+6. PRESERVE CURRENT CLOUD STATE
+Read the actual existing runtime, activation, timer, controller locks, pending sources and coordinator attempt history using already-authorized access. A private handoff note may accompany this kit; it is not public source. State may have changed since preparation. Never assume a prior hold was resolved. Preserve every original attempt and lock; evidence-backed reconciliation and appropriate live retry authority are required before releasing a hold. Never remove a lock or re-send/re-upload an uncertain effect to obtain a passing test. Do not rerun the old host bootstrap installer against an already active installation.
+
+7. TEST BEFORE CUTOVER
+Run synthetic tests, then verify authenticated source reads for each desk. Test wrong desk/source rejection; no private cross-desk memory; exact dual-provider receipts; missing Claude authority; no-tools model boundaries; no task overlap across both computers; live corporate/desk/role pause; stale epoch/lease rejection; client hours and holiday hold; disconnected workstation; usage exhaustion; uncertain save with read-only recovery and no duplicate upload. Require real proposed-lesson save/readback acceptance for each desk during approved hours before calling daily learning operational. Do not start broad financial, messaging or client decision workflows.
+
+8. GITHUB / DIGITALOCEAN / GODADDY
+Repository: https://github.com/OpervixGroup/og-property-management
+GoDaddy-connected branch: codex/platform-admin-password-setup-20261018
+Current verified published baseline at package preparation: f0a0c1b3d7f4649106956cae552599ceaca99107. Fetch actual head before edits.
+Use a separate feature branch, synthetic tests and clean Node22 CI. Read repository AGENTS and relevant Next.js bundled documentation. Public repo: never commit private data, real registry, tokens or provider receipts. Open/attach a PR with the actual remaining limitations and acceptance evidence. Do not merge stale or failing code.
+Follow RELEASE.txt to stage a versioned runtime update in STANDBY on the existing DigitalOcean host; verify hashes and backups before controlled cutover. No duplicate timer, new paid API or container recreation. If host-only privileges are unavailable, produce a concrete reviewed installer for Miguel's existing root console; do not claim it ran.
+After successful merge, verify the exact commit in GoDaddy Preview, protected HQ controls, both client desks, pause/recovery tests and release assets. Ask Miguel to perform Publish to Live. Verify the Published SHA and production behavior afterward. Code publication and worker activation are separate facts.
+
+DELIVERABLE
+Return actual target machine, provider connection type and receipts, source/desk acceptance, PR and exact commit, CI result, existing timer/ownership evidence, pause/recovery results, real learning output references and unresolved blockers with owner/next action. No guarantee of full autonomy or financial success. A test, lesson or role profile is not a completed client business outcome.
