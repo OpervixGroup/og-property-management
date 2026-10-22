@@ -13,6 +13,8 @@ try {
  fs.writeFileSync(path.join(root,'.env.local'),'synthetic-secret');
  fs.mkdirSync(path.join(root,'.next'));
  fs.writeFileSync(path.join(root,'.next','BUILD_ID'),'unrelated-build');
+ fs.mkdirSync(path.join(root,'public','assets'),{recursive:true});
+ fs.writeFileSync(path.join(root,'public','assets','runtime.txt'),'synthetic durable upload');
  assert.equal(sourceDeploymentId(root),first,'Secrets and previous build output must not affect identity');
  fs.writeFileSync(path.join(root,'app','page.tsx'),'release two');
  assert.notEqual(sourceDeploymentId(root),first,'Changed application source must invalidate asset cache keys');

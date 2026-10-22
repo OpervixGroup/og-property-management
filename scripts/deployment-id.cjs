@@ -6,6 +6,8 @@ const path = require('node:path');
 function sourceDeploymentId(root) {
   const hash = createHash('sha256');
   const visit = relative => {
+    // GoDaddy keeps uploaded public/assets across releases; it is runtime data.
+    if (relative === 'public/assets') return;
     const absolute = path.join(root, relative);
     if (!fs.existsSync(absolute)) return;
     const stat = fs.lstatSync(absolute);
