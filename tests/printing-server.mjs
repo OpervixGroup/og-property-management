@@ -5,7 +5,7 @@ import {PDFDocument} from 'pdf-lib';
 import {prepareModels} from './prepare-models.mjs';
 const root=new URL('./.mock-runtime/printing-server/',import.meta.url);
 await prepareModels(root,['seed','exports','access-policy']);
-let policy=stripTypeScriptTypes(await readFile(new URL('../lib/server/request.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'@/lib/access-policy'","'./access-policy.mjs'");await writeFile(new URL('request.mjs',root),policy);
+let policy=stripTypeScriptTypes(await readFile(new URL('../lib/server/request.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'@/lib/access-policy'","'./access-policy.mjs'").replace("'../app-origin.mjs'",JSON.stringify(new URL('../lib/app-origin.mjs',import.meta.url).href));await writeFile(new URL('request.mjs',root),policy);
 await writeFile(new URL('auth.mjs',root),'let user=null;export function setup(value){user=value;}export async function getChatGPTUser(){return user;}');
 await writeFile(new URL('storage.mjs',root),"import {seed} from './seed.mjs';export const data=seed();export async function load(){return {data};}");
 await writeFile(new URL('documents.mjs',root),"export async function listDocuments(){return [];}export async function documentBytes(){throw Error('Unexpected document access');}");
