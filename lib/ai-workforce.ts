@@ -283,7 +283,7 @@ export const staff:StaffProfile[]=[
  {
   "id": "risk",
   "name": "Javier Ibarra",
-  "role": "AI Business Risk Analyst",
+  "role": "AI Business Risk & Safety Validation Analyst",
   "office": "risk",
   "reportsTo": "cfo",
   "executive": false,

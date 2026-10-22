@@ -46,3 +46,6 @@ After successful merge, verify the exact commit in GoDaddy Preview, protected HQ
 
 DELIVERABLE
 Return actual target machine, provider connection type and receipts, source/desk acceptance, PR and exact commit, CI result, existing timer/ownership evidence, pause/recovery results, real learning output references and unresolved blockers with owner/next action. No guarantee of full autonomy or financial success. A test, lesson or role profile is not a completed client business outcome.
+
+SAFETY ADDENDUM
+Read SAFETY-VALIDATION.txt and run safety-validation.test.mjs. Existing risk role owns safety validation; security, legal-lead, quality and audit supply exact-stage assessments. Implement authenticated coordinator.safetyAssessments(request) and coordinator.verifySafetyAssessment(record,request). Never satisfy these callbacks with fixture/generated Pass records in production. The candidate must remain held until actual evidence and separate access/provider authority are verified.

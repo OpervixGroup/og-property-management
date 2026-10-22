@@ -28,3 +28,5 @@ https://learn.chatgpt.com/docs/remote-connections
 https://learn.chatgpt.com/docs/non-interactive-mode
 https://code.claude.com/docs/en/cli-reference
 Use the installed versions' actual capabilities and existing subscriptions. Do not silently fall back to paid APIs, another provider or another account.
+
+Safety ownership: Risk is accountable, with Security, Legal, QA and Audit. Read SAFETY-VALIDATION.txt. The candidate now requires coordinator.safetyAssessments and coordinator.verifySafetyAssessment; these must be authenticated server adapters, not local JSON approvals. Safety callbacks are not yet connected on the client machine. Missing validation holds before source/model/save access.
