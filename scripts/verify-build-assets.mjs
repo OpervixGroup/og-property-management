@@ -25,7 +25,7 @@ export function verifyBuildAssets(root) {
  }
  if(!manifests||!refs.size)throw Error('No application asset references found');
  for(const ref of refs){
-  const file=path.resolve(build,ref);
+  const file=path.resolve(build,decodeURIComponent(ref));
   if(!file.startsWith(path.resolve(build)+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()||!fs.statSync(file).size)throw Error('Missing or empty build asset: '+ref);
  }
  return {deploymentId:config.deploymentId,manifests,assets:refs.size};
