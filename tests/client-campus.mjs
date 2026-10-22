@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import ts from 'typescript';
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+const dir=new URL('./.client-campus-runtime/',import.meta.url);await fs.mkdir(dir,{recursive:true});
+const options={compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}};
+const registry=await fs.readFile(new URL('../lib/client-campus.ts',import.meta.url),'utf8');
+await fs.writeFile(new URL('registry.mjs',dir),ts.transpileModule(registry,options).outputText);
+const source=await fs.readFile(new URL('../app/platform/headquarters/client-campus/workspace.tsx',import.meta.url),'utf8');
+await fs.writeFile(new URL('workspace.mjs',dir),ts.transpileModule(source,options).outputText.replace("'@/lib/client-campus'","'./registry.mjs'"));
+const {clientCampus,learningSteps}=await import(new URL('registry.mjs',dir));
+const {default:Campus}=await import(new URL('workspace.mjs',dir));
+assert.equal(clientCampus.desks.length,2);assert.equal(new Set(clientCampus.desks.map(d=>d.id)).size,2);
+assert.notDeepEqual(clientCampus.desks[0].departments,clientCampus.desks[1].departments);
+for(const desk of clientCampus.desks){assert.equal(desk.departments.length,4);for(const department of desk.departments){assert.ok(department.workflow.length>40);assert.ok(department.evidence.length>40);}}
+assert.equal(learningSteps.length,5);
+const html=renderToStaticMarkup(React.createElement(Campus));
+for(const text of [clientCampus.name,clientCampus.office,...clientCampus.desks.map(d=>d.name),'Daily learning is not connected','Required evidence','Every learning record needs','Back to corporate campus'])assert.ok(html.includes(text),text);
+assert.equal((html.match(/aria-pressed="true"/g)||[]).length,1);assert.equal((html.match(/aria-controls="client-desk-details"/g)||[]).length,2);
+assert.ok(!source.includes('localStorage'));assert.ok(!source.includes('fetch('),'No unverified client data or execution endpoint');
+const route=await fs.readFile(new URL('../app/platform/headquarters/client-campus/page.tsx',import.meta.url),'utf8');assert.ok(route.includes('platformOwner()'));assert.ok(route.includes("redirect('/login')"));
+const headquarters=await fs.readFile(new URL('../app/platform/headquarters/workforce.tsx',import.meta.url),'utf8');assert.ok(headquarters.includes('href="/platform/headquarters/client-campus"'));
+console.log('PASS client campus rendering, distinct Leasing/HOA workflow guides, authenticated route, accessible desk selection and truthful disconnected-learning state. No client reads or writes.');
