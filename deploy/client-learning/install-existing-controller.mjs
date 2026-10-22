@@ -3,9 +3,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {createHash} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 const candidate=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),root='/home/node/opervix-cloud-team-20261021';
 if(process.getuid()!==1000||fs.realpathSync(root)!==root||fs.existsSync(root+'/cycle.lock'))throw Error('Existing private runtime must be idle; preserve every lock');
+const lock=root+'/cycle.lock',runId=randomUUID(),fd=fs.openSync(lock,'wx',0o600);
+try{
+const stat=fs.readFileSync('/proc/'+process.pid+'/stat','utf8'),startTicks=stat.slice(stat.lastIndexOf(')')+2).split(' ')[19];
+fs.writeFileSync(fd,JSON.stringify({pid:process.pid,startTicks,runId,startedAt:new Date().toISOString(),maintenance:true}));fs.closeSync(fd);
 const read=p=>{const s=fs.lstatSync(p);if(!s.isFile()||s.isSymbolicLink()||s.uid!==1000||(s.mode&0o077)!==0)throw Error('Private regular node-owned package required');return fs.readFileSync(p);};
 const activation=JSON.parse(read(root+'/activation.json'));if(activation.clientLearningEnabled===true)throw Error('Learning must remain in standby during installation');
 const manifest=JSON.parse(read(root+'/package-manifest.json'));
@@ -24,3 +28,4 @@ for(const [f,b]of data){const row={path:f,sha256:createHash('sha256').update(b).
 fs.writeFileSync(root+'/package-manifest.json',JSON.stringify(manifest,null,2)+'\n',{mode:0o600});
 for(const f of manifest.files)if(createHash('sha256').update(read(path.join(root,f.path))).digest('hex')!==f.sha256)throw Error('Installed package mismatch; retain standby');
 console.log(JSON.stringify({installed:true,learningEnabled:false,existingTimerPreserved:true,backup,at:new Date().toISOString()}));
+}finally{try{fs.closeSync(fd);}catch{}const current=JSON.parse(fs.readFileSync(lock,'utf8'));if(current.runId===runId&&current.pid===process.pid)fs.unlinkSync(lock);}
