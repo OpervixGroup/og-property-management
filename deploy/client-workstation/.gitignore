@@ -7,3 +7,5 @@
 *.token
 *.key
 .env*
+/PRIVATE-HANDOFF.txt
+
