@@ -27,6 +27,9 @@ assert.equal((await http.POST(new Request('https://example.test',{method:'POST',
 const epoch=ctx.state.control.epoch;
 assert.equal((await http.POST(new Request('https://example.test',{method:'POST',headers:{origin:'https://example.test'},body:JSON.stringify({clientId:id,paused:false,evidence:'Synthetic CEO resume'})}))).status,200);
 assert.equal(ctx.state.control.epoch,epoch+1);
+const originsHTTP=learningStatusHTTP({authenticate:async()=>({id:'ceo'}),isCEO:async()=>true,origin:['https://og.opervixgroup.com','https://z64hid4a52.preview.c39.airoapp.ai'],read:async()=>ctx.state,store:ctx.store,clock:()=>at});
+for(const origin of ['https://og.opervixgroup.com','https://z64hid4a52.preview.c39.airoapp.ai'])assert.equal((await originsHTTP.POST(new Request(origin+'/api/platform/client-learning',{method:'POST',headers:{origin},body:JSON.stringify({clientId:id,paused:false,evidence:'Synthetic exact approved-origin control'})}))).status,200);
+for(const origin of ['https://og.opervixgroup.com.evil.test','https://evil.test','null'])assert.equal((await originsHTTP.POST(new Request('https://og.opervixgroup.com/api/platform/client-learning',{method:'POST',headers:{origin},body:JSON.stringify({clientId:id,paused:true,evidence:'Must be rejected'})}))).status,403);
 const denied=learningStatusHTTP({authenticate:async()=>null,isCEO:async()=>false,read:async()=>{throw Error('must not read');}});
 assert.equal((await denied.GET(new Request('https://example.test'))).status,403);
 async function cycleTest({uncertain=false,badQuote=false}={}){
