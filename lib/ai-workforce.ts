@@ -193,8 +193,8 @@ export const staff:StaffProfile[]=[
  {
   "id": "security",
   "name": "Rafael Cabrera",
-  "role": "AI Security & Privacy Analyst",
-  "office": "risk",
+  "role": "AI Cyber Security & Privacy Lead",
+  "office": "cybersecurity",
   "reportsTo": "cto",
   "executive": false,
   "human": false
@@ -308,7 +308,9 @@ export const staff:StaffProfile[]=[
   "human": false
 }
 ];
-export const offices=[['ceo','CEO Office'],['secretary','Executive Secretariat'],['operations','Operations'],['technology','Technology & Product'],['sales','Strategy, Sales & Marketing'],['clients','Client Experience'],['finance','Finance & Accounting'],['legal','Legal & Compliance'],['risk','Risk, Security & Privacy'],['people','AI Resources & Capacity'],['audit','Audit Evidence']];
+export const offices=[['ceo','CEO Office'],['secretary','Executive Secretariat'],['operations','Operations'],['technology','Technology & Product'],['sales','Strategy, Sales & Marketing'],['clients','Client Experience'],['finance','Finance & Accounting'],['legal','Legal & Compliance'],['risk','Risk & Safety Validation'],['cybersecurity','Cyber Security'],['people','AI Resources & Capacity'],['audit','Audit Evidence']];
 export type Activity={agentId?:string;office:string;status:string};
 export function supervisor(person:StaffProfile){return staff.find(p=>p.id===person.reportsTo);}
 export function individualWorking(person:StaffProfile,runs:Activity[],fresh:boolean){return !person.human&&fresh&&runs.some(r=>r.agentId===person.id&&r.office===person.office&&r.status==='Working');}
+
+export const cyberSecurityMandate={title:'Cyber Security Department',ownerRoleId:'security',responsibilities:['Company identity and access','Client and desk isolation','Secrets and session protection','Threat review and incident response','Secure development and recovery evidence'],boundary:'Risk accepts risk; Legal reviews authority and privacy; Audit verifies evidence. This department profile creates no access, deployed controls or autonomous execution.'};
