@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import ts from 'typescript';
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+const dir=new URL('./.client-campus-runtime/',import.meta.url);await fs.mkdir(dir,{recursive:true});
+const options={compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}};
+const registry=await fs.readFile(new URL('../lib/client-campus.ts',import.meta.url),'utf8');
+await fs.writeFile(new URL('registry.mjs',dir),ts.transpileModule(registry,options).outputText);
+const rolesSource=await fs.readFile(new URL('../lib/client-campus-roles.ts',import.meta.url),'utf8');
+await fs.writeFile(new URL('roles.mjs',dir),ts.transpileModule(rolesSource,options).outputText);
+const source=await fs.readFile(new URL('../app/platform/headquarters/client-campus/workspace.tsx',import.meta.url),'utf8');
+await fs.writeFile(new URL('workspace.mjs',dir),ts.transpileModule(source,options).outputText.replace("'@/lib/client-campus'","'./registry.mjs'").replace("'@/lib/client-campus-roles'","'./roles.mjs'"));
+const {clientCampus,learningSteps}=await import(new URL('registry.mjs',dir));
+const {default:Campus}=await import(new URL('workspace.mjs',dir));
+const {campusRoles,deskPolicies,prepareCampusTask}=await import(new URL('roles.mjs',dir));
+assert.equal(campusRoles.length,9);assert.equal(new Set(campusRoles.map(r=>r.id)).size,9);
+assert.equal(campusRoles.filter(r=>r.desk==='devonshire-hoa').length,4);
+assert.equal(campusRoles.filter(r=>r.desk==='devonshire-leasing').length,5);
+assert.match(deskPolicies['devonshire-hoa'].boundary,/common areas only/);
+assert.match(deskPolicies['devonshire-leasing'].boundary,/Never label tenants as homeowners/);
+assert.equal(prepareCampusTask({roleId:'hoa-community-manager',objective:'Synthetic task',sourceReference:'Synthetic source'}).status,'Clarification required');
+assert.throws(()=>prepareCampusTask({desk:'devonshire-leasing',roleId:'hoa-community-manager',objective:'Synthetic task',sourceReference:'Synthetic source'}),/Cross-entity routing/);
+for(const role of campusRoles){
+ const result=prepareCampusTask({desk:role.desk,roleId:role.id,objective:'Prepare a synthetic review checklist',sourceReference:'Synthetic approved procedure reference'});
+ assert.equal(result.status,'Draft — not queued');assert.ok(result.text.includes(role.name));assert.ok(result.text.includes('verification pending'));assert.ok(result.text.includes('No sending, CRM/accounting writes'));assert.ok(result.text.includes('does not submit a task or activate daily learning'));
+ assert.throws(()=>prepareCampusTask({desk:role.desk,roleId:role.id,objective:'',sourceReference:'source'}),/bounded objective/);
+}
+assert.equal(clientCampus.desks.length,2);assert.equal(new Set(clientCampus.desks.map(d=>d.id)).size,2);
+assert.notDeepEqual(clientCampus.desks[0].departments,clientCampus.desks[1].departments);
+for(const desk of clientCampus.desks){assert.equal(desk.departments.length,4);for(const department of desk.departments){assert.ok(department.workflow.length>40);assert.ok(department.evidence.length>40);}}
+assert.equal(learningSteps.length,5);
+const html=renderToStaticMarkup(React.createElement(Campus));
+for(const text of [clientCampus.name,clientCampus.office,...clientCampus.desks.map(d=>d.name),'Daily learning is not connected','Required evidence','Every learning record needs','Back to corporate campus'])assert.ok(html.includes(text),text);
+for(const role of campusRoles.filter(r=>r.desk==='devonshire-leasing'))assert.ok(html.includes(role.name.replaceAll('&','&amp;')),role.name);
+assert.ok(html.includes('Prepare task brief'));assert.ok(html.includes('Autonomous client execution and daily learning remain disabled'));
+assert.equal((html.match(/data-role-seat=/g)||[]).length,9,'All nine client role seats must be visible across the two tables');
+for(const role of campusRoles)assert.ok(html.includes(`data-role-seat="${role.id}"`),role.id);
+assert.ok(html.includes('5 AI role profiles around this table'));assert.ok(html.includes('4 AI role profiles around this table'));
+assert.ok(html.includes('9 client AI role profiles'));assert.ok(html.includes('Role layout only; seats do not indicate active execution.'));
+assert.equal((html.match(/aria-pressed="true"/g)||[]).length,1);assert.equal((html.match(/aria-controls="client-desk-details"/g)||[]).length,2);
+assert.ok(!source.includes('localStorage'));assert.equal((source.match(/fetch\('/g)||[]).length,2);assert.equal((source.match(/fetch\('\/api\/platform\/client-learning'/g)||[]).length,2,'Only protected learning status and pause controls');assert.ok(html.includes('Learning status connection unavailable. Execution cannot be confirmed.'));assert.ok(html.includes('Completed learning reviews:'));
+const route=await fs.readFile(new URL('../app/platform/headquarters/client-campus/page.tsx',import.meta.url),'utf8');assert.ok(route.includes('platformOwner()'));assert.ok(route.includes("redirect('/login')"));
+const headquarters=await fs.readFile(new URL('../app/platform/headquarters/workforce.tsx',import.meta.url),'utf8');assert.ok(headquarters.includes('href="/platform/headquarters/client-campus"'));
+console.log('PASS client campus rendering, distinct Leasing/HOA workflow guides, authenticated route, accessible desk selection and truthful disconnected-learning state. No client reads or writes.');

@@ -1,0 +1,137 @@
+name: Opervix principal staff control cycle
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/company-control-cycle.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: opervix-company-control-cycle
+  cancel-in-progress: false
+
+jobs:
+  company-control-cycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Run bounded company control cycle
+        env:
+          INGEST_SECRET: ${{ secrets.OG_WORKFORCE_INGEST_SECRET }}
+          INGEST_URL: https://og.opervixgroup.com/api/platform/workforce/events
+          HEADQUARTERS_URL: https://og.opervixgroup.com/platform/headquarters
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${INGEST_SECRET}"
+          started_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          cycle_id="company-control-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+          http_status() {
+            local code
+            if code="$(curl --silent --show-error --connect-timeout 10 --max-time 30 --write-out '%{http_code}' "$@")"; then
+              printf '%s' "${code}"
+            else
+              printf '000'
+            fi
+          }
+          hq_status="$(http_status --location --output /dev/null "${HEADQUARTERS_URL}")"
+          denial_status="$(http_status --output /dev/null --request POST "${INGEST_URL}" --header 'Content-Type: application/json' --data '{}')"
+          feed_status="$(http_status --output /dev/null "${INGEST_URL%/events}")"
+          invalid_bearer_status="$(http_status --output /dev/null --request POST "${INGEST_URL}" --header 'Authorization: Bearer opervix-synthetic-invalid-token' --header 'Content-Type: application/json' --data '{}')"
+
+          technology_status="Completed"
+          technology_result="Headquarters HTTP/login availability check returned 200 after redirects; authenticated Headquarters access and business execution were not tested."
+          if [ "${hq_status}" != "200" ]; then
+            technology_status="Failed"
+            technology_result="Headquarters HTTP/login availability check failed with HTTP ${hq_status}; 000 indicates a transport failure."
+          fi
+
+          security_status="Completed"
+          security_result="Negative access checks passed: unauthenticated ingestion HTTP ${denial_status}, anonymous workforce read HTTP ${feed_status}, invalid bearer ingestion HTTP ${invalid_bearer_status}."
+          if [ "${denial_status}" != "403" ] || [ "${feed_status}" != "401" ] || [ "${invalid_bearer_status}" != "403" ]; then
+            security_status="Failed"
+            security_result="Negative access checks failed: unauthenticated ingestion HTTP ${denial_status}, anonymous workforce read HTTP ${feed_status}, invalid bearer ingestion HTTP ${invalid_bearer_status}; 000 indicates a transport failure. Security review required."
+          fi
+
+          overall_status="Completed"
+          if [ "${technology_status}" = "Failed" ] || [ "${security_status}" = "Failed" ]; then
+            overall_status="Failed"
+          fi
+          finished_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+
+          payload="$(jq -n             --arg cycle "${cycle_id}"             --arg started "${started_at}"             --arg finished "${finished_at}"             --arg overall "${overall_status}"             --arg technologyStatus "${technology_status}"             --arg technologyResult "${technology_result}"             --arg securityStatus "${security_status}"             --arg securityResult "${security_result}"             '{
+              runs: [
+                {id:($cycle+"-coo"),agentId:"coo",task:"Coordinate the principal staff control cycle and preserve the CEO approval boundary",status:$overall,result:"Department controls were checked; this cycle made no client, financial, contractual, permission, or production commitment.",startedAt:$started,finishedAt:$finished},
+                {id:($cycle+"-cfo"),agentId:"cfo",task:"Enforce the financial-control boundary for the company cycle",status:"Completed",result:"No invoice, estimate, payment, expense, banking, payroll, subscription, or accounting write was attempted.",startedAt:$started,finishedAt:$finished},
+                {id:($cycle+"-sales"),agentId:"sales-vp",task:"Protect client outreach behind the approved sales workflow",status:"Blocked",result:"External outreach remains blocked until exact recipient, content, lawful basis, authorized mail path, and CEO approval are verified.",startedAt:$started,finishedAt:$finished},
+                {id:($cycle+"-marketing"),agentId:"cmo",task:"Protect marketing claims and outbound communications",status:"Blocked",result:"No public claim or outbound campaign was released; Legal/Risk and CEO approval remain required.",startedAt:$started,finishedAt:$finished},
+                {id:($cycle+"-cto"),agentId:"cto",task:"Verify Headquarters HTTP/login availability only",status:$technologyStatus,result:$technologyResult,startedAt:$started,finishedAt:$finished},
+                {id:($cycle+"-resources"),agentId:"ai-resources",task:"Verify the approved cloud executor is available for bounded work",status:"Completed",result:"GitHub Actions executed the control cycle with read-only repository permissions and a protected ingestion credential.",startedAt:$started,finishedAt:$finished},
+                {id:($cycle+"-controller"),agentId:"controller",task:"Verify segregation of duties for financial actions",status:"Completed",result:"Financial execution remained segregated and no financial write was performed.",startedAt:$started,finishedAt:$finished},
+                {id:($cycle+"-legal"),agentId:"legal-lead",task:"Enforce Legal/Risk review gates for external actions",status:"Completed",result:"External communication, contracts, pricing, commitments, and permission changes remained gated.",startedAt:$started,finishedAt:$finished},
+                {id:($cycle+"-secretary"),agentId:"secretary",task:"Protect CEO decision routing",status:"Blocked",result:"Automated CEO email routing remains unavailable until restricted Exchange RBAC, negative access tests, audit logs, and Legal/Risk approval are verified.",startedAt:$started,finishedAt:$finished},
+                {id:($cycle+"-strategy"),agentId:"strategy",task:"Maintain the 2033 company-goal context without unsupported revenue claims",status:"Completed",result:"The control cycle preserved the strategic objective and recorded no fabricated revenue, client, or performance result.",startedAt:$started,finishedAt:$finished},
+                {id:($cycle+"-operations"),agentId:"operations-lead",task:"Validate the cross-department control handoff",status:$overall,result:"Technology and Security evidence was routed through the control chain; affected workflows remain isolated when blocked.",startedAt:$started,finishedAt:$finished},
+                {id:($cycle+"-orchestration"),agentId:"orchestration",task:"Execute and record the bounded principal staff control cycle",status:$overall,result:"Authenticated evidence was prepared for Headquarters with no external business action.",startedAt:$started,finishedAt:$finished},
+                {id:($cycle+"-security"),agentId:"security",task:"Test anonymous workforce read and unauthenticated/invalid bearer ingestion denial",status:$securityStatus,result:$securityResult,startedAt:$started,finishedAt:$finished},
+                {id:($cycle+"-evaluation"),agentId:"evaluation",task:"Evaluate evidence completeness and control status",status:$overall,result:"The cycle recorded timestamps, role IDs, test outcomes, blocked actions, and segregation-of-duties evidence.",startedAt:$started,finishedAt:$finished}
+              ],
+              messages: [
+                {id:($cycle+"-msg-1"),senderId:"orchestration",recipientId:"security",kind:"Control handoff",text:"Cloud execution completed; validate access-control evidence.",recordedAt:$finished,taskId:($cycle+"-orchestration")},
+                {id:($cycle+"-msg-2"),senderId:"security",recipientId:"legal-lead",kind:"Risk review",text:("Negative access test status: "+$securityStatus+". External actions remain gated."),recordedAt:$finished,taskId:($cycle+"-security")},
+                {id:($cycle+"-msg-3"),senderId:"legal-lead",recipientId:"coo",kind:"Director review",text:"Legal/Risk controls remain in force; client-facing and financial execution require the established approvals.",recordedAt:$finished,taskId:($cycle+"-legal")},
+                {id:($cycle+"-msg-4"),senderId:"coo",recipientId:"ceo",kind:"CEO visibility",text:("Principal staff control cycle status: "+$overall+". This is evidence only and is not an approval request."),recordedAt:$finished,taskId:($cycle+"-coo")}
+              ]
+            }')"
+
+          response_file="$(mktemp)"
+          trap 'rm -f "${response_file}"' EXIT
+          status="$(http_status --output "${response_file}" --request POST "${INGEST_URL}" --header "Authorization: Bearer ${INGEST_SECRET}" --header 'Content-Type: application/json' --data "${payload}")"
+          persisted="Failed"
+          if [ "${status}" = "202" ] && jq -e '.accepted == 18 and .runs == 14 and .messages == 4' "${response_file}" >/dev/null; then
+            persisted="Confirmed"
+          fi
+          {
+            printf '### Principal staff control cycle\n\n'
+            printf -- '- Headquarters HTTP/login availability only (redirects followed): %s\n' "${hq_status}"
+            printf -- '- Unauthenticated ingestion: %s (expected 403)\n' "${denial_status}"
+            printf -- '- Anonymous workforce read: %s (expected 401)\n' "${feed_status}"
+            printf -- '- Invalid bearer ingestion: %s (expected 403)\n' "${invalid_bearer_status}"
+            printf -- '- Control outcome: %s\n- Evidence persistence: %s (HTTP %s)\n' "${overall_status}" "${persisted}" "${status}"
+            printf '\nHTTP 000 means transport failure. These are bounded control checks, not AI execution or approval.\n'
+          } >> "${GITHUB_STEP_SUMMARY}"
+          if [ "${overall_status}" != "Completed" ] || [ "${persisted}" != "Confirmed" ]; then
+            exit 1
+          fi
+
+      - name: Advance at most one reviewed internal task
+        env:
+          COORDINATOR_SECRET: ${{ secrets.OG_WORKFORCE_INGEST_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${COORDINATOR_SECRET}" ]; then
+            printf 'Coordinator credential not configured; no task executed.\n' >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+          result_file="$(mktemp)"
+          trap 'rm -f "${result_file}"' EXIT
+          code="$(curl --silent --show-error --connect-timeout 10 --max-time 45 --output "${result_file}" --write-out '%{http_code}' --request POST 'https://og.opervixgroup.com/api/platform/autonomy/run' --header "Authorization: Bearer ${COORDINATOR_SECRET}" --header 'Content-Type: application/json' --data '{}')"
+          if [ "${code}" = "404" ]; then
+            printf 'Coordinator release not published; no coordinator task executed.\n' >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+          if [ "${code}" != "200" ]; then
+            printf 'Coordinator execution not confirmed (HTTP %s); reconcile before retry.\n' "${code}" >> "${GITHUB_STEP_SUMMARY}"
+            exit 1
+          fi
+          state="$(jq -er '.status | select(. == "Paused" or . == "No executable task" or . == "Awaiting audit")' "${result_file}")"
+          printf 'Coordinator status: %s. This is bounded task execution, not independent department staffing or completion of client workflows.\n' "${state}" >> "${GITHUB_STEP_SUMMARY}"

@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {recoveryHTTP} from '../lib/mail-cycle-recovery-http.mjs';
+let calls=0;
+const api=recoveryHTTP({authenticate:async r=>r.headers.get('x-fixture-actor')==='ceo'?{authId:'fixture-ceo'}:null,isCEO:a=>a.authId==='fixture-ceo',origin:'https://fixture.example',service:{preview:async()=>{calls++;return {paused:true};},reconcile:async()=>{calls++;throw Error('Synthetic unknown commit outcome');}}});
+const make=(method,headers={},body)=>new Request('https://fixture.example/api/recovery',{method,headers,...(body?{body}:{} )});
+assert.equal((await api.GET(make('GET'))).status,403);
+assert.equal((await api.POST(make('POST',{},'{}'))).status,403);assert.equal(calls,0);
+const h={'x-fixture-actor':'ceo','content-type':'application/json',origin:'https://fixture.example'};
+assert.equal((await api.POST(make('POST',{...h,origin:'https://evil.example'},'{}'))).status,403);
+assert.equal((await api.GET(make('GET',h))).headers.get('cache-control'),'private, no-store');
+assert.equal((await api.POST(make('POST',h,'x'.repeat(2001)))).status,409);
+assert.equal((await api.POST(make('POST',h,'{}'))).status,409);
+assert.equal(calls,2,'No automatic retry after an unconfirmed write');
+console.log('PASS CEO-only recovery HTTP, cross-origin denial, private responses, bounded input and no automatic retry. Synthetic only.');

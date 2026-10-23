@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {nextScheduledSlot,countdownText} from '../lib/hq-schedule.mjs';
+const next=(iso,cadence=60)=>new Date(nextScheduledSlot(Date.parse(iso),cadence)).toISOString();
+assert.equal(next('2026-10-21T13:10:00Z'),'2026-10-21T14:00:00.000Z');
+assert.equal(next('2026-10-21T13:10:00Z',30),'2026-10-21T13:30:00.000Z');
+assert.equal(next('2026-10-21T21:10:00Z'),'2026-10-22T13:00:00.000Z');
+assert.equal(next('2026-10-21T21:10:00Z',30),'2026-10-21T21:30:00.000Z');
+assert.equal(next('2026-10-21T21:30:00Z',30),'2026-10-22T13:00:00.000Z');
+assert.equal(next('2026-10-23T21:30:00Z'),'2026-10-26T13:00:00.000Z');
+assert.equal(next('2026-10-30T21:30:00Z'),'2026-11-02T14:00:00.000Z');
+assert.equal(next('2026-03-06T22:30:00Z'),'2026-03-09T13:00:00.000Z');
+assert.equal(next('2026-10-21T12:59:59Z'),'2026-10-21T13:00:00.000Z');
+assert.equal(nextScheduledSlot(NaN),null);
+assert.equal(countdownText(3661000),'01:01:01');
+assert.equal(countdownText(1001),'00:00:02');
+assert.equal(countdownText(-1),'00:00:00');
+assert.equal(countdownText(NaN),'—');
+console.log('14 headquarters schedule assertions passed (weekday boundaries, half-hour checks, weekends, both DST transitions and countdown formatting).');

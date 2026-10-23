@@ -5,7 +5,7 @@ import {prepareModels} from './prepare-models.mjs';
 const root=new URL('./.mock-runtime/owner-run-server/',import.meta.url);
 process.env.OG_APP_URL='https://og.example.test';
 await prepareModels(root,['record-patch','seed','month-close','workflow-controls','owner-run-policy','owner-run','access-policy','audit-center']);
-let request=stripTypeScriptTypes(await readFile(new URL('../lib/server/request.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'@/lib/access-policy'","'./access-policy.mjs'");
+let request=stripTypeScriptTypes(await readFile(new URL('../lib/server/request.ts',import.meta.url),'utf8'),{mode:'transform'}).replace("'@/lib/access-policy'","'./access-policy.mjs'").replace("'../app-origin.mjs'",JSON.stringify(new URL('../lib/app-origin.mjs',import.meta.url).href));
 await writeFile(new URL('request.mjs',root),request);
 await writeFile(new URL('auth.mjs',root),"let user=null;export function setup(v){user=v;}export async function getChatGPTUser(){return user;}");
 await writeFile(new URL('storage.mjs',root),"import {validate} from './pool.mjs';let old;export let saves=0;export function setup(data){old=structuredClone(data);saves=0;}export async function load(){return {data:structuredClone(old),revision:1};}export async function save(user,revision,operation,data){validate(old,data);saves++;return {data,revision:2};}");
